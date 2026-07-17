@@ -1,0 +1,417 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Calendar{% endblock %}
+{% block page_subtitle %}Company activity, deadlines, financial dates and assigned work in one connected calendar.{% endblock %}
+
+{% block extra_head %}
+  {% include "partials/_crm_design_system.html" %}
+  <style>
+    .calendar-page {
+      --cal-manual: var(--nj-blue);
+      --cal-notification: var(--nj-violet);
+      --cal-payment: var(--nj-success);
+      --cal-invoice: var(--nj-danger);
+      --cal-estimate: #16a7df;
+      --cal-project: #a06a18;
+      --cal-inspection: #e77b12;
+      overflow: hidden;
+    }
+
+    .calendar-hero {
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 20px;
+      padding: 20px;
+      background:
+        radial-gradient(circle at 0 0, rgba(22,133,243,.17), transparent 33%),
+        linear-gradient(135deg, #fff 0%, #f5f9ff 100%);
+    }
+
+    .calendar-hero::after {
+      content: "";
+      position: absolute;
+      right: -52px;
+      top: -70px;
+      width: 190px;
+      height: 190px;
+      border-radius: 50%;
+      background: rgba(8,104,232,.07);
+      pointer-events: none;
+    }
+
+    .calendar-hero-copy,
+    .calendar-hero-actions { position: relative; z-index: 1; }
+
+    .calendar-hero-copy { display: grid; gap: 7px; }
+    .calendar-hero-title-row { display: flex; align-items: center; gap: 13px; }
+    .calendar-hero-title-row .nj-icon-box { width: 48px; height: 48px; flex-basis: 48px; }
+    .calendar-hero h2 { margin: 0; color: var(--nj-ink); font-size: clamp(28px, 3vw, 40px); font-weight: 950; letter-spacing: -.045em; }
+    .calendar-hero p { max-width: 820px; margin: 0; color: var(--nj-muted); font-size: 13px; font-weight: 650; line-height: 1.55; }
+
+    .calendar-hero-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
+    .calendar-month-nav { display: inline-flex; align-items: center; gap: 6px; padding: 5px; border: 1px solid var(--nj-line); border-radius: 14px; background: rgba(255,255,255,.94); box-shadow: var(--nj-shadow-soft); }
+    .calendar-month-nav .nj-icon-btn { width: 36px; height: 36px; flex-basis: 36px; border-radius: 10px; }
+    .calendar-month-nav-label { min-width: 108px; color: var(--nj-ink); font-size: 12px; font-weight: 900; text-align: center; }
+
+    .calendar-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 11px; }
+    .calendar-stat { position: relative; overflow: hidden; display: flex; align-items: center; gap: 12px; min-height: 92px; padding: 15px; }
+    .calendar-stat::after { content: ""; position: absolute; right: -28px; bottom: -42px; width: 104px; height: 104px; border-radius: 50%; background: rgba(8,104,232,.045); }
+    .calendar-stat > * { position: relative; z-index: 1; }
+    .calendar-stat-copy { display: grid; gap: 3px; min-width: 0; }
+    .calendar-stat-copy span { color: var(--nj-muted); font-size: 10px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
+    .calendar-stat-copy strong { color: var(--nj-ink); font-size: 27px; font-weight: 950; line-height: 1; }
+    .calendar-stat-copy small { overflow: hidden; color: var(--nj-muted); font-size: 10px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+
+    .calendar-toolbar { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(190px, .38fr) auto; align-items: end; gap: 11px; padding: 15px; }
+    .calendar-toolbar-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
+    .calendar-toolbar .nj-btn { min-height: 40px; }
+
+    .calendar-card { overflow: hidden; }
+    .calendar-scroll { width: 100%; overflow-x: auto; }
+    .calendar-inner { min-width: 900px; }
+    .calendar-week-head,
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+    .calendar-week-head { border-bottom: 1px solid var(--nj-line); background: linear-gradient(180deg, #fbfdff, #f3f8fe); }
+    .calendar-week-day { padding: 11px 8px; border-right: 1px solid #e3ebf5; color: #52617e; font-size: 10px; font-weight: 900; letter-spacing: .075em; text-align: center; text-transform: uppercase; }
+    .calendar-week-day:last-child { border-right: 0; }
+
+    .calendar-day { min-height: 142px; display: flex; flex-direction: column; gap: 7px; padding: 9px; border-right: 1px solid #e8eef5; border-bottom: 1px solid #e8eef5; background: #fff; }
+    .calendar-day:nth-child(7n) { border-right: 0; }
+    .calendar-day.is-other { background: #f8fafc; }
+    .calendar-day.is-today { background: linear-gradient(180deg, rgba(8,104,232,.08), #fff 46%); box-shadow: inset 0 3px 0 var(--nj-blue); }
+    .calendar-day-head { display: flex; align-items: center; justify-content: space-between; gap: 7px; }
+    .calendar-day-number { width: 27px; height: 27px; display: grid; place-items: center; border-radius: 9px; color: var(--nj-ink); font-size: 12px; font-weight: 950; }
+    .calendar-day.is-today .calendar-day-number { background: var(--nj-blue); color: #fff; box-shadow: 0 6px 14px rgba(8,104,232,.22); }
+    .calendar-day-count { min-width: 22px; height: 22px; display: grid; place-items: center; padding: 0 6px; border-radius: 999px; background: var(--nj-neutral-soft); color: var(--nj-muted); font-size: 9px; font-weight: 900; }
+
+    .calendar-event-stack { display: grid; gap: 5px; min-width: 0; }
+    .calendar-event-chip { --event-color: var(--cal-manual); width: 100%; min-width: 0; display: grid; gap: 2px; padding: 7px 8px 7px 10px; overflow: hidden; border: 1px solid color-mix(in srgb, var(--event-color) 18%, var(--nj-line)); border-left: 3px solid var(--event-color); border-radius: 9px; background: color-mix(in srgb, var(--event-color) 7%, #fff); color: var(--nj-ink); text-align: left; cursor: pointer; transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease; }
+    .calendar-event-chip:hover { transform: translateY(-1px); border-color: color-mix(in srgb, var(--event-color) 36%, var(--nj-line)); box-shadow: 0 8px 16px color-mix(in srgb, var(--event-color) 11%, transparent); }
+    .calendar-event-chip.type_notification { --event-color: var(--cal-notification); }
+    .calendar-event-chip.type_payment { --event-color: var(--cal-payment); }
+    .calendar-event-chip.type_invoice { --event-color: var(--cal-invoice); }
+    .calendar-event-chip.type_estimate { --event-color: var(--cal-estimate); }
+    .calendar-event-chip.type_project { --event-color: var(--cal-project); }
+    .calendar-event-chip.type_inspection { --event-color: var(--cal-inspection); }
+    .calendar-event-chip.is-high { box-shadow: inset 0 0 0 1px rgba(239,51,64,.12); }
+    .calendar-event-title,
+    .calendar-event-meta { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .calendar-event-title { font-size: 10.5px; font-weight: 900; line-height: 1.25; }
+    .calendar-event-meta { color: var(--nj-muted); font-size: 9px; font-weight: 750; }
+    .calendar-more { padding: 2px 4px; color: var(--nj-blue); font-size: 9.5px; font-weight: 900; }
+
+    .calendar-lower { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(300px, .6fr); gap: 14px; align-items: start; }
+    .calendar-agenda-list { display: grid; gap: 8px; max-height: 470px; padding: 14px; overflow-y: auto; }
+    .calendar-agenda-item { width: 100%; display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; align-items: center; gap: 11px; padding: 10px; border: 1px solid var(--nj-line); border-radius: 13px; background: #fff; text-align: left; cursor: pointer; transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
+    .calendar-agenda-item:hover { transform: translateY(-1px); border-color: rgba(8,104,232,.28); box-shadow: var(--nj-shadow-soft); }
+    .calendar-agenda-date { width: 48px; height: 48px; display: grid; place-content: center; border-radius: 12px; background: var(--nj-ice); color: var(--nj-blue); text-align: center; }
+    .calendar-agenda-date strong { font-size: 17px; line-height: 1; }
+    .calendar-agenda-date span { margin-top: 3px; font-size: 8px; font-weight: 900; letter-spacing: .07em; text-transform: uppercase; }
+    .calendar-agenda-copy { min-width: 0; }
+    .calendar-agenda-copy strong,
+    .calendar-agenda-copy span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .calendar-agenda-copy strong { color: var(--nj-ink); font-size: 12px; font-weight: 900; }
+    .calendar-agenda-copy span { margin-top: 3px; color: var(--nj-muted); font-size: 10px; font-weight: 650; }
+    .calendar-agenda-badges { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 5px; }
+
+    .calendar-guide { display: grid; gap: 10px; padding: 15px; }
+    .calendar-guide-step { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 10px; align-items: start; padding: 11px; border: 1px solid var(--nj-line); border-radius: 13px; background: linear-gradient(180deg, #fff, #fbfdff); }
+    .calendar-guide-step > span { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px; background: var(--nj-ice); color: var(--nj-blue); font-size: 12px; font-weight: 950; }
+    .calendar-guide-step strong { display: block; color: var(--nj-ink); font-size: 11.5px; font-weight: 900; }
+    .calendar-guide-step small { display: block; margin-top: 3px; color: var(--nj-muted); font-size: 10px; font-weight: 650; line-height: 1.45; }
+
+    .calendar-modal[hidden] { display: none; }
+    .calendar-modal { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; padding: 18px; }
+    .calendar-modal-backdrop { position: absolute; inset: 0; border: 0; background: rgba(7,19,61,.54); backdrop-filter: blur(5px); cursor: pointer; }
+    .calendar-modal-dialog { position: relative; z-index: 1; width: min(620px, 100%); max-height: calc(100vh - 36px); overflow-y: auto; border: 1px solid rgba(255,255,255,.5); border-radius: 20px; background: #fff; box-shadow: 0 30px 80px rgba(7,19,61,.28); }
+    .calendar-modal-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 18px; border-bottom: 1px solid var(--nj-line); background: linear-gradient(135deg, var(--nj-ice), #fff); }
+    .calendar-modal-kicker { color: var(--nj-blue); font-size: 10px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+    .calendar-modal-title { margin: 5px 0 0; color: var(--nj-ink); font-size: 22px; font-weight: 950; line-height: 1.18; letter-spacing: -.025em; overflow-wrap: anywhere; }
+    .calendar-modal-close { width: 36px; height: 36px; display: grid; place-items: center; flex: 0 0 36px; border: 1px solid var(--nj-line); border-radius: 11px; background: #fff; color: var(--nj-navy); cursor: pointer; }
+    .calendar-modal-body { display: grid; gap: 13px; padding: 18px; }
+    .calendar-modal-summary { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
+    .calendar-modal-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .calendar-modal-field { min-width: 0; display: grid; gap: 4px; padding: 11px; border: 1px solid var(--nj-line); border-radius: 12px; background: #fbfdff; }
+    .calendar-modal-field.is-full { grid-column: 1 / -1; }
+    .calendar-modal-field span { color: var(--nj-muted); font-size: 9px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
+    .calendar-modal-field strong { color: var(--nj-ink); font-size: 12px; font-weight: 800; line-height: 1.45; overflow-wrap: anywhere; white-space: pre-line; }
+    .calendar-modal-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; padding-top: 2px; }
+
+    @media (max-width: 1120px) {
+      .calendar-hero { grid-template-columns: 1fr; }
+      .calendar-hero-actions { justify-content: flex-start; }
+      .calendar-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .calendar-lower { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 760px) {
+      .calendar-toolbar { grid-template-columns: 1fr; }
+      .calendar-toolbar-actions, .calendar-toolbar-actions .nj-btn { width: 100%; }
+      .calendar-stats { grid-template-columns: 1fr; }
+      .calendar-hero { padding: 16px; }
+      .calendar-hero-actions, .calendar-month-nav { width: 100%; }
+      .calendar-month-nav { justify-content: space-between; }
+      .calendar-agenda-item { grid-template-columns: 44px minmax(0, 1fr); }
+      .calendar-agenda-badges { grid-column: 1 / -1; justify-content: flex-start; padding-left: 55px; }
+      .calendar-modal-grid { grid-template-columns: 1fr; }
+      .calendar-modal-field.is-full { grid-column: auto; }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+<section class="nj-invoice nj-page calendar-page">
+  <header class="nj-card calendar-hero">
+    <div class="calendar-hero-copy">
+      <div class="calendar-hero-title-row">
+        <span class="nj-icon-box"><i class="bi bi-calendar3"></i></span>
+        <div>
+          <span class="nj-page-kicker"><i class="bi bi-diagram-3"></i> Connected activity</span>
+          <h2>{{ month_label }}</h2>
+        </div>
+      </div>
+      <p>
+        Review appointments, tasks, projects, inspections, estimates, invoices, payments and personal notifications.
+        Select any item to see its complete information without leaving the calendar.
+      </p>
+    </div>
+
+    <div class="calendar-hero-actions">
+      <div class="calendar-month-nav" aria-label="Calendar month navigation">
+        <a class="nj-icon-btn is-neutral" data-tooltip="Previous month" href="?year={{ navigation.previous_year }}&month={{ navigation.previous_month }}{% if q %}&q={{ q|urlencode }}{% endif %}{% if event_type_filter %}&type={{ event_type_filter|urlencode }}{% endif %}">
+          <i class="bi bi-chevron-left"></i>
+        </a>
+        <span class="calendar-month-nav-label">{{ month_label }}</span>
+        <a class="nj-icon-btn is-neutral" data-tooltip="Next month" href="?year={{ navigation.next_year }}&month={{ navigation.next_month }}{% if q %}&q={{ q|urlencode }}{% endif %}{% if event_type_filter %}&type={{ event_type_filter|urlencode }}{% endif %}">
+          <i class="bi bi-chevron-right"></i>
+        </a>
+      </div>
+
+      <a class="nj-btn nj-btn-secondary" href="./"><i class="bi bi-calendar-check"></i> Today</a>
+      {% if can_create_calendar_events %}
+        <a class="nj-btn" href="create/"><i class="bi bi-plus-lg"></i> Create event</a>
+      {% endif %}
+    </div>
+  </header>
+
+  <section class="calendar-stats" aria-label="Calendar summary">
+    <article class="nj-card calendar-stat">
+      <span class="nj-icon-box"><i class="bi bi-calendar2-week"></i></span>
+      <div class="calendar-stat-copy"><span>Total items</span><strong>{{ total_events }}</strong><small>Visible this month</small></div>
+    </article>
+    <article class="nj-card calendar-stat">
+      <span class="nj-icon-box is-violet"><i class="bi bi-bell"></i></span>
+      <div class="calendar-stat-copy"><span>Notifications</span><strong>{{ notification_events_count }}</strong><small>Assigned to your user</small></div>
+    </article>
+    <article class="nj-card calendar-stat">
+      <span class="nj-icon-box is-success"><i class="bi bi-cash-stack"></i></span>
+      <div class="calendar-stat-copy"><span>Finance dates</span><strong>{{ finance_events_count }}</strong><small>Estimates invoices and payments</small></div>
+    </article>
+    <article class="nj-card calendar-stat">
+      <span class="nj-icon-box is-danger"><i class="bi bi-exclamation-triangle"></i></span>
+      <div class="calendar-stat-copy"><span>High priority</span><strong>{{ high_priority_events_count }}</strong><small>Items requiring attention</small></div>
+    </article>
+  </section>
+
+  <form class="nj-card calendar-toolbar" method="get">
+    <input type="hidden" name="year" value="{{ year }}">
+    <input type="hidden" name="month" value="{{ month }}">
+
+    <label class="nj-field">
+      <span class="nj-label">Search activity</span>
+      <input class="crm_input" type="search" name="q" value="{{ q }}" placeholder="Search title status project client invoice or payment">
+    </label>
+
+    <label class="nj-field">
+      <span class="nj-label">Activity type</span>
+      <select class="crm_input" name="type">
+        <option value="">All calendar items</option>
+        {% for value, label in event_type_choices %}
+          <option value="{{ value }}" {% if event_type_filter == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+
+    <div class="calendar-toolbar-actions">
+      <button class="nj-btn" type="submit"><i class="bi bi-funnel"></i> Apply filters</button>
+      {% if has_active_filters %}
+        <a class="nj-btn nj-btn-secondary" href="?year={{ year }}&month={{ month }}"><i class="bi bi-x-lg"></i> Clear</a>
+      {% endif %}
+    </div>
+  </form>
+
+  <section class="nj-card calendar-card" aria-label="Monthly calendar">
+    <div class="calendar-scroll">
+      <div class="calendar-inner">
+        <div class="calendar-week-head">
+          {% for day_label in week_days %}<div class="calendar-week-day">{{ day_label }}</div>{% endfor %}
+        </div>
+
+        <div class="calendar-grid">
+          {% for week in calendar_weeks %}
+            {% for day in week %}
+              <article class="calendar-day {% if not day.is_current_month %}is-other{% endif %} {% if day.is_today %}is-today{% endif %}">
+                <div class="calendar-day-head">
+                  <span class="calendar-day-number">{{ day.day_number }}</span>
+                  {% if day.item_count %}<span class="calendar-day-count">{{ day.item_count }}</span>{% endif %}
+                </div>
+
+                <div class="calendar-event-stack">
+                  {% for item in day.visible_items %}
+                    <button
+                      class="calendar-event-chip type_{{ item.event_type }} {% if item.priority == 'high' or item.priority == 'urgent' %}is-high{% endif %}"
+                      type="button"
+                      data-calendar-item="{{ item.uid }}"
+                      aria-label="View {{ item.title }} details"
+                    >
+                      <span class="calendar-event-title">{% if item.time %}{{ item.time|time:"H:i" }} · {% endif %}{{ item.title }}</span>
+                      <span class="calendar-event-meta">{{ item.event_type_label }}{% if item.meta %} · {{ item.meta }}{% endif %}</span>
+                    </button>
+                  {% endfor %}
+                  {% if day.hidden_count %}<span class="calendar-more">+{{ day.hidden_count }} more in agenda</span>{% endif %}
+                </div>
+              </article>
+            {% endfor %}
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="calendar-lower">
+    <section class="nj-card">
+      <div class="nj-card-head">
+        <h2 class="nj-card-title"><i class="bi bi-list-check"></i> Monthly agenda</h2>
+        <span class="nj-badge is-blue">{{ total_events }} items</span>
+      </div>
+
+      {% if calendar_items %}
+        <div class="calendar-agenda-list">
+          {% for item in calendar_items %}
+            <button class="calendar-agenda-item" type="button" data-calendar-item="{{ item.uid }}">
+              <span class="calendar-agenda-date"><strong>{{ item.date|date:"d" }}</strong><span>{{ item.date|date:"M" }}</span></span>
+              <span class="calendar-agenda-copy">
+                <strong>{% if item.time %}{{ item.time|time:"H:i" }} · {% endif %}{{ item.title }}</strong>
+                <span>{{ item.description|default:item.meta|default:"Open to review complete information."|truncatechars:120 }}</span>
+              </span>
+              <span class="calendar-agenda-badges">
+                <span class="nj-badge is-blue">{{ item.event_type_label }}</span>
+                {% if item.priority == "high" or item.priority == "urgent" %}<span class="nj-badge is-danger">{{ item.priority }}</span>{% endif %}
+              </span>
+            </button>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="nj-empty"><i class="bi bi-calendar-x"></i><strong>No activity found</strong><span>Change the filters or create the first event for this month.</span></div>
+      {% endif %}
+    </section>
+
+    <aside class="nj-card">
+      <div class="nj-card-head"><h2 class="nj-card-title"><i class="bi bi-lightbulb"></i> How to use this calendar</h2></div>
+      <div class="calendar-guide">
+        <div class="calendar-guide-step"><span>1</span><div><strong>Select an item</strong><small>A complete summary opens with date time status priority assigned user and linked record.</small></div></div>
+        <div class="calendar-guide-step"><span>2</span><div><strong>Open the connected record</strong><small>Go directly to the project inspection estimate invoice payment client or opportunity.</small></div></div>
+        <div class="calendar-guide-step"><span>3</span><div><strong>Create manual work</strong><small>Create tasks meetings calls and reminders and connect them to any operational record.</small></div></div>
+      </div>
+    </aside>
+  </section>
+</section>
+
+{{ calendar_modal_items|json_script:"calendar-items-data" }}
+<div class="nj-invoice calendar-modal" id="CalendarItemModal" hidden aria-hidden="true">
+  <button class="calendar-modal-backdrop" type="button" data-calendar-close aria-label="Close event details"></button>
+  <section class="calendar-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="CalendarModalTitle">
+    <header class="calendar-modal-head">
+      <div><span class="calendar-modal-kicker" id="CalendarModalType">Calendar item</span><h2 class="calendar-modal-title" id="CalendarModalTitle">Event details</h2></div>
+      <button class="calendar-modal-close" type="button" data-calendar-close aria-label="Close"><i class="bi bi-x-lg"></i></button>
+    </header>
+    <div class="calendar-modal-body">
+      <div class="calendar-modal-summary"><span class="nj-badge is-blue" id="CalendarModalStatus"></span><span class="nj-badge" id="CalendarModalPriority"></span></div>
+      <div class="calendar-modal-grid">
+        <div class="calendar-modal-field"><span>Date</span><strong id="CalendarModalDate"></strong></div>
+        <div class="calendar-modal-field"><span>Time</span><strong id="CalendarModalTime"></strong></div>
+        <div class="calendar-modal-field"><span>Assigned to</span><strong id="CalendarModalAssigned"></strong></div>
+        <div class="calendar-modal-field"><span>Linked record</span><strong id="CalendarModalRelated"></strong></div>
+        <div class="calendar-modal-field is-full"><span>Description</span><strong id="CalendarModalDescription"></strong></div>
+        <div class="calendar-modal-field is-full"><span>Location or meeting information</span><strong id="CalendarModalLocation"></strong></div>
+      </div>
+      <div class="calendar-modal-actions">
+        <button class="nj-btn nj-btn-secondary" type="button" data-calendar-close>Close</button>
+        <a class="nj-btn" id="CalendarModalOpen" href="#"><i class="bi bi-box-arrow-up-right"></i> Open record</a>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+  (function () {
+    var dataNode = document.getElementById("calendar-items-data");
+    var modal = document.getElementById("CalendarItemModal");
+    if (!dataNode || !modal) return;
+
+    var items = {};
+    JSON.parse(dataNode.textContent || "[]").forEach(function (item) { items[item.id] = item; });
+
+    var fields = {
+      type: document.getElementById("CalendarModalType"),
+      title: document.getElementById("CalendarModalTitle"),
+      status: document.getElementById("CalendarModalStatus"),
+      priority: document.getElementById("CalendarModalPriority"),
+      date: document.getElementById("CalendarModalDate"),
+      time: document.getElementById("CalendarModalTime"),
+      assigned: document.getElementById("CalendarModalAssigned"),
+      related: document.getElementById("CalendarModalRelated"),
+      description: document.getElementById("CalendarModalDescription"),
+      location: document.getElementById("CalendarModalLocation"),
+      open: document.getElementById("CalendarModalOpen")
+    };
+
+    var lastTrigger = null;
+
+    function openModal(id, trigger) {
+      var item = items[id];
+      if (!item) return;
+      lastTrigger = trigger || null;
+      fields.type.textContent = item.type;
+      fields.title.textContent = item.title;
+      fields.status.textContent = item.status;
+      fields.priority.textContent = item.priority + " priority";
+      fields.priority.className = "nj-badge " + ((item.priority === "High" || item.priority === "Urgent") ? "is-danger" : "is-neutral");
+      fields.date.textContent = item.date;
+      fields.time.textContent = item.endTime ? item.time + " – " + item.endTime : item.time;
+      fields.assigned.textContent = item.assignedTo;
+      fields.related.textContent = item.relatedLabel;
+      fields.description.textContent = item.description;
+      fields.location.textContent = item.location;
+      fields.open.href = item.url || "#";
+      modal.hidden = false;
+      modal.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+      modal.querySelector(".calendar-modal-close").focus();
+    }
+
+    function closeModal() {
+      modal.hidden = true;
+      modal.setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+      if (lastTrigger) lastTrigger.focus();
+    }
+
+    document.addEventListener("click", function (event) {
+      var trigger = event.target.closest("[data-calendar-item]");
+      if (trigger) {
+        openModal(trigger.getAttribute("data-calendar-item"), trigger);
+        return;
+      }
+      if (event.target.closest("[data-calendar-close]")) closeModal();
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && !modal.hidden) closeModal();
+    });
+  })();
+</script>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Role Details{% endblock %}
+{% block page_subtitle %}Review the saved access configuration for this company role.{% endblock %}
+
+{% block extra_head %}
+  {% include "accounts/partials/_role_design_system.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="nj-invoice role-standard">
+  <div class="role-shell">
+    <section class="role-detail-hero">
+      <div class="role-detail-main">
+        <span class="nj-icon-box{% if role.is_contractor_only %} is-violet{% endif %}"><i class="bi {% if role.is_contractor_only %}bi-person-workspace{% else %}bi-shield-lock{% endif %}" aria-hidden="true"></i></span>
+        <div><h1>{{ role.name }}</h1><p>{{ role.description|default:"No description" }}</p><div class="role-detail-chips"><span class="role-pill{% if role.is_contractor_only %} is-contractor{% endif %}">{% if role.is_contractor_only %}<i class="bi bi-cone-striped"></i> Contractor only{% else %}<i class="bi bi-grid"></i> Standard role{% endif %}</span><span class="role-pill is-success"><i class="bi bi-check2-circle"></i> {{ role.configured_modules_count|default:0 }} modules</span></div></div>
+      </div>
+      <div class="role-head-actions"><a class="role-btn is-secondary" href="{{ role_list_url }}"><i class="bi bi-arrow-left"></i> Back</a>{% if can_edit_roles %}<a class="role-btn" href="{{ role_edit_url }}"><i class="bi bi-pencil"></i> Edit role</a>{% endif %}</div>
+    </section>
+
+    <section class="role-card">
+      <div class="role-card-head"><div class="role-card-heading"><i class="bi bi-info-circle"></i><div><h2 class="role-card-title">Role summary</h2><p class="role-card-copy">Company ownership and effective permission totals.</p></div></div></div>
+      <div class="role-card-body">
+        <div class="role-info-grid">
+          <div class="role-info-item"><span>Company</span><strong>{{ role.id_company.name }}</strong></div>
+          <div class="role-info-item"><span>Assigned users</span><strong>{{ role.assigned_users_count|default:0 }}</strong></div>
+          <div class="role-info-item"><span>View modules</span><strong>{{ role.view_modules_count|default:0 }}</strong></div>
+          <div class="role-info-item"><span>Manage / Approve</span><strong>{{ role.manage_modules_count|default:0 }} / {{ role.approve_modules_count|default:0 }}</strong></div>
+        </div>
+      </div>
+    </section>
+
+    {% if role.is_contractor_only %}
+      <section class="role-card">
+        <div class="role-card-body"><div class="role-contractor-preview" style="display:flex;margin:0;"><i class="bi bi-lock"></i><span>This is a restricted field role. Users only see their assigned inspections and projects, can upload evidence and notes, and can submit work for audit. Commercial and customer information remains read-only.</span></div></div>
+      </section>
+    {% endif %}
+
+    <section class="role-card">
+      <div class="role-card-head"><div class="role-card-heading"><i class="bi bi-grid-3x3-gap"></i><div><h2 class="role-card-title">Module permissions</h2><p class="role-card-copy">View controls visibility. Manage covers create, edit and delete. Approve covers sensitive workflow actions.</p></div></div></div>
+      <div class="role-card-body">
+        <div class="role-permission-head"><span>Module</span><span>View</span><span>Manage</span><span>Approve</span></div>
+        <div class="role-permission-list">
+          {% for row in permission_rows %}
+            <article class="role-permission-row">
+              <div class="role-module-copy"><strong>{{ row.module_label }}</strong><small>{{ row.module }}</small></div>
+              <div class="role-count">{% if row.can_view %}<span class="role-pill is-success"><i class="bi bi-check2"></i> Yes</span>{% else %}<span class="role-pill is-muted">No</span>{% endif %}</div>
+              <div class="role-count">{% if row.can_manage %}<span class="role-pill is-success"><i class="bi bi-check2"></i> Yes</span>{% else %}<span class="role-pill is-muted">No</span>{% endif %}</div>
+              <div class="role-count">{% if row.can_approve %}<span class="role-pill is-contractor"><i class="bi bi-check2"></i> Yes</span>{% else %}<span class="role-pill is-muted">No</span>{% endif %}</div>
+            </article>
+          {% empty %}
+            <div class="role-empty"><i class="bi bi-grid"></i><strong>No modules available</strong><span>The company has no enabled modules that can be assigned to this role.</span></div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,167 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Company Modules{% endblock %}
+
+{% block page_subtitle %}
+Control which modules are available for each company's mini CRM.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .cm_toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+
+  .cm_table_wrap {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .cm_table {
+    width: 100%;
+    min-width: 860px;
+    border-collapse: collapse;
+  }
+
+  .cm_table th,
+  .cm_table td {
+    padding: 14px 12px;
+    border-bottom: 1px solid var(--crm_border);
+    text-align: left;
+    vertical-align: top;
+    font-size: 14px;
+  }
+
+  .cm_table th {
+    color: var(--crm_muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .cm_name {
+    font-weight: 900;
+    color: var(--crm_text);
+    overflow-wrap: anywhere;
+  }
+
+  .cm_muted {
+    color: var(--crm_muted);
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  .cm_status {
+    display: inline-flex;
+    min-height: 30px;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    border: 1px solid var(--crm_border);
+  }
+
+  .cm_status_enabled {
+    color: var(--crm_success);
+    background: rgba(15, 118, 110, 0.08);
+  }
+
+  .cm_status_disabled {
+    color: var(--crm_danger);
+    background: rgba(185, 28, 28, 0.08);
+  }
+
+  .cm_actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .cm_link {
+    color: var(--crm_primary);
+    font-weight: 900;
+  }
+
+  .cm_empty {
+    padding: 28px;
+    text-align: center;
+    color: var(--crm_muted);
+  }
+
+  @media (max-width: 768px) {
+    .cm_toolbar {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <div class="cm_toolbar">
+    <div>
+      <h2 class="crm_section_title">Company Module Access</h2>
+      <p class="crm_page_text">Enable or disable mini CRM modules by company.</p>
+    </div>
+
+    <a class="crm_button" href="{% url 'company_modules:company_module_create' %}">Create Module Rule</a>
+  </div>
+
+  <section class="crm_card">
+    <div class="cm_table_wrap">
+      <table class="cm_table">
+        <thead>
+          <tr>
+            <th>Company</th>
+            <th>Module</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for company_module in company_modules %}
+            <tr>
+              <td>
+                <div class="cm_name">{{ company_module.id_company.name }}</div>
+                <div class="cm_muted">Mini CRM module configuration</div>
+              </td>
+
+              <td>{{ company_module.get_module_display }}</td>
+
+              <td>
+                {% if company_module.is_enabled %}
+                  <span class="cm_status cm_status_enabled">Enabled</span>
+                {% else %}
+                  <span class="cm_status cm_status_disabled">Disabled</span>
+                {% endif %}
+              </td>
+
+              <td>{{ company_module.created_at|date:"Y-m-d" }}</td>
+
+              <td>
+                <div class="cm_actions">
+                  <a class="cm_link" href="{% url 'company_modules:company_module_detail' company_module.id_company_module %}">View</a>
+                  <a class="cm_link" href="{% url 'company_modules:company_module_update' company_module.id_company_module %}">Edit</a>
+                  <a class="cm_link" href="{% url 'company_modules:company_module_manage' company_module.id_company.id_company %}">Manage Company</a>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td class="cm_empty" colspan="5">No company module rules found.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}

@@ -1,0 +1,3533 @@
+{% load static i18n %}
+
+<!DOCTYPE html>
+<html lang="{{ request.LANGUAGE_CODE|default:'en' }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+  <link rel="icon" href="{% static 'branding/nexxtjob-symbol.svg' %}" type="image/svg+xml">
+  <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'css/crm.css' %}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <title>{{ page_title|default:"NexxtJob CRM" }}</title>
+
+  <style>
+    :root {
+      --crm_radius: 20px;
+      --crm_shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+      --crm_shadow_soft: 0 10px 30px rgba(15, 23, 42, 0.06);
+      --crm_border: #e5e7eb;
+      --crm_success: #0f766e;
+      --crm_warning: #b45309;
+      --crm_danger: #b91c1c;
+      --crm_text: #111827;
+      --crm_muted: #6b7280;
+      --crm_surface: #ffffff;
+      --crm_bg: #f5f7fb;
+      --crm_primary: #64748b;
+      --crm_primary_dark: #334155;
+
+      --crm_sidebar_narrow_width: 84px;
+      --crm_sidebar_full_width: 318px;
+      --crm_sidebar_mobile_width: 356px;
+
+      --crm_sidebar_logo_bg: rgba(255, 255, 255, 0.72);
+      --crm_sidebar_border: rgba(93, 111, 119, 0.16);
+      --crm_sidebar_surface: rgba(255, 255, 255, 0.42);
+      --crm_sidebar_surface_hover: rgba(255, 255, 255, 0.78);
+      --crm_sidebar_text: #252b2f;
+      --crm_sidebar_muted: rgba(37, 43, 47, 0.56);
+      --crm_sidebar_heading: rgba(37, 43, 47, 0.52);
+      --crm_sidebar_link: rgba(37, 43, 47, 0.82);
+      --crm_sidebar_link_active: #1f2a30;
+      --crm_sidebar_accent: #6f8791;
+
+      --crm_sidebar_bg:
+        radial-gradient(circle at 18% 4%, rgba(255, 255, 255, 0.72), transparent 34%),
+        linear-gradient(160deg, #eef5f8 0%, #dbe8ed 46%, #c5d5dc 100%);
+
+      --crm_sidebar_search_bg: rgba(255, 255, 255, 0.66);
+      --crm_sidebar_search_border: rgba(93, 111, 119, 0.16);
+      --crm_sidebar_search_text: #252b2f;
+      --crm_sidebar_search_placeholder: rgba(37, 43, 47, 0.46);
+      --crm_sidebar_toggle_bg: rgba(255, 255, 255, 0.66);
+      --crm_sidebar_toggle_icon: #34434a;
+    }
+
+    body.crm_theme_platform {
+      --crm_bg: #f8f4ed;
+      --crm_surface: #ffffff;
+      --crm_text: #2c2319;
+      --crm_muted: #8a7660;
+      --crm_border: rgba(128, 93, 48, 0.16);
+      --crm_primary: #9b7848;
+      --crm_primary_dark: #6f502b;
+
+      --crm_sidebar_bg:
+        radial-gradient(circle at 18% 4%, rgba(255, 255, 255, 0.82), transparent 34%),
+        linear-gradient(160deg, #fbf4e7 0%, #ecd8b9 42%, #d6bb8d 100%);
+
+      --crm_sidebar_text: #2c2115;
+      --crm_sidebar_muted: rgba(44, 33, 21, 0.60);
+      --crm_sidebar_heading: rgba(44, 33, 21, 0.54);
+      --crm_sidebar_link: rgba(44, 33, 21, 0.84);
+      --crm_sidebar_link_active: #24190f;
+      --crm_sidebar_accent: #9b7848;
+      --crm_sidebar_surface: rgba(255, 255, 255, 0.40);
+      --crm_sidebar_surface_hover: rgba(255, 255, 255, 0.72);
+      --crm_sidebar_border: rgba(128, 93, 48, 0.16);
+      --crm_sidebar_logo_bg: rgba(255, 255, 255, 0.66);
+
+      --crm_sidebar_search_bg: rgba(255, 255, 255, 0.66);
+      --crm_sidebar_search_border: rgba(128, 93, 48, 0.16);
+      --crm_sidebar_search_text: #2c2115;
+      --crm_sidebar_search_placeholder: rgba(44, 33, 21, 0.46);
+      --crm_sidebar_toggle_bg: rgba(255, 255, 255, 0.62);
+      --crm_sidebar_toggle_icon: #6f502b;
+    }
+
+    body.crm_theme_company {
+      /* Dashboard variables remain unchanged; only the company navigation is restyled. */
+      --crm_bg: #f4f7f9;
+      --crm_surface: #ffffff;
+      --crm_text: #252b2f;
+      --crm_muted: #6f7f86;
+      --crm_border: rgba(93, 111, 119, 0.16);
+      --crm_primary: #6f8791;
+      --crm_primary_dark: #34434a;
+
+      --crm_sidebar_bg:
+        radial-gradient(circle at 12% 2%, rgba(255, 255, 255, 0.98), transparent 30%),
+        radial-gradient(circle at 88% 12%, rgba(22, 133, 243, 0.15), transparent 32%),
+        linear-gradient(165deg, #ffffff 0%, #eef6ff 48%, #e8ecf3 100%);
+
+      --crm_sidebar_text: #07133d;
+      --crm_sidebar_muted: rgba(7, 19, 61, 0.58);
+      --crm_sidebar_heading: rgba(7, 19, 61, 0.58);
+      --crm_sidebar_link: rgba(7, 19, 61, 0.82);
+      --crm_sidebar_link_active: #071b78;
+      --crm_sidebar_accent: #0868e8;
+      --crm_sidebar_surface: rgba(255, 255, 255, 0.62);
+      --crm_sidebar_surface_hover: rgba(255, 255, 255, 0.94);
+      --crm_sidebar_border: rgba(8, 56, 184, 0.13);
+      --crm_sidebar_logo_bg: rgba(255, 255, 255, 0.90);
+      --crm_sidebar_search_bg: rgba(255, 255, 255, 0.82);
+      --crm_sidebar_search_border: rgba(8, 56, 184, 0.14);
+      --crm_sidebar_search_text: #07133d;
+      --crm_sidebar_search_placeholder: rgba(7, 19, 61, 0.44);
+      --crm_sidebar_toggle_bg: rgba(255, 255, 255, 0.82);
+      --crm_sidebar_toggle_icon: #0838b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      min-width: 0;
+    }
+
+    html {
+      width: 100%;
+      min-height: 100%;
+    }
+
+    body {
+      width: 100%;
+      min-height: 100vh;
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--crm_bg);
+      color: var(--crm_text);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+    }
+
+    .crm_shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: var(--crm_sidebar_narrow_width) minmax(0, 1fr);
+    }
+
+    .crm_overlay {
+      display: none;
+    }
+
+    .crm_sidebar {
+      position: sticky;
+      top: 0;
+      left: 0;
+      width: var(--crm_sidebar_narrow_width);
+      height: 100vh;
+      background: var(--crm_sidebar_bg);
+      color: var(--crm_sidebar_text);
+      border-right: 1px solid var(--crm_sidebar_border);
+      box-shadow: 14px 0 36px rgba(30, 41, 59, 0.07);
+      z-index: 60;
+      overflow: visible;
+      transition:
+        width 0.12s ease,
+        box-shadow 0.12s ease;
+    }
+
+    .crm_sidebar:hover,
+    .crm_sidebar:focus-within {
+      width: var(--crm_sidebar_full_width);
+      box-shadow: 22px 0 54px rgba(30, 41, 59, 0.14);
+    }
+
+    .crm_sidebar_inner {
+      width: 100%;
+      height: 100%;
+      padding: 16px 12px;
+      overflow-x: hidden;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .crm_sidebar_inner::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .crm_sidebar_inner::-webkit-scrollbar-thumb {
+      background: rgba(15, 23, 42, 0.14);
+      border-radius: 999px;
+    }
+
+    .crm_sidebar_expand_hint {
+      display: none;
+    }
+
+    .crm_sidebar_top {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 0;
+    }
+
+    .crm_sidebar_header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 58px;
+    }
+
+    .crm_sidebar_brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+
+    .crm_logo_box {
+      width: 52px;
+      height: 52px;
+      border-radius: 18px;
+      background: var(--crm_sidebar_logo_bg);
+      border: 1px solid var(--crm_sidebar_border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      color: var(--crm_sidebar_text);
+      font-size: 18px;
+      font-weight: 900;
+      flex: 0 0 52px;
+      backdrop-filter: blur(14px);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.64),
+        0 10px 24px rgba(30, 41, 59, 0.08);
+    }
+
+    .crm_logo_img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      padding: 7px;
+      background: transparent;
+    }
+
+    .crm_brand_meta {
+      display: grid;
+      gap: 3px;
+      min-width: 0;
+    }
+
+    .crm_brand_kicker,
+    .crm_brand_title,
+    .crm_brand_text,
+    .crm_scope_label,
+    .crm_scope_value,
+    .crm_group_label,
+    .crm_nav_link_label,
+    .crm_sidebar_user_name,
+    .crm_sidebar_user_meta,
+    .crm_topbar_chip {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .crm_brand_kicker {
+      color: var(--crm_sidebar_heading);
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .crm_brand_title {
+      color: var(--crm_sidebar_text);
+      font-size: 18px;
+      line-height: 1.1;
+      font-weight: 900;
+    }
+
+    .crm_brand_text {
+      color: var(--crm_sidebar_muted);
+      font-size: 12px;
+      line-height: 1.42;
+    }
+
+    .crm_sidebar_close {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      border: 1px solid var(--crm_sidebar_border);
+      background: var(--crm_sidebar_toggle_bg);
+      color: var(--crm_sidebar_toggle_icon);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .crm_scope {
+      display: grid;
+      gap: 5px;
+      padding: 12px 14px;
+      border: 1px solid var(--crm_sidebar_border);
+      border-radius: 18px;
+      background: var(--crm_sidebar_surface);
+      backdrop-filter: blur(14px);
+    }
+
+    .crm_scope_label {
+      color: var(--crm_sidebar_heading);
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .crm_scope_value {
+      color: var(--crm_sidebar_text);
+      font-size: 13px;
+      font-weight: 900;
+      line-height: 1.35;
+    }
+
+    .crm_sidebar_search {
+      position: relative;
+    }
+
+    .crm_sidebar_search i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--crm_sidebar_muted);
+      font-size: 15px;
+      pointer-events: none;
+    }
+
+    .crm_sidebar_search input {
+      width: 100%;
+      min-height: 44px;
+      border-radius: 16px;
+      border: 1px solid var(--crm_sidebar_search_border);
+      background: var(--crm_sidebar_search_bg);
+      color: var(--crm_sidebar_search_text);
+      padding: 10px 14px 10px 38px;
+      outline: none;
+      box-shadow: none;
+    }
+
+    .crm_sidebar_search input::placeholder {
+      color: var(--crm_sidebar_search_placeholder);
+    }
+
+    .crm_sidebar_search input:focus {
+      border-color: rgba(111, 135, 145, 0.34);
+      box-shadow: 0 0 0 4px rgba(111, 135, 145, 0.12);
+    }
+
+    .crm_nav {
+      display: grid;
+      gap: 8px;
+      margin-top: 0;
+    }
+
+    .crm_nav_single {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 0;
+    }
+
+    .crm_nav_group {
+      display: grid;
+      gap: 7px;
+      padding-top: 12px;
+      margin-top: 8px;
+      border-top: 1px solid var(--crm_sidebar_border);
+    }
+
+    .crm_nav_group:first-of-type {
+      margin-top: 0;
+      padding-top: 4px;
+      border-top: 0;
+    }
+
+    .crm_nav_group_toggle {
+      width: 100%;
+      min-height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border: 0;
+      background: transparent;
+      padding: 6px 8px;
+      color: var(--crm_sidebar_heading);
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      cursor: pointer;
+      border-radius: 14px;
+    }
+
+    .crm_nav_group_toggle:hover {
+      background: rgba(255, 255, 255, 0.28);
+    }
+
+    .crm_group_toggle_left {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .crm_group_icon {
+      width: 34px;
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 34px;
+      border-radius: 14px;
+      color: var(--crm_sidebar_accent);
+    }
+
+    .crm_group_icon i {
+      font-size: 17px;
+      line-height: 1;
+    }
+
+    .crm_group_label {
+      min-width: 0;
+    }
+
+    .crm_nav_group_toggle > i {
+      font-size: 12px;
+      transition: transform 0.12s ease;
+    }
+
+    .crm_nav_group.is_open .crm_nav_group_toggle > i {
+      transform: rotate(180deg);
+    }
+
+    .crm_nav_group_body {
+      display: grid;
+      gap: 6px;
+    }
+
+    .crm_nav_link {
+      position: relative;
+      width: 100%;
+      min-height: 46px;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 10px 12px;
+      border-radius: 18px;
+      color: var(--crm_sidebar_link);
+      background: transparent;
+      overflow: hidden;
+      isolation: isolate;
+      transition:
+        background 0.12s ease,
+        color 0.12s ease,
+        transform 0.12s ease,
+        box-shadow 0.12s ease;
+    }
+
+    .crm_nav_link::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 10px;
+      bottom: 10px;
+      width: 4px;
+      border-radius: 999px;
+      background: transparent;
+      transition: background 0.12s ease;
+    }
+
+    .crm_nav_icon {
+      width: 34px;
+      height: 34px;
+      flex: 0 0 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.38);
+      color: var(--crm_sidebar_accent);
+      border: 1px solid rgba(255, 255, 255, 0.34);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.52);
+      transition:
+        background 0.12s ease,
+        color 0.12s ease,
+        transform 0.12s ease;
+    }
+
+    .crm_nav_icon i {
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .crm_nav_link_label {
+      display: block;
+      flex: 1 1 auto;
+      min-width: 0;
+      color: inherit;
+      font-size: 14px;
+      font-weight: 800;
+      line-height: 1.28;
+    }
+
+    .crm_nav_link_arrow {
+      width: 20px;
+      height: 20px;
+      flex: 0 0 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--crm_sidebar_muted);
+      font-size: 13px;
+      opacity: 0;
+      transform: translateX(-4px);
+      transition:
+        opacity 0.12s ease,
+        transform 0.12s ease,
+        color 0.12s ease;
+    }
+
+    .crm_nav_link:hover {
+      background: var(--crm_sidebar_surface_hover);
+      color: var(--crm_sidebar_link_active);
+      transform: translateX(2px);
+    }
+
+    .crm_nav_link.is_active {
+      background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.82),
+        rgba(255, 255, 255, 0.42)
+      );
+      color: var(--crm_sidebar_link_active);
+      box-shadow:
+        inset 0 0 0 1px var(--crm_sidebar_border),
+        0 12px 26px rgba(30, 41, 59, 0.08);
+    }
+
+    .crm_nav_link:hover::before,
+    .crm_nav_link.is_active::before {
+      background: var(--crm_sidebar_accent);
+    }
+
+    .crm_nav_link:hover .crm_nav_icon,
+    .crm_nav_link.is_active .crm_nav_icon {
+      background: var(--crm_sidebar_accent);
+      color: #ffffff;
+      transform: scale(1.03);
+    }
+
+    .crm_nav_link:hover .crm_nav_link_arrow,
+    .crm_nav_link.is_active .crm_nav_link_arrow {
+      opacity: 1;
+      transform: translateX(0);
+      color: var(--crm_sidebar_accent);
+    }
+
+    .crm_nav_group.is_hidden,
+    .crm_nav_link.is_hidden {
+      display: none !important;
+    }
+
+    .crm_sidebar_footer {
+      margin-top: auto;
+      padding-top: 14px;
+      border-top: 1px solid var(--crm_sidebar_border);
+      display: grid;
+      gap: 12px;
+    }
+
+    .crm_sidebar_user {
+      display: grid;
+      gap: 4px;
+      padding: 13px 14px;
+      border-radius: 18px;
+      background: var(--crm_sidebar_surface);
+      border: 1px solid var(--crm_sidebar_border);
+      backdrop-filter: blur(14px);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.46);
+    }
+
+    .crm_sidebar_user_name {
+      color: var(--crm_sidebar_text);
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .crm_sidebar_user_meta {
+      color: var(--crm_sidebar_muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .crm_sidebar_logout_form {
+      margin: 0;
+    }
+
+    .crm_sidebar_logout {
+      width: 100%;
+      min-height: 50px;
+      border-radius: 17px;
+      border: 1px solid rgba(220, 38, 38, 0.16);
+      background: linear-gradient(135deg, rgba(255,255,255,.86), rgba(254,242,242,.84));
+      color: #991b1b;
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 10px;
+      padding: 7px 9px;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.94), 0 8px 18px rgba(153,27,27,.06);
+      transition:
+        background 0.14s ease,
+        color 0.14s ease,
+        transform 0.14s ease,
+        border-color 0.14s ease,
+        box-shadow 0.14s ease;
+    }
+
+    .crm_logout_icon {
+      width: 36px;
+      height: 36px;
+      flex: 0 0 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 13px;
+      color: #ffffff;
+      background: linear-gradient(145deg, #ef4444 0%, #dc2626 58%, #991b1b 100%);
+      border: 1px solid rgba(255,255,255,.72);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.32), 0 7px 15px rgba(153,27,27,.20);
+    }
+
+    .crm_logout_icon i {
+      font-size: 17px;
+      line-height: 1;
+    }
+
+    .crm_logout_label {
+      flex: 1 1 auto;
+      min-width: 0;
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .crm_logout_arrow {
+      width: 24px;
+      height: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 9px;
+      color: #b91c1c;
+      background: rgba(220,38,38,.08);
+      transition: transform .14s ease, background .14s ease;
+    }
+
+    .crm_sidebar_logout:hover {
+      background: linear-gradient(135deg, #fff, #fff1f2);
+      border-color: rgba(220,38,38,.26);
+      color: #7f1d1d;
+      transform: translateY(-1px);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.96), 0 12px 24px rgba(153,27,27,.10);
+    }
+
+    .crm_sidebar_logout:hover .crm_logout_arrow {
+      transform: translateX(2px);
+      background: rgba(220,38,38,.14);
+    }
+
+    .crm_support_sidebar {
+      display: grid;
+      gap: 10px;
+      padding: 13px 14px;
+      border-radius: 18px;
+      border: 1px solid var(--crm_sidebar_border);
+      background: var(--crm_sidebar_surface);
+      backdrop-filter: blur(14px);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.36);
+    }
+
+    .crm_support_sidebar_head {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--crm_sidebar_text);
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .crm_support_sidebar_head i {
+      color: #16a34a;
+      font-size: 16px;
+    }
+
+    .crm_support_sidebar_text {
+      margin: 0;
+      color: var(--crm_sidebar_muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .crm_support_sidebar_button {
+      width: 100%;
+      min-height: 40px;
+      border: 1px solid rgba(22, 163, 74, 0.26);
+      border-radius: 14px;
+      background: rgba(22, 163, 74, 0.13);
+      color: var(--crm_sidebar_text);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 900;
+      cursor: pointer;
+      transition:
+        background 0.14s ease,
+        transform 0.14s ease,
+        border-color 0.14s ease;
+    }
+
+    .crm_support_sidebar_button:hover {
+      background: rgba(22, 163, 74, 0.22);
+      transform: translateY(-1px);
+    }
+
+    .crm_support_sidebar_button i {
+      line-height: 1;
+    }
+
+    .crm_main {
+      min-width: 0;
+      padding: 24px;
+    }
+
+    .crm_topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 24px;
+      padding: 18px 20px;
+      border: 1px solid var(--crm_border);
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.86);
+      box-shadow: var(--crm_shadow_soft);
+      backdrop-filter: blur(16px);
+    }
+
+    .crm_topbar_left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+
+    .crm_sidebar_open {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      border: 1px solid var(--crm_border);
+      background: #ffffff;
+      color: var(--crm_primary);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+    }
+
+    .crm_topbar_content {
+      min-width: 0;
+    }
+
+    .crm_page_title {
+      margin: 0;
+      font-size: clamp(24px, 3vw, 34px);
+      line-height: 1.12;
+      color: var(--crm_text);
+      overflow-wrap: anywhere;
+    }
+
+    .crm_page_text {
+      margin: 6px 0 0;
+      color: var(--crm_muted);
+      font-size: 14px;
+      line-height: 1.6;
+      overflow-wrap: anywhere;
+    }
+
+    .crm_topbar_meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .crm_topbar_chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      max-width: 260px;
+      min-height: 38px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--crm_border);
+      background: #ffffff;
+      color: var(--crm_text);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .crm_topbar_chip i {
+      color: var(--crm_primary);
+      flex: 0 0 auto;
+    }
+
+    .crm_content {
+      min-width: 0;
+    }
+
+    .crm_card {
+      background: var(--crm_surface);
+      border: 1px solid var(--crm_border);
+      border-radius: var(--crm_radius);
+      box-shadow: var(--crm_shadow);
+      padding: 20px;
+      min-width: 0;
+    }
+
+    .crm_grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .crm_stat {
+      display: grid;
+      gap: 8px;
+    }
+
+    .crm_stat_label {
+      font-size: 13px;
+      color: var(--crm_muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      overflow-wrap: anywhere;
+    }
+
+    .crm_stat_value {
+      font-size: 30px;
+      font-weight: 900;
+      color: var(--crm_primary);
+      overflow-wrap: anywhere;
+    }
+
+    .crm_section {
+      margin-top: 22px;
+    }
+
+    .crm_section_title {
+      margin: 0 0 12px;
+      font-size: 20px;
+      font-weight: 900;
+      overflow-wrap: anywhere;
+    }
+
+    .crm_actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .crm_button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 10px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--crm_primary);
+      background: var(--crm_primary);
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .crm_button:hover {
+      background: var(--crm_primary_dark);
+      border-color: var(--crm_primary_dark);
+      color: #ffffff;
+    }
+
+    .crm_button_secondary {
+      background: #ffffff;
+      color: var(--crm_primary);
+    }
+
+    .crm_button_secondary:hover {
+      background: #f8fafc;
+      color: var(--crm_primary_dark);
+    }
+
+    .crm_messages {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .crm_message {
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--crm_border);
+      background: #ffffff;
+      color: var(--crm_text);
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    .crm_floating_bell {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      z-index: 999;
+    }
+
+    .crm_floating_bell_wrap {
+      position: relative;
+    }
+
+    .crm_floating_bell_button {
+      position: relative;
+      width: 62px;
+      height: 62px;
+      border: 1px solid rgba(31, 58, 138, 0.18);
+      border-radius: 999px;
+      background: var(--crm_primary);
+      color: #ffffff;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.22);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition:
+        background 0.12s ease,
+        transform 0.12s ease,
+        box-shadow 0.12s ease;
+    }
+
+    .crm_floating_bell_button:hover {
+      background: var(--crm_primary_dark);
+      transform: translateY(-2px);
+      box-shadow: 0 22px 50px rgba(15, 23, 42, 0.28);
+    }
+
+    .crm_floating_bell_button svg {
+      width: 26px;
+      height: 26px;
+      display: block;
+    }
+
+    .crm_floating_bell_count {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      min-width: 24px;
+      height: 24px;
+      padding: 0 7px;
+      border-radius: 999px;
+      background: var(--crm_danger);
+      color: #ffffff;
+      border: 2px solid #ffffff;
+      font-size: 12px;
+      font-weight: 900;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .crm_notification_dropdown {
+      position: absolute;
+      right: 0;
+      bottom: 76px;
+      width: min(360px, calc(100vw - 32px));
+      border: 1px solid var(--crm_border);
+      border-radius: 18px;
+      background: #ffffff;
+      box-shadow: 0 22px 60px rgba(15, 23, 42, 0.18);
+      overflow: hidden;
+      display: none;
+    }
+
+    .crm_notification_dropdown.is_open {
+      display: block;
+    }
+
+    .crm_notification_head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--crm_border);
+      background: #f8fafc;
+    }
+
+    .crm_notification_head strong {
+      color: var(--crm_text);
+      font-size: 14px;
+      font-weight: 900;
+    }
+
+    .crm_notification_head span {
+      color: var(--crm_muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .crm_notification_list {
+      display: grid;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+
+    .crm_notification_item {
+      display: grid;
+      gap: 5px;
+      padding: 13px 16px;
+      border-bottom: 1px solid var(--crm_border);
+      background: #ffffff;
+    }
+
+    .crm_notification_item:hover {
+      background: #f8fafc;
+    }
+
+    .crm_notification_item_title {
+      color: var(--crm_text);
+      font-size: 14px;
+      font-weight: 900;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .crm_notification_item_text {
+      color: var(--crm_muted);
+      font-size: 13px;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+
+    .crm_notification_item_date {
+      color: var(--crm_muted);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .crm_notification_empty {
+      padding: 16px;
+      color: var(--crm_muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .crm_notification_footer {
+      display: flex;
+      justify-content: center;
+      padding: 12px 16px;
+      background: #ffffff;
+    }
+
+    .crm_notification_footer a {
+      color: var(--crm_primary);
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .crm_support_modal {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .crm_support_modal.is_open {
+      display: flex;
+    }
+
+    .crm_support_backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.58);
+      backdrop-filter: blur(5px);
+    }
+
+    .crm_support_dialog {
+      position: relative;
+      z-index: 1;
+      width: min(100%, 500px);
+      display: grid;
+      gap: 16px;
+      padding: 24px;
+      border-radius: 24px;
+      border: 1px solid #e5e7eb;
+      background: #ffffff;
+      box-shadow: 0 28px 90px rgba(15, 23, 42, 0.24);
+    }
+
+    .crm_support_head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .crm_support_head h3 {
+      margin: 0;
+      color: #111827;
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+    }
+
+    .crm_support_head p {
+      margin: 5px 0 0;
+      color: #6b7280;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .crm_support_close {
+      width: 38px;
+      height: 38px;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      background: #ffffff;
+      color: #111827;
+      cursor: pointer;
+      flex: 0 0 38px;
+    }
+
+    .crm_support_form {
+      display: grid;
+      gap: 12px;
+    }
+
+    .crm_support_field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .crm_support_field span {
+      color: #111827;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .crm_support_input {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid #e5e7eb;
+      border-radius: 13px;
+      padding: 10px 12px;
+      color: #111827;
+      background: #ffffff;
+      outline: none;
+    }
+
+    .crm_support_input:focus {
+      border-color: #16a34a;
+      box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.10);
+    }
+
+    textarea.crm_support_input {
+      min-height: 96px;
+      resize: vertical;
+    }
+
+    .crm_support_send {
+      min-height: 46px;
+      border: 0;
+      border-radius: 14px;
+      background: #16a34a;
+      color: #ffffff;
+      font-weight: 900;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+    }
+
+    .crm_support_send:hover {
+      background: #12813b;
+    }
+
+    @media (hover: hover) and (min-width: 1181px) {
+      .crm_sidebar:not(:hover):not(:focus-within) .crm_sidebar_expand_hint {
+        position: absolute;
+        top: 82px;
+        right: -12px;
+        width: 26px;
+        height: 42px;
+        border-radius: 999px;
+        border: 1px solid var(--crm_sidebar_border);
+        background: rgba(255, 255, 255, 0.90);
+        color: var(--crm_sidebar_accent);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 5;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
+        pointer-events: none;
+      }
+
+      .crm_sidebar:not(:hover):not(:focus-within) .crm_sidebar_expand_hint i {
+        font-size: 13px;
+        line-height: 1;
+      }
+
+      .crm_sidebar:hover .crm_sidebar_expand_hint,
+      .crm_sidebar:focus-within .crm_sidebar_expand_hint {
+        display: none;
+      }
+
+      .crm_sidebar:not(:hover):not(:focus-within) .d-sidebar-narrow-unfoldable-none,
+      .crm_sidebar:not(:hover):not(:focus-within) .crm_scope,
+      .crm_sidebar:not(:hover):not(:focus-within) .crm_sidebar_search,
+      .crm_sidebar:not(:hover):not(:focus-within) .crm_brand_meta,
+      .crm_sidebar:not(:hover):not(:focus-within) .crm_group_label,
+      .crm_sidebar:not(:hover):not(:focus-within) .crm_nav_link_label,
+      .crm_sidebar:not(:hover):not(:focus-within) .crm_nav_link_arrow,
+      .crm_sidebar:not(:hover):not(:focus-within) .crm_nav_group_toggle > i,
+      .crm_sidebar:not(:hover):not(:focus-within) .crm_nav_group_body {
+        display: none !important;
+      }
+
+      .crm_sidebar:not(:hover):not(:focus-within) .d-sidebar-narrow-unfoldable {
+        display: inline-flex !important;
+      }
+
+      .crm_sidebar:not(:hover):not(:focus-within) .crm_sidebar_header {
+        justify-content: center;
+      }
+
+      .crm_sidebar:not(:hover):not(:focus-within) .crm_sidebar_brand {
+        justify-content: center;
+        gap: 0;
+        width: 100%;
+      }
+
+      .crm_sidebar:not(:hover):not(:focus-within) .crm_logo_box {
+        width: 52px;
+        height: 52px;
+        flex-basis: 52px;
+      }
+
+      .crm_sidebar:not(:hover):not(:focus-within) .crm_nav {
+        gap: 12px;
+      }
+
+      .crm_sidebar:not(:hover):not(:focus-within) .crm_nav_group {
+        padding-top: 0;
+        margin-top: 0;
+        border-top: 0;
+      }
+
+      .crm_sidebar:not(:hover):not(:focus-within) .crm_nav_group_toggle {
+        min-height: 48px;
+        justify-content: center;
+        padding: 4px 0;
+        border-radius: 18px;
+      }
+
+      .crm_sidebar:not(:hover):not(:focus-within) .crm_group_toggle_left {
+        justify-content: center;
+        gap: 0;
+      }
+
+      .crm_sidebar:not(:hover):not(:focus-within) .crm_group_icon {
+        width: 46px;
+        height: 46px;
+        flex: 0 0 46px;
+        border-radius: 17px;
+        background: rgba(255, 255, 255, 0.38);
+        border: 1px solid rgba(255, 255, 255, 0.34);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.52);
+      }
+
+      .crm_sidebar:not(:hover):not(:focus-within) .crm_nav_link {
+        min-height: 48px;
+        justify-content: center;
+        padding: 4px 0;
+        gap: 0;
+        border-radius: 18px;
+      }
+
+      .crm_sidebar:not(:hover):not(:focus-within) .crm_nav_link::before {
+        left: 1px;
+        top: 12px;
+        bottom: 12px;
+      }
+
+      .crm_sidebar:not(:hover):not(:focus-within) .crm_nav_icon {
+        width: 46px;
+        height: 46px;
+        flex: 0 0 46px;
+        border-radius: 17px;
+      }
+
+      .crm_sidebar:not(:hover):not(:focus-within) .crm_nav_link:hover {
+        transform: none;
+      }
+
+      .crm_sidebar:not(:hover):not(:focus-within) .crm_sidebar_user {
+        display: flex;
+        justify-content: center;
+        padding: 10px 0;
+      }
+
+      .crm_sidebar:not(:hover):not(:focus-within) .crm_sidebar_logout {
+        width: 54px;
+        min-height: 54px;
+        padding: 8px;
+        margin-inline: auto;
+        justify-content: center;
+        border-radius: 18px;
+      }
+
+      .crm_sidebar:not(:hover):not(:focus-within) .crm_logout_icon {
+        width: 38px;
+        height: 38px;
+        flex-basis: 38px;
+      }
+
+      .crm_sidebar:not(:hover):not(:focus-within) .crm_support_sidebar {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        padding: 0 !important;
+        border: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+      }
+
+      .crm_sidebar:not(:hover):not(:focus-within) .crm_support_sidebar_head,
+      .crm_sidebar:not(:hover):not(:focus-within) .crm_support_sidebar_text,
+      .crm_sidebar:not(:hover):not(:focus-within) .crm_support_sidebar_button span {
+        display: none !important;
+      }
+
+      .crm_sidebar:not(:hover):not(:focus-within) .crm_support_sidebar_button {
+        width: 54px !important;
+        height: 50px !important;
+        min-height: 50px !important;
+        padding: 0 !important;
+        margin: 0 auto !important;
+        gap: 0 !important;
+        border-radius: 17px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+
+      .crm_sidebar:not(:hover):not(:focus-within) .crm_support_sidebar_button i {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin: 0 !important;
+        font-size: 18px !important;
+        line-height: 1 !important;
+      }
+    }
+
+    @media (max-width: 1180px) {
+      .crm_shell {
+        grid-template-columns: 1fr;
+      }
+
+      .crm_overlay {
+        position: fixed;
+        inset: 0;
+        display: block;
+        background:
+          radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.20), transparent 34%),
+          rgba(20, 28, 34, 0.42);
+        backdrop-filter: blur(5px);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.16s ease, visibility 0.16s ease;
+        z-index: 70;
+      }
+
+      body.crm_sidebar_opened .crm_overlay {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .crm_sidebar {
+        position: fixed;
+        top: 12px;
+        left: 12px;
+        bottom: 12px;
+        width: min(calc(100vw - 24px), var(--crm_sidebar_mobile_width));
+        max-width: min(calc(100vw - 24px), var(--crm_sidebar_mobile_width));
+        height: calc(100vh - 24px);
+        height: calc(100dvh - 24px);
+        border-radius: 28px;
+        border: 1px solid var(--crm_sidebar_border);
+        transform: translateX(calc(-100% - 28px));
+        box-shadow: 0 28px 80px rgba(15, 23, 42, 0.24);
+        z-index: 80;
+        transition: transform 0.18s ease;
+      }
+
+      body.crm_sidebar_opened .crm_sidebar {
+        transform: translateX(0);
+      }
+
+      .crm_sidebar:hover,
+      .crm_sidebar:focus-within {
+        width: min(calc(100vw - 24px), var(--crm_sidebar_mobile_width));
+      }
+
+      .crm_sidebar_inner {
+        padding: 18px;
+      }
+
+      .crm_sidebar_expand_hint,
+      .d-sidebar-narrow-unfoldable {
+        display: none !important;
+      }
+
+      .d-sidebar-narrow-unfoldable-none,
+      .crm_brand_meta,
+      .crm_scope,
+      .crm_sidebar_search,
+      .crm_group_label,
+      .crm_nav_link_label,
+      .crm_nav_link_arrow,
+      .crm_nav_group_toggle > i {
+        display: initial;
+      }
+
+      .crm_sidebar_close,
+      .crm_sidebar_open {
+        display: inline-flex;
+      }
+
+      .crm_main {
+        padding: 14px;
+      }
+
+      .crm_topbar {
+        position: sticky;
+        top: 10px;
+        z-index: 50;
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 16px;
+        border-radius: 22px;
+        margin-bottom: 18px;
+      }
+
+      .crm_topbar_left,
+      .crm_topbar_meta {
+        width: 100%;
+      }
+
+      .crm_topbar_meta {
+        justify-content: flex-start;
+      }
+
+      .crm_nav_link {
+        min-height: 48px;
+      }
+
+      .crm_nav_icon {
+        width: 36px;
+        height: 36px;
+        flex-basis: 36px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .crm_grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .crm_floating_bell {
+        right: 14px;
+        bottom: 16px;
+      }
+
+      .crm_floating_bell_button {
+        width: 58px;
+        height: 58px;
+      }
+
+      .crm_notification_dropdown {
+        right: 0;
+        bottom: 70px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .crm_sidebar {
+        top: 8px;
+        left: 8px;
+        bottom: 8px;
+        width: calc(100vw - 16px);
+        max-width: calc(100vw - 16px);
+        height: calc(100vh - 16px);
+        height: calc(100dvh - 16px);
+        border-radius: 24px;
+      }
+
+      .crm_sidebar_inner {
+        padding: 16px;
+      }
+
+      .crm_main {
+        padding: 10px;
+      }
+
+      .crm_topbar {
+        top: 8px;
+        border-radius: 20px;
+      }
+
+      .crm_topbar_chip {
+        width: 100%;
+        max-width: 100%;
+        justify-content: flex-start;
+      }
+
+      .crm_grid {
+        grid-template-columns: 1fr;
+      }
+
+      .crm_logo_box {
+        width: 50px;
+        height: 50px;
+        flex-basis: 50px;
+        border-radius: 18px;
+      }
+
+      .crm_brand_title {
+        font-size: 17px;
+      }
+
+      .crm_brand_text {
+        font-size: 12px;
+      }
+
+      .crm_nav_link_label {
+        font-size: 14px;
+      }
+    }
+
+
+    /* Standard CRM action modal system: used by module void/alert flows. */
+    .crm_action_modal_overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9998;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(33, 34, 39, 0.56);
+      backdrop-filter: blur(7px);
+    }
+
+    .crm_action_modal_overlay.is_open {
+      display: flex;
+    }
+
+    .crm_action_modal_card {
+      width: min(100%, 540px);
+      max-height: calc(100vh - 36px);
+      overflow-y: auto;
+      border: 1px solid #d6dde8;
+      border-radius: 24px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbfe 100%);
+      box-shadow: 0 28px 70px rgba(33, 34, 39, 0.22);
+      padding: 24px;
+      color: #212227;
+    }
+
+    .crm_action_modal_kicker {
+      margin: 0 0 7px;
+      color: #48658f;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .crm_action_modal_title {
+      margin: 0;
+      color: #212227;
+      font-size: 25px;
+      line-height: 1.18;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+
+    .crm_action_modal_text {
+      margin: 10px 0 0;
+      color: #637074;
+      font-size: 14px;
+      line-height: 1.65;
+      font-weight: 650;
+    }
+
+    .crm_action_modal_object {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border: 1px solid rgba(72, 101, 143, 0.16);
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(189, 212, 231, 0.32) 0%, rgba(255,255,255,0.96) 100%);
+      color: #212227;
+      font-size: 13px;
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+
+    .crm_action_modal_field {
+      display: grid;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .crm_action_modal_field label {
+      color: #212227;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .crm_action_modal_field textarea {
+      width: 100%;
+      min-height: 104px;
+      border: 1px solid #c8d2e0;
+      border-radius: 16px;
+      padding: 12px 14px;
+      background: #ffffff;
+      color: #212227;
+      font: inherit;
+      font-size: 14px;
+      line-height: 1.55;
+      resize: vertical;
+    }
+
+    .crm_action_modal_field textarea:focus {
+      outline: 0;
+      border-color: #48658f;
+      box-shadow: 0 0 0 4px rgba(72, 101, 143, 0.12);
+    }
+
+    .crm_action_modal_actions {
+      display: flex;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .crm_action_modal_button {
+      min-height: 42px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border-radius: 14px;
+      padding: 10px 16px;
+      border: 1px solid #c8d2e0;
+      background: #ffffff;
+      color: #48658f;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 850;
+      cursor: pointer;
+      transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease, border-color 0.16s ease;
+    }
+
+    .crm_action_modal_button:hover {
+      transform: translateY(-1px);
+      border-color: #48658f;
+      box-shadow: 0 12px 24px rgba(72, 101, 143, 0.14);
+    }
+
+    .crm_action_modal_button_danger {
+      border-color: rgba(197, 61, 61, 0.32);
+      background: linear-gradient(180deg, #e35d5d 0%, #c53d3d 100%);
+      color: #ffffff;
+      box-shadow: 0 16px 28px rgba(197, 61, 61, 0.18);
+    }
+
+    .crm_action_modal_button_primary {
+      border-color: #48658f;
+      background: linear-gradient(180deg, #48658f 0%, #344a69 100%);
+      color: #ffffff;
+      box-shadow: 0 16px 28px rgba(72, 101, 143, 0.18);
+    }
+
+    .crm_action_message_line {
+      margin-top: 12px;
+      padding: 13px 14px;
+      border-radius: 16px;
+      border: 1px solid #d6dde8;
+      background: #f7f9fc;
+      color: #212227;
+      font-size: 14px;
+      font-weight: 750;
+      line-height: 1.55;
+    }
+
+    .crm_action_message_line.success {
+      border-color: rgba(63, 107, 94, 0.22);
+      background: #e8f3ee;
+      color: #3f6b5e;
+    }
+
+    .crm_action_message_line.error,
+    .crm_action_message_line.danger {
+      border-color: rgba(197, 61, 61, 0.22);
+      background: #fde9e8;
+      color: #c53d3d;
+    }
+
+    .crm_action_message_line.warning {
+      border-color: rgba(171, 114, 36, 0.22);
+      background: #fff3e2;
+      color: #ab7224;
+    }
+
+    [data-crm-void-modal] {
+      cursor: pointer;
+    }
+
+    [data-tooltip] {
+      position: relative;
+    }
+
+    [data-tooltip]::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 9px);
+      transform: translateX(-50%);
+      min-width: max-content;
+      max-width: 220px;
+      padding: 7px 9px;
+      border-radius: 10px;
+      background: #212227;
+      color: #ffffff;
+      font-size: 11px;
+      line-height: 1;
+      font-weight: 900;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.04s ease;
+      z-index: 50;
+    }
+
+    [data-tooltip]:hover::after {
+      opacity: 1;
+    }
+
+    [data-tooltip].invoice_icon_danger::after,
+    [data-tooltip].payment_icon_danger::after,
+    [data-tooltip].estimate_icon_danger::after {
+      background: #c53d3d;
+    }
+
+
+    /* Premium menu icons: neutral containers with color limited to the icon. */
+    .crm_nav_icon,
+    .crm_group_icon {
+      background: rgba(255,255,255,.56);
+      border: 1px solid rgba(148,163,184,.18);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.72), 0 6px 16px rgba(15,23,42,.05);
+      color: #315f9e;
+    }
+
+    .crm_nav_icon svg,
+    .crm_group_icon svg {
+      width: 19px;
+      height: 19px;
+      display: block;
+      overflow: visible;
+    }
+
+    .crm_nav_icon[data-icon-key="google"] svg,
+    .crm_nav_icon[data-icon-key="google-drive"] svg,
+    .crm_nav_icon[data-icon-key="google-calendar"] svg,
+    .crm_nav_icon[data-icon-key="analytics"] svg,
+    .crm_nav_icon[data-icon-key="reports"] svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .crm_nav_link:hover .crm_nav_icon,
+    .crm_nav_link.is_active .crm_nav_icon {
+      background: rgba(255,255,255,.86);
+      color: inherit;
+      border-color: rgba(100,116,139,.18);
+      transform: translateY(-1px) scale(1.055);
+      box-shadow: inset 0 1px 0 #fff, 0 9px 20px rgba(15,23,42,.09);
+    }
+
+    .crm_nav_icon[data-icon-key="dashboard"] { color:#2563eb; }
+    .crm_nav_icon[data-icon-key="clients"] { color:#0f766e; }
+    .crm_nav_icon[data-icon-key="leads"] { color:#7c3aed; }
+    .crm_nav_icon[data-icon-key="opportunities"] { color:#db6b15; }
+    .crm_nav_icon[data-icon-key="projects"] { color:#2563eb; }
+    .crm_nav_icon[data-icon-key="inspections"] { color:#0891b2; }
+    .crm_nav_icon[data-icon-key="evidence"] { color:#9333ea; }
+    .crm_nav_icon[data-icon-key="supervision"] { color:#16a34a; }
+    .crm_nav_icon[data-icon-key="estimates"] { color:#d97706; }
+    .crm_nav_icon[data-icon-key="contracts"] { color:#475569; }
+    .crm_nav_icon[data-icon-key="invoices"] { color:#dc2626; }
+    .crm_nav_icon[data-icon-key="payments"] { color:#16a34a; }
+    .crm_nav_icon[data-icon-key="suppliers"] { color:#0f766e; }
+    .crm_nav_icon[data-icon-key="products"] { color:#7c3aed; }
+    .crm_nav_icon[data-icon-key="purchases"] { color:#b45309; }
+    .crm_nav_icon[data-icon-key="employees"] { color:#2563eb; }
+    .crm_nav_icon[data-icon-key="users"] { color:#4f46e5; }
+    .crm_nav_icon[data-icon-key="roles"] { color:#7c3aed; }
+    .crm_nav_icon[data-icon-key="email"] { color:#dc2626; }
+    .crm_nav_icon[data-icon-key="languages"] { color:#0284c7; }
+    .crm_nav_icon[data-icon-key="notifications"] { color:#ea580c; }
+    .crm_nav_icon[data-icon-key="logs"] { color:#475569; }
+    .crm_nav_icon[data-icon-key="settings"] { color:#64748b; }
+    .crm_nav_icon[data-icon-key="financial-summary"] { color:#059669; }
+    .crm_nav_icon[data-icon-key="supplier-reports"] { color:#c2410c; }
+    .crm_nav_icon[data-icon-key="user-activity"] { color:#7c3aed; }
+    .crm_nav_icon[data-icon-key="company-modules"] { color:#0f766e; }
+    .crm_nav_icon[data-icon-key="technical-admin"] { color:#475569; }
+    .crm_nav_icon[data-icon-key="integrations"] { color:#0868e8; }
+    .crm_nav_icon[data-icon-key="sync-history"] { color:#475569; }
+
+    /* Company navigation categories: semantic icon, color and hierarchy. */
+    body.crm_theme_company .crm_nav_group {
+      gap: 8px;
+      padding-top: 13px;
+      border-top-color: rgba(8, 56, 184, 0.10);
+    }
+
+    body.crm_theme_company .crm_nav_group_toggle {
+      min-height: 46px;
+      padding: 6px 8px;
+      border: 1px solid transparent;
+      border-radius: 16px;
+      color: #26375f;
+      letter-spacing: 0.075em;
+      transition: background .14s ease, border-color .14s ease, color .14s ease, transform .14s ease;
+    }
+
+    body.crm_theme_company .crm_nav_group_toggle:hover,
+    body.crm_theme_company .crm_nav_group.is_open .crm_nav_group_toggle {
+      background: rgba(255,255,255,.72);
+      border-color: rgba(8,56,184,.10);
+      color: #071b78;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.90), 0 8px 20px rgba(7,27,120,.05);
+    }
+
+    body.crm_theme_company .crm_group_icon {
+      width: 38px;
+      height: 38px;
+      flex-basis: 38px;
+      border-radius: 14px;
+      color: #ffffff;
+      border: 1px solid rgba(255,255,255,.72);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.34), 0 9px 18px rgba(7,27,120,.14);
+      transform: translateZ(0);
+    }
+
+    body.crm_theme_company .crm_group_icon i {
+      font-size: 18px;
+      filter: drop-shadow(0 1px 1px rgba(7,19,61,.14));
+    }
+
+    body.crm_theme_company .crm_group_icon[data-icon-key="customers-group"] {
+      background: linear-gradient(145deg, #1685f3 0%, #0868e8 58%, #0838b8 100%);
+    }
+
+    body.crm_theme_company .crm_group_icon[data-icon-key="projects-group"] {
+      background: linear-gradient(145deg, #06b6d4 0%, #0284c7 55%, #075985 100%);
+    }
+
+    body.crm_theme_company .crm_group_icon[data-icon-key="documents-group"] {
+      background: linear-gradient(145deg, #8b5cf6 0%, #6d28d9 58%, #4c1d95 100%);
+    }
+
+    body.crm_theme_company .crm_group_icon[data-icon-key="finance-group"] {
+      background: linear-gradient(145deg, #34d399 0%, #059669 56%, #047857 100%);
+    }
+
+    body.crm_theme_company .crm_group_icon[data-icon-key="suppliers-group"] {
+      background: linear-gradient(145deg, #fb923c 0%, #ea580c 58%, #c2410c 100%);
+    }
+
+    body.crm_theme_company .crm_group_icon[data-icon-key="team-group"] {
+      background: linear-gradient(145deg, #6366f1 0%, #4f46e5 58%, #3730a3 100%);
+    }
+
+    body.crm_theme_company .crm_group_icon[data-icon-key="system-group"] {
+      background: linear-gradient(145deg, #64748b 0%, #334155 58%, #0f172a 100%);
+    }
+
+    body.crm_theme_company .crm_group_icon[data-icon-key="integrations-group"] {
+      background: linear-gradient(145deg, #38bdf8 0%, #0868e8 52%, #071b78 100%);
+    }
+
+    /* Keep category icons vivid when the sidebar is collapsed.
+       This intentionally outranks the generic narrow-sidebar glass background. */
+    @media (min-width: 992px) {
+      body.crm_theme_company .crm_sidebar:not(:hover):not(:focus-within) .crm_group_icon {
+        color: #ffffff;
+        border-color: rgba(255,255,255,.74);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.34), 0 9px 19px rgba(7,27,120,.16);
+      }
+
+      body.crm_theme_company .crm_sidebar:not(:hover):not(:focus-within) .crm_group_icon[data-icon-key="customers-group"] {
+        background: linear-gradient(145deg, #1685f3 0%, #0868e8 58%, #0838b8 100%);
+      }
+
+      body.crm_theme_company .crm_sidebar:not(:hover):not(:focus-within) .crm_group_icon[data-icon-key="projects-group"] {
+        background: linear-gradient(145deg, #06b6d4 0%, #0284c7 55%, #075985 100%);
+      }
+
+      body.crm_theme_company .crm_sidebar:not(:hover):not(:focus-within) .crm_group_icon[data-icon-key="documents-group"] {
+        background: linear-gradient(145deg, #8b5cf6 0%, #6d28d9 58%, #4c1d95 100%);
+      }
+
+      body.crm_theme_company .crm_sidebar:not(:hover):not(:focus-within) .crm_group_icon[data-icon-key="finance-group"] {
+        background: linear-gradient(145deg, #34d399 0%, #059669 56%, #047857 100%);
+      }
+
+      body.crm_theme_company .crm_sidebar:not(:hover):not(:focus-within) .crm_group_icon[data-icon-key="suppliers-group"] {
+        background: linear-gradient(145deg, #fb923c 0%, #ea580c 58%, #c2410c 100%);
+      }
+
+      body.crm_theme_company .crm_sidebar:not(:hover):not(:focus-within) .crm_group_icon[data-icon-key="team-group"] {
+        background: linear-gradient(145deg, #6366f1 0%, #4f46e5 58%, #3730a3 100%);
+      }
+
+      body.crm_theme_company .crm_sidebar:not(:hover):not(:focus-within) .crm_group_icon[data-icon-key="system-group"] {
+        background: linear-gradient(145deg, #64748b 0%, #334155 58%, #0f172a 100%);
+      }
+
+      body.crm_theme_company .crm_sidebar:not(:hover):not(:focus-within) .crm_group_icon[data-icon-key="integrations-group"] {
+        background: linear-gradient(145deg, #38bdf8 0%, #0868e8 52%, #071b78 100%);
+      }
+
+      body.crm_theme_company .crm_sidebar:not(:hover):not(:focus-within) .crm_group_icon svg {
+        width: 22px;
+        height: 22px;
+        stroke-width: 1.9;
+        filter: drop-shadow(0 1px 1px rgba(7,19,61,.18));
+      }
+    }
+
+    body.crm_theme_company .crm_nav_link {
+      min-height: 48px;
+      border: 1px solid transparent;
+    }
+
+    body.crm_theme_company .crm_nav_link:hover {
+      border-color: rgba(8,56,184,.10);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.84), 0 8px 18px rgba(7,27,120,.05);
+    }
+
+    body.crm_theme_company .crm_nav_link.is_active {
+      background: linear-gradient(100deg, rgba(8,104,232,.15) 0%, rgba(255,255,255,.88) 100%);
+      border-color: rgba(8,104,232,.15);
+      color: #071b78;
+    }
+
+    body.crm_theme_company .crm_nav_link.is_active::before {
+      background: linear-gradient(180deg, #1685f3 0%, #0838b8 100%);
+      box-shadow: 0 0 0 3px rgba(8,104,232,.10);
+    }
+
+    body.crm_theme_company .crm_nav_icon {
+      background: rgba(255,255,255,.76);
+      border-color: rgba(8,56,184,.10);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.95), 0 7px 16px rgba(7,27,120,.06);
+    }
+
+    .crm_topbar_chip i {
+      width: 30px;
+      height: 30px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 11px;
+      background: rgba(37,99,235,.09);
+      color: #2563eb;
+      border: 1px solid rgba(37,99,235,.12);
+      font-size: 15px;
+    }
+
+    .crm_topbar_chip + .crm_topbar_chip i {
+      background: rgba(16,185,129,.09);
+      color: #059669;
+      border-color: rgba(16,185,129,.14);
+    }
+
+    body.crm_contractor_workspace .crm_topbar {
+      max-width: 760px;
+      margin-left: auto;
+      margin-right: auto;
+      padding: 11px 13px;
+      border-radius: 18px;
+    }
+
+    body.crm_contractor_workspace .crm_topbar_meta,
+    body.crm_contractor_workspace .crm_page_text,
+    body.crm_contractor_workspace .crm_floating_bell {
+      display: none !important;
+    }
+
+    body.crm_contractor_workspace .crm_topbar_left {
+      width: 100%;
+    }
+
+    body.crm_contractor_workspace .crm_page_title {
+      font-size: 16px;
+      font-weight: 950;
+    }
+
+    .crm_contractor_language {
+      margin-left: auto;
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 42px;
+      padding: 5px 8px 5px 10px;
+      border: 1px solid rgba(8, 56, 184, 0.14);
+      border-radius: 14px;
+      background: #ffffff;
+      color: #07133d;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+    }
+
+    .crm_contractor_language i {
+      color: #0868e8;
+      font-size: 16px;
+    }
+
+    .crm_contractor_language select {
+      min-width: 74px;
+      min-height: 32px;
+      padding: 4px 25px 4px 7px;
+      border: 0;
+      outline: 0;
+      background-color: transparent;
+      color: #07133d;
+      font-size: 13px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    @media (max-width: 560px) {
+      .crm_contractor_language {
+        padding-left: 8px;
+      }
+
+      .crm_contractor_language select {
+        min-width: 64px;
+        padding-right: 18px;
+      }
+    }
+
+    @media (max-width: 1180px) {
+      body.crm_contractor_workspace .crm_topbar {
+        align-items: center;
+        flex-direction: row;
+        top: 8px;
+        margin-bottom: 12px;
+      }
+      body.crm_contractor_workspace .crm_sidebar_open {
+        width: 46px;
+        height: 46px;
+        border-radius: 15px;
+      }
+    }
+
+  </style>
+
+  {% if is_platform_root or is_platform_staff %}
+    <link rel="stylesheet" href="{% static 'css/nexxtjob-platform.css' %}">
+  {% endif %}
+
+  {% block extra_head %}{% endblock %}
+  {% include "components/_invoice_action_system.html" %}
+</head>
+
+<body class="{% if is_platform_root or is_platform_staff %}crm_theme_platform{% else %}crm_theme_company{% endif %}{% if crm_is_contractor_workspace %} crm_contractor_workspace{% endif %}">
+  <div class="crm_overlay" id="crmSidebarOverlay"></div>
+
+  <div class="crm_shell">
+    <aside class="crm_sidebar" id="crmSidebar">
+      <div class="crm_sidebar_expand_hint" aria-hidden="true">
+        <i class="bi bi-chevron-double-right"></i>
+      </div>
+
+      <div class="crm_sidebar_inner">
+        <div class="crm_sidebar_top">
+          <div class="crm_sidebar_header">
+            <div class="crm_sidebar_brand">
+              <div class="crm_logo_box">
+                {% if is_platform_root or is_platform_staff %}
+                  <img
+                    class="crm_logo_img"
+                    src="{% static 'branding/nexxtjob-symbol.svg' %}"
+                    alt="NexxtJob CRM"
+                    data-fallback="NJ"
+                    onerror="this.style.display='none'; this.parentElement.textContent=this.dataset.fallback || 'NJ';"
+                  >
+                {% elif request.user.is_authenticated and crm_current_company and crm_current_company.logo %}
+                  <img
+                    class="crm_logo_img"
+                    src="{{ crm_current_company.logo.url }}"
+                    alt="{{ crm_current_company.name }} logo"
+                    data-fallback="{{ crm_current_company.name|slice:':2'|upper }}"
+                    onerror="this.style.display='none'; this.parentElement.textContent=this.dataset.fallback || 'CRM';"
+                  >
+                {% elif request.user.is_authenticated and crm_current_company %}
+                  {{ crm_current_company.name|slice:":2"|upper }}
+                {% else %}
+                  CRM
+                {% endif %}
+              </div>
+
+              <div class="crm_brand_meta d-sidebar-narrow-unfoldable-none">
+                <span class="crm_brand_kicker">
+                  {% if is_platform_root or is_platform_staff %}
+                    NEXXTJOB CRM
+                  {% else %}
+                    {% translate "Company Workspace" %}
+                  {% endif %}
+                </span>
+
+                <span class="crm_brand_title">
+                  {% if is_platform_root %}
+                    {% translate "Platform Admin" %}
+                  {% elif is_platform_staff %}
+                    {% translate "Operations Console" %}
+                  {% elif crm_current_company %}
+                    {{ crm_current_company.name }}
+                  {% else %}
+                    CRM Workspace
+                  {% endif %}
+                </span>
+
+                <span class="crm_brand_text">
+                  {% if is_platform_root %}
+                    {% translate "Companies, plans, billing and platform control." %}
+                  {% elif is_platform_staff %}
+                    {% translate "Internal operations and assigned platform tools." %}
+                  {% elif crm_current_company %}
+                    {% translate "Daily operations, users, sales and workflow control." %}
+                  {% else %}
+                    {% translate "Operations and business management." %}
+                  {% endif %}
+                </span>
+              </div>
+            </div>
+
+            <button
+              class="crm_sidebar_close d-sidebar-narrow-unfoldable-none"
+              type="button"
+              id="crmSidebarClose"
+              aria-label="{% translate 'Close menu' %}"
+            >
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+
+          <div class="crm_scope d-sidebar-narrow-unfoldable-none">
+            <span class="crm_scope_label">{% translate "Current Scope" %}</span>
+
+            <span class="crm_scope_value">
+              {% if is_platform_root %}
+                {% translate "NexxtJob Platform Administration" %}
+              {% elif is_platform_staff %}
+                {% translate "NexxtJob Platform Staff" %}
+              {% elif crm_current_company %}
+                {{ crm_current_company.name }}
+              {% else %}
+                {% translate "CRM Workspace" %}
+              {% endif %}
+            </span>
+          </div>
+
+          <div class="crm_sidebar_search d-sidebar-narrow-unfoldable-none">
+            <i class="bi bi-search"></i>
+            <input type="text" id="crmMenuSearch" placeholder="{% translate 'Search menu' %}">
+          </div>
+        </div>
+
+        <nav class="crm_nav" aria-label="{% translate 'Main navigation' %}" id="crmSidebarNav">
+          {% if is_platform_root or is_platform_staff %}
+            {% for group in platform_nav_groups %}
+              <div
+                class="crm_nav_group crm_platform_nav_group {% if group.is_open %}is_open{% endif %}"
+                data-nav-group
+                data-platform-group="{{ group.icon_key }}"
+              >
+                <button
+                  class="crm_nav_group_toggle"
+                  type="button"
+                  data-group-toggle
+                  aria-expanded="{% if group.is_open %}true{% else %}false{% endif %}"
+                >
+                  <span class="crm_group_toggle_left">
+                    <span
+                      class="crm_group_icon"
+                      data-group-icon
+                      data-icon-key="{{ group.icon_key }}"
+                    >
+                      <i class="bi bi-folder2-open"></i>
+                    </span>
+
+                    <span class="crm_group_label d-sidebar-narrow-unfoldable-none">
+                      {{ group.label }}
+                    </span>
+                  </span>
+
+                  <i class="bi bi-chevron-down d-sidebar-narrow-unfoldable-none"></i>
+                </button>
+
+                <div
+                  class="crm_nav_group_body"
+                  data-group-body
+                  {% if not group.is_open %}style="display:none;"{% endif %}
+                >
+                  {% for item in group.items %}
+                    <a
+                      class="crm_nav_link {% if item.is_active %}is_active{% endif %}"
+                      href="{{ item.url }}"
+                      aria-label="{{ item.label }}"
+                      title="{{ item.label }}"
+                      data-platform-item="{{ item.icon_key }}"
+                    >
+                      <span
+                        class="crm_nav_icon"
+                        data-menu-icon
+                        data-icon-key="{{ item.icon_key|default:'' }}"
+                      >
+                        <i class="bi bi-grid-1x2"></i>
+                      </span>
+
+                      <span class="crm_nav_link_label d-sidebar-narrow-unfoldable-none">
+                        {{ item.label }}
+                      </span>
+
+                      <span class="crm_nav_link_arrow d-sidebar-narrow-unfoldable-none">
+                        <i class="bi bi-chevron-right"></i>
+                      </span>
+                    </a>
+                  {% endfor %}
+                </div>
+              </div>
+            {% empty %}
+              {% if is_platform_root %}
+                <div class="crm_nav_group is_open" data-nav-group>
+                  <div class="crm_nav_group_body" data-group-body>
+                    <a
+                      class="crm_nav_link is_active"
+                      href="{% url 'platform_core:dashboard' %}"
+                      aria-label="{% translate 'Control Center' %}"
+                      title="{% translate 'Control Center' %}"
+                    >
+                      <span class="crm_nav_icon" data-menu-icon data-icon-key="control-center">
+                        <i class="bi bi-speedometer2"></i>
+                      </span>
+                      <span class="crm_nav_link_label d-sidebar-narrow-unfoldable-none">{% translate "Control Center" %}</span>
+                    </a>
+                  </div>
+                </div>
+              {% endif %}
+            {% endfor %}
+
+          {% elif request.user.is_authenticated and request.user.id_company %}
+            <div class="crm_nav_single">
+              {% for item in crm_nav_items %}
+                <a
+                  class="crm_nav_link {% if item.is_active %}is_active{% endif %}"
+                  href="{{ item.url }}"
+                  aria-label="{{ item.label }}"
+                  title="{{ item.label }}"
+                >
+                  <span class="crm_nav_icon" data-menu-icon data-icon-key="{{ item.icon_key|default:'' }}">
+                    <i class="bi bi-grid-1x2"></i>
+                  </span>
+
+                  <span class="crm_nav_link_label d-sidebar-narrow-unfoldable-none">
+                    {{ item.label }}
+                  </span>
+
+                  <span class="crm_nav_link_arrow d-sidebar-narrow-unfoldable-none">
+                    <i class="bi bi-chevron-right"></i>
+                  </span>
+                </a>
+              {% endfor %}
+            </div>
+
+            {% for group in crm_nav_groups %}
+              <div class="crm_nav_group {% if group.is_active %}is_open{% endif %}" data-nav-group>
+                <button
+                  class="crm_nav_group_toggle"
+                  type="button"
+                  data-group-toggle
+                  aria-expanded="{% if group.is_active %}true{% else %}false{% endif %}"
+                >
+                  <span class="crm_group_toggle_left">
+                    <span
+                      class="crm_group_icon"
+                      data-group-icon
+                      data-icon-key="{{ group.icon_key|default:group.key }}"
+                    >
+                      <i class="bi bi-folder2-open"></i>
+                    </span>
+
+                    <span class="crm_group_label d-sidebar-narrow-unfoldable-none">
+                      {{ group.label }}
+                    </span>
+                  </span>
+
+                  <i class="bi bi-chevron-down d-sidebar-narrow-unfoldable-none"></i>
+                </button>
+
+                <div
+                  class="crm_nav_group_body"
+                  data-group-body
+                  {% if not group.is_active %}style="display:none;"{% endif %}
+                >
+                  {% for item in group.items %}
+                    <a
+                      class="crm_nav_link {% if item.is_active %}is_active{% endif %}"
+                      href="{{ item.url }}"
+                      aria-label="{{ item.label }}"
+                      title="{{ item.label }}"
+                    >
+                      <span class="crm_nav_icon" data-menu-icon data-icon-key="{{ item.icon_key|default:'' }}">
+                        <i class="bi bi-grid-1x2"></i>
+                      </span>
+
+                      <span class="crm_nav_link_label d-sidebar-narrow-unfoldable-none">
+                        {{ item.label }}
+                      </span>
+
+                      <span class="crm_nav_link_arrow d-sidebar-narrow-unfoldable-none">
+                        <i class="bi bi-chevron-right"></i>
+                      </span>
+                    </a>
+                  {% endfor %}
+                </div>
+              </div>
+            {% endfor %}
+
+          {% else %}
+            <div class="crm_nav_group is_open" data-nav-group>
+              <button
+                class="crm_nav_group_toggle"
+                type="button"
+                data-group-toggle
+                aria-expanded="true"
+              >
+                <span class="crm_group_toggle_left">
+                  <span class="crm_group_icon" data-group-icon>
+                    <i class="bi bi-box-arrow-in-right"></i>
+                  </span>
+
+                  <span class="crm_group_label d-sidebar-narrow-unfoldable-none">
+                    Access
+                  </span>
+                </span>
+
+                <i class="bi bi-chevron-down d-sidebar-narrow-unfoldable-none"></i>
+              </button>
+
+              <div class="crm_nav_group_body" data-group-body>
+                <a
+                  class="crm_nav_link"
+                  href="/login/"
+                  aria-label="Login"
+                  title="Login"
+                >
+                  <span class="crm_nav_icon" data-menu-icon data-icon-key="{{ item.icon_key|default:'' }}">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                  </span>
+
+                  <span class="crm_nav_link_label d-sidebar-narrow-unfoldable-none">
+                    Login
+                  </span>
+
+                  <span class="crm_nav_link_arrow d-sidebar-narrow-unfoldable-none">
+                    <i class="bi bi-chevron-right"></i>
+                  </span>
+                </a>
+              </div>
+            </div>
+          {% endif %}
+        </nav>
+
+        <div class="crm_sidebar_footer">
+          <div class="crm_sidebar_user">
+            {% if request.user.is_authenticated %}
+              <span class="crm_sidebar_user_name d-sidebar-narrow-unfoldable-none">
+                {{ request.user.email }}
+              </span>
+
+              <span class="crm_sidebar_user_meta d-sidebar-narrow-unfoldable-none">
+                {% if is_platform_root %}
+                  {% translate "NexxtJob Platform Admin" %}
+                {% elif is_platform_staff %}
+                  {% translate "NexxtJob Platform Staff" %}
+                {% elif request.user.id_role %}
+                  {{ request.user.id_role.name }}
+                {% else %}
+                  No role assigned
+                {% endif %}
+              </span>
+
+              {% if crm_current_company %}
+                <span class="crm_sidebar_user_meta d-sidebar-narrow-unfoldable-none">
+                  {{ crm_current_company.name }}
+                </span>
+              {% endif %}
+
+              <span class="d-sidebar-narrow-unfoldable">
+                <i class="bi bi-person-circle"></i>
+              </span>
+            {% else %}
+              <span class="crm_sidebar_user_name d-sidebar-narrow-unfoldable-none">
+                Guest
+              </span>
+
+              <span class="crm_sidebar_user_meta d-sidebar-narrow-unfoldable-none">
+                Not authenticated
+              </span>
+
+              <span class="d-sidebar-narrow-unfoldable">
+                <i class="bi bi-person-circle"></i>
+              </span>
+            {% endif %}
+          </div>
+
+          {% if request.user.is_authenticated %}
+            <div class="crm_support_sidebar">
+              <div class="crm_support_sidebar_head d-sidebar-narrow-unfoldable-none">
+                <i class="bi bi-whatsapp"></i>
+                <span>{% translate "Need help?" %}</span>
+              </div>
+
+              <p class="crm_support_sidebar_text d-sidebar-narrow-unfoldable-none">
+                {% translate "Contact CRM support through WhatsApp." %}
+              </p>
+
+              <button
+                class="crm_support_sidebar_button"
+                type="button"
+                data-support-open
+                data-support-context="{% if is_platform_root or is_platform_staff %}platform{% else %}company{% endif %}"
+                data-support-user="{{ request.user.email }}"
+                data-support-company="{% if crm_current_company %}{{ crm_current_company.name }}{% endif %}"
+                aria-label="{% translate 'Contact Support' %}"
+                title="{% translate 'Contact Support' %}"
+              >
+                <i class="bi bi-headset"></i>
+                <span class="d-sidebar-narrow-unfoldable-none">{% translate "Contact Support" %}</span>
+              </button>
+            </div>
+
+            <form class="crm_sidebar_logout_form" method="post" action="{% url 'logout' %}">
+              {% csrf_token %}
+
+              <button
+                class="crm_sidebar_logout"
+                type="submit"
+                aria-label="{% translate 'Logout' %}"
+                title="{% translate 'Logout' %}"
+              >
+                <span class="crm_logout_icon" aria-hidden="true">
+                  <i class="bi bi-box-arrow-right"></i>
+                </span>
+                <span class="crm_logout_label d-sidebar-narrow-unfoldable-none">{% translate "Logout" %}</span>
+                <span class="crm_logout_arrow d-sidebar-narrow-unfoldable-none" aria-hidden="true">
+                  <i class="bi bi-chevron-right"></i>
+                </span>
+              </button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+    </aside>
+
+    <main class="crm_main">
+      <header class="crm_topbar">
+        <div class="crm_topbar_left">
+          <button
+            class="crm_sidebar_open"
+            type="button"
+            id="crmSidebarOpen"
+            aria-label="{% translate 'Open menu' %}"
+          >
+            <i class="bi bi-list"></i>
+          </button>
+
+          <div class="crm_topbar_content">
+            <h1 class="crm_page_title">
+              {% block page_title %}{% translate "Dashboard" %}{% endblock %}
+            </h1>
+
+            <p class="crm_page_text">
+              {% block page_subtitle %}General overview of the CRM system.{% endblock %}
+            </p>
+          </div>
+
+          {% if crm_is_contractor_workspace %}
+            <form class="crm_contractor_language" method="post" action="{% url 'language_switch' %}">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.get_full_path }}">
+              <i class="bi bi-translate" aria-hidden="true"></i>
+              <label class="visually-hidden" for="crmContractorLanguage">{% translate "Language" %}</label>
+              <select
+                id="crmContractorLanguage"
+                name="language"
+                aria-label="{% translate 'Language' %}"
+                onchange="this.form.submit()"
+              >
+                <option value="en" {% if request.LANGUAGE_CODE|slice:':2' == 'en' %}selected{% endif %}>EN</option>
+                <option value="es" {% if request.LANGUAGE_CODE|slice:':2' == 'es' %}selected{% endif %}>ES</option>
+              </select>
+            </form>
+          {% endif %}
+        </div>
+
+        <div class="crm_topbar_meta">
+          {% if is_platform_root or is_platform_staff %}
+            <div class="crm_platform_operator" aria-label="DevLayer Studio">
+              <div class="crm_platform_operator_copy">
+                <span>{% translate "Platform developed by" %}</span>
+                <strong>DevLayer Studio</strong>
+              </div>
+              <img src="{% static 'branding/devlayer-studio.png' %}" alt="DevLayer Studio">
+            </div>
+          {% endif %}
+
+          {% if request.user.is_authenticated %}
+            <span class="crm_topbar_chip">
+              <i class="bi bi-person-circle"></i>
+              {{ request.user.email }}
+            </span>
+
+            {% if crm_current_company %}
+              <span class="crm_topbar_chip">
+                <i class="bi bi-buildings"></i>
+                {{ crm_current_company.name }}
+              </span>
+            {% endif %}
+          {% endif %}
+        </div>
+      </header>
+
+      {% if messages %}
+        <div class="crm_action_modal_overlay is_open" id="crmMessageModal" role="dialog" aria-modal="true" aria-labelledby="crmMessageModalTitle">
+          <div class="crm_action_modal_card">
+            <p class="crm_action_modal_kicker">System Notice</p>
+            <h3 class="crm_action_modal_title" id="crmMessageModalTitle">Action status</h3>
+            {% for message in messages %}
+              <div class="crm_action_message_line {{ message.tags|default:'info' }}">{{ message }}</div>
+            {% endfor %}
+            <div class="crm_action_modal_actions">
+              <button class="crm_action_modal_button crm_action_modal_button_primary" type="button" data-crm-close-message>OK</button>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
+      <section class="crm_content">
+        {% block content %}{% endblock %}
+      </section>
+    </main>
+  </div>
+
+  {% if floating_notifications_page_url %}
+    <div class="crm_floating_bell">
+      <div class="crm_floating_bell_wrap">
+        <button
+          class="crm_floating_bell_button"
+          type="button"
+          id="crmFloatingBellButton"
+          aria-label="Open notifications"
+          aria-expanded="false"
+          aria-controls="crmNotificationDropdown"
+        >
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path
+              d="M15 17H9M18 10.8V14L20 17H4L6 14V10.8C6 7.5 8.4 5 12 5C15.6 5 18 7.5 18 10.8Z"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M10 19C10.4 20.1 11.1 20.5 12 20.5C12.9 20.5 13.6 20.1 14 19"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+
+          {% if floating_unread_notifications_count %}
+            <span class="crm_floating_bell_count">
+              {{ floating_unread_notifications_count }}
+            </span>
+          {% endif %}
+        </button>
+
+        <div class="crm_notification_dropdown" id="crmNotificationDropdown">
+          <div class="crm_notification_head">
+            <strong>Notifications</strong>
+            <span>{{ floating_unread_notifications_count|default:0 }} unread</span>
+          </div>
+
+          <div class="crm_notification_list">
+            {% for notification in floating_notifications %}
+              <a
+                  class="crm_notification_item"
+                  href="{{ notification.url|default:notification.detail_url }}"
+                >
+                <span class="crm_notification_item_title">
+                  {{ notification.title|default:"Notification" }}
+                </span>
+
+                <span class="crm_notification_item_text">
+                  {{ notification.message|default:"No message"|truncatechars:95 }}
+                </span>
+
+                <span class="crm_notification_item_date">
+                  {{ notification.created_at|date:"Y-m-d H:i" }}
+                </span>
+              </a>
+            {% empty %}
+              <div class="crm_notification_empty">
+                No notifications yet.
+              </div>
+            {% endfor %}
+          </div>
+
+          <div class="crm_notification_footer">
+          {% if request.resolver_match.kwargs.company_slug %}
+            <a href="/{{ request.resolver_match.kwargs.company_slug }}/notifications/">
+              View all notifications
+            </a>
+          {% else %}
+            <a href="/notifications/">
+              View all notifications
+            </a>
+          {% endif %}
+        </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <div
+    class="crm_support_modal"
+    id="crmSupportModal"
+    aria-hidden="true"
+    data-platform-message="I need support with the NexxtJob CRM platform."
+    data-company-message="I need support with my company CRM workspace."
+    data-company-message-prefix="I need support with the CRM for company "
+    data-platform-greeting="Hello, I need support with the NexxtJob CRM platform."
+    data-company-greeting="Hello, I need support with my company CRM workspace."
+    data-company-greeting-prefix="Hello, I need support with the CRM for company "
+    data-topic-label="Support topic:"
+    data-name-label="Name:"
+    data-email-label="Email:"
+    data-company-label="Company:"
+    data-message-label="Message:"
+  >
+    <div class="crm_support_backdrop" data-support-close></div>
+
+    <div class="crm_support_dialog" role="dialog" aria-modal="true" aria-labelledby="crmSupportTitle">
+      <div class="crm_support_head">
+        <div>
+          <h3 id="crmSupportTitle">Contact Support</h3>
+          <p>Complete the basic information and we will prepare your WhatsApp message.</p>
+        </div>
+
+        <button class="crm_support_close" type="button" data-support-close aria-label="Close support form">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <form class="crm_support_form" id="crmSupportForm">
+        <label class="crm_support_field">
+          <span>Name</span>
+          <input class="crm_support_input" type="text" id="supportName" placeholder="Your name">
+        </label>
+
+        <label class="crm_support_field">
+          <span>Email</span>
+          <input class="crm_support_input" type="email" id="supportEmail" value="{% if request.user.is_authenticated %}{{ request.user.email }}{% endif %}" placeholder="your@email.com">
+        </label>
+
+        <label class="crm_support_field">
+          <span>Company</span>
+          <input class="crm_support_input" type="text" id="supportCompany" value="{% if crm_current_company %}{{ crm_current_company.name }}{% endif %}" placeholder="Company name if applicable">
+        </label>
+
+        <label class="crm_support_field">
+          <span>Support Topic</span>
+          <select class="crm_support_input" id="supportTopic">
+            <option value="CRM access support">CRM access support</option>
+            <option value="Company workspace support">Company workspace support</option>
+            <option value="User or role support">User or role support</option>
+            <option value="Billing or subscription support">Billing or subscription support</option>
+            <option value="Technical issue">Technical issue</option>
+            <option value="Other CRM support request">Other CRM support request</option>
+          </select>
+        </label>
+
+        <label class="crm_support_field">
+          <span>Message</span>
+          <textarea class="crm_support_input" id="supportMessage" placeholder="Briefly describe the issue"></textarea>
+        </label>
+
+        <button class="crm_support_send" type="submit">
+          <i class="bi bi-whatsapp"></i>
+          Open WhatsApp
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const body = document.body;
+      const sidebar = document.getElementById("crmSidebar");
+      const openButton = document.getElementById("crmSidebarOpen");
+      const closeButton = document.getElementById("crmSidebarClose");
+      const overlay = document.getElementById("crmSidebarOverlay");
+      const menuSearch = document.getElementById("crmMenuSearch");
+      const groupBlocks = Array.from(document.querySelectorAll("[data-nav-group]"));
+      const mobileQuery = window.matchMedia("(max-width: 1180px)");
+
+      function isMobileSidebar() {
+        return mobileQuery.matches;
+      }
+
+      function openSidebar() {
+        body.classList.add("crm_sidebar_opened");
+
+        if (isMobileSidebar()) {
+          body.style.overflow = "hidden";
+        }
+      }
+
+      function closeSidebar() {
+        body.classList.remove("crm_sidebar_opened");
+        body.style.overflow = "";
+      }
+
+      function iconSvg(iconKey) {
+        const icons = {
+          "customers-group": `
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 20v-1.5a4.5 4.5 0 0 0-4.5-4.5h-4A4.5 4.5 0 0 0 3 18.5V20"/>
+              <circle cx="9.5" cy="7" r="3.5"/>
+              <path d="M17 8.5h4M19 6.5v4M15.5 14.6c2.5.2 4.5 2.2 4.5 4.7V20"/>
+            </svg>`,
+          "projects-group": `
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="16" rx="3"/>
+              <path d="M8 8h3v3H8zM14 8h3M14 11h3M8 15h3M14 15h3"/>
+            </svg>`,
+          "documents-group": `
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 3h8l4 4v14H6z"/>
+              <path d="M14 3v5h5M9 13l2 2 4-4"/>
+            </svg>`,
+          "finance-group": `
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="5" width="18" height="14" rx="3"/>
+              <path d="M3 9h18M8 15h3M15.5 13.5a2 2 0 1 0 0 3.9"/>
+            </svg>`,
+          "suppliers-group": `
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 7h11v10H3zM14 10h4l3 3v4h-7z"/>
+              <circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>
+            </svg>`,
+          "team-group": `
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="9" cy="8" r="3"/>
+              <path d="M3.5 19a5.5 5.5 0 0 1 11 0M17.5 11.5l.6 1.1 1.3.2-.9.9.2 1.3-1.2-.6-1.2.6.2-1.3-.9-.9 1.3-.2z"/>
+            </svg>`,
+          "system-group": `
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3l7 3v5c0 4.8-2.8 8.1-7 10-4.2-1.9-7-5.2-7-10V6z"/>
+              <path d="M9 12l2 2 4-4"/>
+            </svg>`,
+          "integrations-group": `
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 3v4M15 3v4M7 7h10v3a5 5 0 0 1-5 5v0a5 5 0 0 1-5-5zM12 15v6"/>
+              <path d="M9 21h6"/>
+            </svg>`,
+          email: `
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="5" width="18" height="14" rx="3"/>
+              <path d="M4 7l8 6 8-6M16.5 16.5h3M18 15v3"/>
+            </svg>`,
+          google: `
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="#4285F4" d="M21.6 12.23c0-.71-.06-1.23-.2-1.78H12v3.42h5.52a4.72 4.72 0 0 1-2.05 3.08l-.02.11 2.98 2.31.21.02c1.91-1.77 2.96-4.37 2.96-7.16Z"/>
+              <path fill="#34A853" d="M12 22c2.69 0 4.95-.88 6.6-2.4l-3.15-2.44c-.84.57-1.97.97-3.45.97-2.59 0-4.79-1.75-5.58-4.17l-.11.01-3.1 2.4-.04.1A10 10 0 0 0 12 22Z"/>
+              <path fill="#FBBC05" d="M6.42 13.96A6.03 6.03 0 0 1 6.1 12c0-.68.12-1.34.31-1.96l-.01-.13-3.14-2.44-.1.05A10 10 0 0 0 2 12c0 1.61.39 3.13 1.17 4.48l3.25-2.52Z"/>
+              <path fill="#EA4335" d="M12 5.87c1.87 0 3.13.81 3.85 1.48l2.82-2.75C16.94 2.99 14.69 2 12 2a10 10 0 0 0-8.83 5.52l3.24 2.52C7.21 7.62 9.41 5.87 12 5.87Z"/>
+            </svg>`,
+          "google-drive": `
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="#0F9D58" d="M8.1 3h5.05l6.55 11.35h-5.04L8.1 3Z"/>
+              <path fill="#F4B400" d="M8.1 3 1.55 14.35l2.52 4.37 6.56-11.35L8.1 3Z"/>
+              <path fill="#4285F4" d="M4.07 18.72h13.1l2.53-4.37H6.6l-2.53 4.37Z"/>
+            </svg>`,
+          "google-calendar": `
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="3" width="18" height="18" rx="3" fill="#fff"/>
+              <path fill="#4285F4" d="M3 8h18v10a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V8Z"/>
+              <path fill="#34A853" d="M3 8V6a3 3 0 0 1 3-3h3v5H3Z"/>
+              <path fill="#FBBC05" d="M9 3h6v5H9V3Z"/>
+              <path fill="#EA4335" d="M15 3h3a3 3 0 0 1 3 3v2h-6V3Z"/>
+              <text x="12" y="17" text-anchor="middle" font-size="7.5" font-weight="800" fill="#fff" font-family="Arial">31</text>
+            </svg>`,
+          analytics: `
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="13" width="4" height="8" rx="2" fill="#F9AB00"/>
+              <rect x="10" y="8" width="4" height="13" rx="2" fill="#E37400"/>
+              <rect x="17" y="3" width="4" height="18" rx="2" fill="#FBBC04"/>
+            </svg>`,
+          reports: `
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="12" width="4" height="9" rx="2" fill="#4285F4"/>
+              <rect x="8.7" y="7" width="4" height="14" rx="2" fill="#34A853"/>
+              <rect x="14.4" y="10" width="4" height="11" rx="2" fill="#FBBC05"/>
+              <rect x="20" y="3" width="1" height="18" rx=".5" fill="#EA4335"/>
+            </svg>`
+        };
+        return icons[iconKey] || "";
+      }
+
+      function setIcon(element, iconKey) {
+        if (!element) return;
+        if (!element.dataset.iconKey) {
+          element.dataset.iconKey = iconKey || "default";
+        }
+        const custom = iconSvg(iconKey);
+        if (custom) {
+          element.innerHTML = custom;
+          return;
+        }
+        element.innerHTML = '<i class="bi ' + (iconKey || "bi-grid-1x2") + '"></i>';
+      }
+
+      function resolveIconKey(label, href) {
+        const text = String(label || "").toLowerCase();
+        const path = String(href || "").toLowerCase();
+
+        if (path.includes("/integrations/analytics")) return "analytics";
+        if (path.includes("/integrations/drive")) return "google-drive";
+        if (path.includes("/integrations/calendar")) return "google-calendar";
+        if (path.includes("/integrations/logs")) return "logs";
+        if (path.includes("/integrations")) return "google";
+        if (path.includes("/reports")) return "reports";
+        if (path.includes("/calendar")) return "google-calendar";
+        if (path.includes("/clients")) return "clients";
+        if (path.includes("/leads")) return "leads";
+        if (path.includes("/opportunities")) return "opportunities";
+        if (path.includes("/projects")) return "projects";
+        if (path.includes("/inspections")) return "inspections";
+        if (path.includes("/evidence")) return "evidence";
+        if (path.includes("/supervision")) return "supervision";
+        if (path.includes("/estimates")) return "estimates";
+        if (path.includes("/contracts")) return "contracts";
+        if (path.includes("/invoices")) return "invoices";
+        if (path.includes("/payments")) return "payments";
+        if (path.includes("/suppliers/offers") || path.includes("/products")) return "products";
+        if (path.includes("/suppliers/purchases") || path.includes("/purchases")) return "purchases";
+        if (path.includes("/suppliers")) return "suppliers";
+        if (path.includes("/employees")) return "employees";
+        if (path.includes("/users")) return "users";
+        if (path.includes("/roles")) return "roles";
+        if (path.includes("/smtp") || path.includes("email-settings")) return "email";
+        if (path.includes("/languages")) return "languages";
+        if (path.includes("/notifications")) return "notifications";
+        if (path.includes("/user-activities") || path.includes("/audit") || path.includes("/system-logs")) return "logs";
+        if (path.includes("/dashboard") || text.includes("dashboard") || text.includes("panel")) return "dashboard";
+
+        if (text.includes("analytics")) return "analytics";
+        if (text.includes("google drive")) return "google-drive";
+        if (text.includes("google") || text.includes("integración") || text.includes("integration")) return "google";
+        if (text.includes("report") || text.includes("reporte")) return "reports";
+        if (text.includes("language") || text.includes("idioma")) return "languages";
+        if (text.includes("role") || text.includes("rol") || text.includes("permission")) return "roles";
+        if (text.includes("setting") || text.includes("config")) return "settings";
+        return "bi-grid-1x2";
+      }
+
+      function bootstrapIconForKey(iconKey) {
+        const icons = {
+          dashboard:"bi-speedometer2", "control-center":"bi-speedometer2",
+          clients:"bi-person-vcard", leads:"bi-person-plus",
+          opportunities:"bi-graph-up-arrow", projects:"bi-kanban", inspections:"bi-clipboard2-check",
+          evidence:"bi-images", supervision:"bi-shield-check", estimates:"bi-file-earmark-text",
+          contracts:"bi-file-earmark-lock", invoices:"bi-receipt", billing:"bi-receipt-cutoff",
+          payments:"bi-wallet2", "platform-payments":"bi-cash-stack",
+          companies:"bi-buildings", plans:"bi-boxes", subscriptions:"bi-arrow-repeat",
+          "recent-activity":"bi-activity", "platform-users":"bi-people-fill",
+          suppliers:"bi-truck", products:"bi-box-seam", purchases:"bi-cart-check",
+          employees:"bi-person-badge", users:"bi-people", roles:"bi-shield-lock",
+          email:"bi-envelope-gear", languages:"bi-translate", notifications:"bi-bell",
+          logs:"bi-journal-text", resources:"bi-cpu", "system-monitor":"bi-heart-pulse",
+          settings:"bi-gear", "financial-summary":"bi-graph-up-arrow",
+          "supplier-reports":"bi-bar-chart-line", "user-activity":"bi-clock-history",
+          "company-modules":"bi-grid-3x3-gap", "technical-admin":"bi-tools",
+          integrations:"bi-puzzle", "sync-history":"bi-arrow-repeat"
+        };
+        return icons[iconKey] || iconKey || "bi-grid-1x2";
+      }
+
+      function pickMenuIcon(label, href, declaredKey) {
+        const key = declaredKey || resolveIconKey(label, href);
+        if (["google", "google-drive", "google-calendar", "analytics", "reports", "email"].includes(key)) {
+          return key;
+        }
+        return bootstrapIconForKey(key);
+      }
+
+      function pickGroupIcon(label, declaredKey) {
+        const declaredIcons = {
+          "overview-group": "bi-columns-gap",
+          "companies-group": "bi-buildings",
+          "operations-group": "bi-receipt-cutoff",
+          "technical-group": "bi-terminal",
+          "customers-group": "customers-group",
+          "projects-group": "projects-group",
+          "documents-group": "documents-group",
+          "finance-group": "finance-group",
+          "suppliers-group": "suppliers-group",
+          "team-group": "team-group",
+          "system-group": "system-group",
+          "integrations-group": "integrations-group"
+        };
+
+        if (declaredKey && declaredIcons[declaredKey]) {
+          return declaredIcons[declaredKey];
+        }
+
+        const text = String(label || "").toLowerCase();
+
+        if (
+          text.includes("technical") ||
+          text.includes("técnico") ||
+          text.includes("tecnico")
+        ) {
+          return "bi-terminal";
+        }
+
+        if (
+          text.includes("overview") ||
+          text.includes("vista general") ||
+          text.includes("workspace") ||
+          text.includes("general")
+        ) {
+          return "bi-columns-gap";
+        }
+
+        if (
+          text.includes("compan") ||
+          text.includes("empresa") ||
+          text.includes("subscription") ||
+          text.includes("suscrip")
+        ) {
+          return "bi-buildings";
+        }
+
+        if (
+          text.includes("operation") ||
+          text.includes("operación") ||
+          text.includes("operacion")
+        ) {
+          return "bi-receipt-cutoff";
+        }
+
+        if (
+          text.includes("sale") ||
+          text.includes("venta") ||
+          text.includes("crm")
+        ) {
+          return "bi-graph-up-arrow";
+        }
+
+        if (
+          text.includes("admin") ||
+          text.includes("setting") ||
+          text.includes("config")
+        ) {
+          return "bi-sliders";
+        }
+
+        if (text.includes("access") || text.includes("acceso")) {
+          return "bi-box-arrow-in-right";
+        }
+
+        return "bi-folder2-open";
+      }
+
+      function hydrateSidebarIcons() {
+        const links = Array.from(document.querySelectorAll("#crmSidebarNav .crm_nav_link"));
+
+        links.forEach(function (link) {
+          const labelEl = link.querySelector(".crm_nav_link_label");
+          const label = labelEl ? labelEl.textContent.trim() : link.textContent.trim();
+          const iconWrap = link.querySelector("[data-menu-icon]");
+
+          link.setAttribute("title", label);
+          link.setAttribute("aria-label", label);
+
+          if (iconWrap) {
+            const declaredKey = iconWrap.dataset.iconKey || "";
+            const semanticKey = declaredKey || resolveIconKey(label, link.getAttribute("href"));
+            iconWrap.dataset.iconKey = semanticKey;
+            setIcon(iconWrap, pickMenuIcon(label, link.getAttribute("href"), semanticKey));
+          }
+        });
+
+        groupBlocks.forEach(function (group) {
+          const labelEl = group.querySelector(".crm_group_label");
+          const iconWrap = group.querySelector("[data-group-icon]");
+          const label = labelEl ? labelEl.textContent.trim() : "";
+
+          if (iconWrap) {
+            const declaredKey = iconWrap.dataset.iconKey || "";
+            setIcon(iconWrap, pickGroupIcon(label, declaredKey));
+          }
+        });
+      }
+
+      hydrateSidebarIcons();
+
+      const supportModal = document.getElementById("crmSupportModal");
+      const supportForm = document.getElementById("crmSupportForm");
+      const supportOpenButtons = document.querySelectorAll("[data-support-open]");
+      const supportCloseButtons = document.querySelectorAll("[data-support-close]");
+      const supportName = document.getElementById("supportName");
+      const supportEmail = document.getElementById("supportEmail");
+      const supportCompany = document.getElementById("supportCompany");
+      const supportTopic = document.getElementById("supportTopic");
+      const supportMessage = document.getElementById("supportMessage");
+      const supportCopy = supportModal ? supportModal.dataset : {};
+      const supportPhone = "18622136814";
+      let currentSupportContext = "company";
+
+      function supportCleanValue(input) {
+        return input && input.value ? input.value.trim() : "";
+      }
+
+      function openSupportModal(event) {
+        const button = event && event.currentTarget ? event.currentTarget : null;
+        const buttonUser = button ? button.getAttribute("data-support-user") || "" : "";
+        const buttonCompany = button ? button.getAttribute("data-support-company") || "" : "";
+
+        currentSupportContext = button ? button.getAttribute("data-support-context") || "company" : "company";
+
+        if (supportEmail && buttonUser) {
+          supportEmail.value = buttonUser;
+        }
+
+        if (supportCompany && buttonCompany) {
+          supportCompany.value = buttonCompany;
+        }
+
+        if (supportTopic) {
+          supportTopic.selectedIndex = currentSupportContext === "platform" ? 0 : 1;
+        }
+
+        if (supportMessage) {
+          if (currentSupportContext === "platform") {
+            supportMessage.value = supportCopy.platformMessage || "I need support with the NexxtJob CRM platform.";
+          } else if (buttonCompany) {
+            supportMessage.value = (supportCopy.companyMessagePrefix || "I need support with the CRM for company ") + buttonCompany + ".";
+          } else {
+            supportMessage.value = supportCopy.companyMessage || "I need support with my company CRM workspace.";
+          }
+        }
+
+        if (supportModal) {
+          supportModal.classList.add("is_open");
+          supportModal.setAttribute("aria-hidden", "false");
+        }
+      }
+
+      function closeSupportModal() {
+        if (supportModal) {
+          supportModal.classList.remove("is_open");
+          supportModal.setAttribute("aria-hidden", "true");
+        }
+      }
+
+      supportOpenButtons.forEach(function (button) {
+        button.addEventListener("click", openSupportModal);
+      });
+
+      supportCloseButtons.forEach(function (button) {
+        button.addEventListener("click", closeSupportModal);
+      });
+
+      if (supportForm) {
+        supportForm.addEventListener("submit", function (event) {
+          event.preventDefault();
+
+          const name = supportCleanValue(supportName);
+          const email = supportCleanValue(supportEmail);
+          const company = supportCleanValue(supportCompany);
+          const topic = supportTopic && supportTopic.selectedOptions.length
+            ? supportTopic.selectedOptions[0].textContent.trim()
+            : "CRM support request";
+          const message = supportCleanValue(supportMessage);
+
+          let finalMessage = "";
+
+          if (currentSupportContext === "platform") {
+            finalMessage = supportCopy.platformGreeting || "Hello, I need support with the NexxtJob CRM platform.";
+          } else if (company) {
+            finalMessage = (supportCopy.companyGreetingPrefix || "Hello, I need support with the CRM for company ") + company + ".";
+          } else {
+            finalMessage = supportCopy.companyGreeting || "Hello, I need support with my company CRM workspace.";
+          }
+
+          finalMessage += "\n\n" + (supportCopy.topicLabel || "Support topic:") + " " + topic;
+
+          if (name) {
+            finalMessage += "\n" + (supportCopy.nameLabel || "Name:") + " " + name;
+          }
+
+          if (email) {
+            finalMessage += "\n" + (supportCopy.emailLabel || "Email:") + " " + email;
+          }
+
+          if (company) {
+            finalMessage += "\n" + (supportCopy.companyLabel || "Company:") + " " + company;
+          }
+
+          if (message) {
+            finalMessage += "\n" + (supportCopy.messageLabel || "Message:") + " " + message;
+          }
+
+          const whatsappUrl = "https://wa.me/" + supportPhone + "?text=" + encodeURIComponent(finalMessage);
+
+          window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+          closeSupportModal();
+        });
+      }
+
+      if (openButton) {
+        openButton.addEventListener("click", openSidebar);
+      }
+
+      if (closeButton) {
+        closeButton.addEventListener("click", closeSidebar);
+      }
+
+      if (overlay) {
+        overlay.addEventListener("click", closeSidebar);
+      }
+
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+          closeSidebar();
+          closeSupportModal();
+        }
+      });
+
+      window.addEventListener("resize", function () {
+        if (!isMobileSidebar()) {
+          closeSidebar();
+        }
+      });
+
+      groupBlocks.forEach(function (group) {
+        const toggle = group.querySelector("[data-group-toggle]");
+        const bodyEl = group.querySelector("[data-group-body]");
+
+        if (!toggle || !bodyEl) {
+          return;
+        }
+
+        toggle.addEventListener("click", function () {
+          const isOpen = group.classList.contains("is_open");
+
+          if (isOpen) {
+            group.classList.remove("is_open");
+            toggle.setAttribute("aria-expanded", "false");
+            bodyEl.style.display = "none";
+          } else {
+            group.classList.add("is_open");
+            toggle.setAttribute("aria-expanded", "true");
+            bodyEl.style.display = "grid";
+          }
+        });
+      });
+
+      if (menuSearch) {
+        menuSearch.addEventListener("input", function () {
+          const query = menuSearch.value.trim().toLowerCase();
+          const allLinks = Array.from(document.querySelectorAll("#crmSidebarNav .crm_nav_link"));
+          const allGroups = Array.from(document.querySelectorAll("#crmSidebarNav [data-nav-group]"));
+
+          allLinks.forEach(function (link) {
+            const labelEl = link.querySelector(".crm_nav_link_label");
+            const label = labelEl
+              ? labelEl.textContent.trim().toLowerCase()
+              : link.textContent.trim().toLowerCase();
+
+            const matches = !query || label.indexOf(query) !== -1;
+
+            link.classList.toggle("is_hidden", !matches);
+          });
+
+          allGroups.forEach(function (group) {
+            const bodyEl = group.querySelector("[data-group-body]");
+            const toggle = group.querySelector("[data-group-toggle]");
+            const links = Array.from(group.querySelectorAll(".crm_nav_link"));
+
+            if (links.length === 0) {
+              return;
+            }
+
+            if (!query) {
+              group.classList.remove("is_hidden");
+              return;
+            }
+
+            const visibleLinks = links.filter(function (link) {
+              return !link.classList.contains("is_hidden");
+            });
+
+            const hasVisibleLinks = visibleLinks.length > 0;
+
+            group.classList.toggle("is_hidden", !hasVisibleLinks);
+
+            if (bodyEl && hasVisibleLinks) {
+              group.classList.add("is_open");
+              bodyEl.style.display = "grid";
+
+              if (toggle) {
+                toggle.setAttribute("aria-expanded", "true");
+              }
+            }
+          });
+        });
+      }
+
+      const mobileNavLinks = Array.from(document.querySelectorAll("#crmSidebarNav .crm_nav_link"));
+
+      mobileNavLinks.forEach(function (link) {
+        link.addEventListener("click", function () {
+          if (isMobileSidebar()) {
+            closeSidebar();
+          }
+        });
+      });
+
+      const bellButton = document.getElementById("crmFloatingBellButton");
+      const dropdown = document.getElementById("crmNotificationDropdown");
+
+      if (bellButton && dropdown) {
+        bellButton.addEventListener("click", function (event) {
+          event.stopPropagation();
+
+          const isOpen = dropdown.classList.toggle("is_open");
+          bellButton.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        });
+
+        dropdown.addEventListener("click", function (event) {
+          event.stopPropagation();
+        });
+
+        document.addEventListener("click", function () {
+          dropdown.classList.remove("is_open");
+          bellButton.setAttribute("aria-expanded", "false");
+        });
+
+        document.addEventListener("keydown", function (event) {
+          if (event.key === "Escape") {
+            dropdown.classList.remove("is_open");
+            bellButton.setAttribute("aria-expanded", "false");
+          }
+        });
+      }
+    });
+  </script>
+
+
+
+  <div class="crm_action_modal_overlay" id="crmVoidModal" role="dialog" aria-modal="true" aria-labelledby="crmVoidModalTitle" aria-hidden="true">
+    <div class="crm_action_modal_card">
+      <p class="crm_action_modal_kicker" id="crmVoidModalKicker">Void Action</p>
+      <h3 class="crm_action_modal_title" id="crmVoidModalTitle">Void record</h3>
+      <p class="crm_action_modal_text" id="crmVoidModalText">Please enter the reason for voiding this record.</p>
+      <div class="crm_action_modal_object" id="crmVoidModalObject" hidden></div>
+
+      <form id="crmVoidModalForm" method="post" action="">
+        {% csrf_token %}
+        <div class="crm_action_modal_field">
+          <label for="crmVoidReason">Void reason</label>
+          <textarea id="crmVoidReason" name="void_reason" placeholder="Write the reason for this void action." required></textarea>
+        </div>
+
+        <div class="crm_action_modal_actions">
+          <button class="crm_action_modal_button" type="button" data-crm-close-void>Cancel</button>
+          <button class="crm_action_modal_button crm_action_modal_button_danger" type="submit" id="crmVoidSubmitButton">Accept Void</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const messageModal = document.getElementById("crmMessageModal");
+      const messageClose = document.querySelector("[data-crm-close-message]");
+
+      if (messageModal && messageClose) {
+        messageClose.addEventListener("click", function () {
+          messageModal.classList.remove("is_open");
+          messageModal.setAttribute("aria-hidden", "true");
+        });
+      }
+
+      const voidModal = document.getElementById("crmVoidModal");
+      const voidForm = document.getElementById("crmVoidModalForm");
+      const voidReason = document.getElementById("crmVoidReason");
+      const voidTitle = document.getElementById("crmVoidModalTitle");
+      const voidText = document.getElementById("crmVoidModalText");
+      const voidObject = document.getElementById("crmVoidModalObject");
+      const voidKicker = document.getElementById("crmVoidModalKicker");
+      const voidSubmit = document.getElementById("crmVoidSubmitButton");
+
+      function openVoidModal(trigger) {
+        if (!voidModal || !voidForm || !voidReason) { return; }
+
+        const action = trigger.getAttribute("data-void-action") || trigger.getAttribute("href") || "";
+        if (!action) { return; }
+
+        voidForm.setAttribute("action", action);
+        voidReason.value = trigger.getAttribute("data-void-default-reason") || "";
+        voidReason.setAttribute("placeholder", trigger.getAttribute("data-void-placeholder") || "Write the reason for this void action.");
+        voidTitle.textContent = trigger.getAttribute("data-void-title") || "Void record";
+        voidText.textContent = trigger.getAttribute("data-void-message") || "Please enter the reason for voiding this record. This action is sensitive and must be confirmed.";
+        voidKicker.textContent = trigger.getAttribute("data-void-kicker") || "Void Action";
+        voidSubmit.textContent = trigger.getAttribute("data-void-submit") || "Accept Void";
+
+        const objectLabel = trigger.getAttribute("data-void-object") || "";
+        if (objectLabel) {
+          voidObject.hidden = false;
+          voidObject.textContent = objectLabel;
+        } else {
+          voidObject.hidden = true;
+          voidObject.textContent = "";
+        }
+
+        voidModal.classList.add("is_open");
+        voidModal.setAttribute("aria-hidden", "false");
+        setTimeout(function () { voidReason.focus(); }, 40);
+      }
+
+      function closeVoidModal() {
+        if (!voidModal) { return; }
+        voidModal.classList.remove("is_open");
+        voidModal.setAttribute("aria-hidden", "true");
+      }
+
+      document.addEventListener("click", function (event) {
+        const trigger = event.target.closest("[data-crm-void-modal]");
+        if (trigger) {
+          event.preventDefault();
+          openVoidModal(trigger);
+          return;
+        }
+
+        if (event.target.closest("[data-crm-close-void]")) {
+          event.preventDefault();
+          closeVoidModal();
+          return;
+        }
+
+        if (event.target === voidModal) {
+          closeVoidModal();
+        }
+      });
+
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+          if (messageModal) {
+            messageModal.classList.remove("is_open");
+            messageModal.setAttribute("aria-hidden", "true");
+          }
+          closeVoidModal();
+        }
+      });
+    });
+  </script>
+
+  <script>
+    /* Synchronize POST forms with Django's current CSRF cookie. */
+    (function () {
+      "use strict";
+
+      function getCookie(name) {
+        const prefix = name + "=";
+        const cookies = document.cookie ? document.cookie.split(";") : [];
+
+        for (let index = 0; index < cookies.length; index += 1) {
+          const cookie = cookies[index].trim();
+          if (cookie.indexOf(prefix) === 0) {
+            return decodeURIComponent(cookie.substring(prefix.length));
+          }
+        }
+
+        return "";
+      }
+
+      function syncCsrfTokens(scope) {
+        const currentToken = getCookie("csrftoken");
+        if (!currentToken) {
+          return;
+        }
+
+        const root = scope && scope.querySelectorAll ? scope : document;
+        root.querySelectorAll('input[name="csrfmiddlewaretoken"]').forEach(function (input) {
+          const form = input.form;
+          if (form && String(form.method || "").toLowerCase() === "post") {
+            input.value = currentToken;
+          }
+        });
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        syncCsrfTokens(document);
+      });
+      window.addEventListener("pageshow", function () {
+        syncCsrfTokens(document);
+      });
+      window.addEventListener("focus", function () {
+        syncCsrfTokens(document);
+      });
+      document.addEventListener("visibilitychange", function () {
+        if (!document.hidden) {
+          syncCsrfTokens(document);
+        }
+      });
+      document.addEventListener("submit", function (event) {
+        const form = event.target;
+        if (form && String(form.method || "").toLowerCase() === "post") {
+          syncCsrfTokens(form);
+        }
+      }, true);
+    }());
+  </script>
+
+  <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

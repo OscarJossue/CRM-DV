@@ -1,0 +1,62 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}{{ form_title }}{% endblock %}
+{% block page_subtitle %}Upload a supplier document with the same unified internal form standard.{% endblock %}
+{% block extra_head %}{% include "suppliers/partials/_design_system.html" %}{% endblock %}
+
+{% block content %}
+<div class="nj-invoice nj-page supplier_theme">
+  <header class="nj-page-head">
+    <div>
+      <span class="nj-page-kicker"><i class="bi bi-paperclip" aria-hidden="true"></i> Document workflow</span>
+      <h1 class="nj-page-title">{{ form_title }}</h1>
+      <p class="nj-page-subtitle">Upload receipts, supplier invoices, quotes, warranties or other supporting documents.</p>
+    </div>
+    <div class="nj-head-actions">
+      <a class="nj-btn nj-btn-secondary" href="{{ cancel_url }}"><i class="bi bi-x-lg"></i> Cancel</a>
+      <button class="nj-btn" type="submit" form="SupplierDocumentForm"><i class="bi bi-cloud-arrow-up"></i> {{ submit_label }}</button>
+    </div>
+  </header>
+
+  {% if form.non_field_errors %}<div class="nj-alert" role="alert"><i class="bi bi-exclamation-triangle"></i><div>{{ form.non_field_errors }}</div></div>{% endif %}
+
+  <form id="SupplierDocumentForm" method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+    <div class="supplier-internal-layout">
+      <main class="supplier-internal-main">
+        {% if purchase or supplier %}
+          <div class="supplier-source-banner"><i class="bi bi-link-45deg"></i><div><strong>Linked document</strong><span>{% if purchase %}Purchase {{ purchase.purchase_number }} · {{ purchase.id_supplier.company_name }}{% else %}Supplier {{ supplier.company_name }}{% endif %}</span></div></div>
+        {% endif %}
+        <section class="nj-card">
+          <div class="supplier-section-head"><div class="supplier-section-title"><span class="nj-icon-box"><i class="bi bi-file-earmark-arrow-up"></i></span><div><h2>Document information</h2><p>Choose the relationship, document type and file.</p></div></div></div>
+          <div class="supplier-section-body">
+            <div class="supplier_form_grid">
+              {% for field in form %}
+                {% if field.is_hidden %}
+                  {{ field }}
+                {% else %}
+                  <div class="supplier_form_field {% if field.name == 'notes' %}span_3{% elif field.name == 'file' %}span_2{% endif %}">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+                    {{ field }}
+                    {% for error in field.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}
+                  </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+        </section>
+      </main>
+      <aside class="supplier-internal-side">
+        <section class="nj-card">
+          <div class="nj-card-head"><h2 class="nj-card-title"><i class="bi bi-shield-check"></i> Upload control</h2></div>
+          <div class="nj-card-body supplier-side-list">
+            <div class="supplier-side-row"><i class="bi bi-file-earmark-check"></i><div><span>Document types</span><strong>Receipt, invoice, quote, contract or warranty</strong></div></div>
+            <div class="supplier-side-row"><i class="bi bi-folder2-open"></i><div><span>Relationship</span><strong>{% if purchase %}Purchase{% elif supplier %}Supplier{% else %}Selected in the form{% endif %}</strong></div></div>
+          </div>
+        </section>
+        <button class="nj-btn" type="submit"><i class="bi bi-cloud-arrow-up"></i> {{ submit_label }}</button>
+      </aside>
+    </div>
+  </form>
+</div>
+{% endblock %}

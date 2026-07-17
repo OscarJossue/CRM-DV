@@ -1,0 +1,45 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Clients{% endblock %}
+{% block page_subtitle %}Manage client identity and contact records without unnecessary dashboard statistics.{% endblock %}
+
+{% block extra_head %}
+  {% include "partials/_crm_design_system.html" %}
+  {% include "partials/_crm_unified_dashboard.html" %}
+  <style>
+    .client-delete-modal { position:fixed; inset:0; z-index:2147482000; display:none; place-items:center; padding:20px; background:rgba(7,19,61,.46); backdrop-filter:blur(6px); }
+    .client-delete-modal.is-open { display:grid; }
+    .client-delete-dialog { width:min(430px,100%); padding:24px; border:1px solid rgba(239,51,64,.18); border-radius:20px; background:#fff; box-shadow:0 28px 70px rgba(7,19,61,.24); text-align:center; }
+    .client-delete-dialog .nj-icon-box { margin:0 auto 13px; }
+    .client-delete-dialog h2 { margin:0; color:var(--nj-ink); font-size:22px; font-weight:950; }
+    .client-delete-dialog p { margin:8px 0 20px; color:var(--nj-muted); font-size:13px; font-weight:650; line-height:1.55; }
+    .client-delete-actions { display:flex; justify-content:center; gap:9px; }
+  </style>
+{% endblock %}
+
+{% block content %}
+<div class="nj-invoice nj-page crm-unified">
+  <header class="nj-page-head">
+    <div><span class="nj-page-kicker"><i class="bi bi-person-vcard" aria-hidden="true"></i> Client directory</span><h1 class="nj-page-title">Clients</h1><p class="nj-page-subtitle">The list is intentionally simple: search by client code, client name or DNI and work directly from the table.</p></div>
+    {% if can_create_clients %}<div class="nj-head-actions"><a class="nj-btn" href="{{ client_urls.create }}"><i class="bi bi-person-plus" aria-hidden="true"></i> Create client</a></div>{% endif %}
+  </header>
+
+  <form class="nj-card crm-filter-card" method="get" action="{{ client_urls.list }}">
+    <div class="crm-filter-row">
+      <div class="nj-field"><label for="ClientSearch">Search clients</label><div class="crm-search-wrap"><i class="bi bi-search" aria-hidden="true"></i><input id="ClientSearch" type="search" name="q" value="{{ client_filters.q }}" placeholder="Client code, client name or DNI"></div></div>
+      <button class="nj-btn" type="submit"><i class="bi bi-search" aria-hidden="true"></i> Search</button>
+      <a class="nj-btn nj-btn-secondary" href="{{ client_urls.list }}"><i class="bi bi-x-lg" aria-hidden="true"></i> Clear</a>
+    </div>
+  </form>
+
+  <section class="nj-card crm-table-card">
+    {% if clients %}
+      <div class="crm-table-wrap"><table class="crm-table" style="min-width:980px;"><thead><tr><th>Code</th><th>Client</th><th>DNI / Tax ID</th><th>Phone</th><th>Email</th><th>Address</th><th class="is-center">Actions</th></tr></thead><tbody>{% for client in clients %}<tr><td><a class="crm-code-link" href="{{ client.ui_urls.detail }}"><i class="bi bi-person-badge" aria-hidden="true"></i>{{ client.client_code|default:"Pending" }}</a></td><td><div class="crm-cell-main"><a href="{{ client.ui_urls.detail }}">{{ client.name }}</a><small>Client record</small></div></td><td>{{ client.dni|default:"—" }}</td><td>{{ client.phone|default:"—" }}</td><td>{{ client.email|default:"—" }}</td><td>{{ client.address|default:"—"|truncatechars:48 }}</td><td class="is-center"><div class="crm-actions"><a class="nj-icon-btn" href="{{ client.ui_urls.detail }}" data-tooltip="View" aria-label="View client"><i class="bi bi-eye" aria-hidden="true"></i></a>{% if can_edit_clients %}<a class="nj-icon-btn is-neutral" href="{{ client.ui_urls.update }}" data-tooltip="Edit" aria-label="Edit client"><i class="bi bi-pencil" aria-hidden="true"></i></a><button class="nj-icon-btn is-void" type="button" data-client-delete-url="{{ client.ui_urls.delete }}" data-tooltip="Delete" aria-label="Delete client"><i class="bi bi-trash3" aria-hidden="true"></i></button>{% endif %}</div></td></tr>{% endfor %}</tbody></table></div>
+      {% if is_paginated %}<div class="crm-pagination"><span class="crm-pagination-label">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} · {{ page_obj.paginator.count }} clients</span><nav class="crm-pagination-links" aria-label="Client pages">{% if page_obj.has_previous %}<a class="crm-page-link" href="?{% if client_filter_query %}{{ client_filter_query }}&{% endif %}page={{ page_obj.previous_page_number }}"><i class="bi bi-chevron-left" aria-hidden="true"></i></a>{% endif %}<span class="crm-page-link is-active">{{ page_obj.number }}</span>{% if page_obj.has_next %}<a class="crm-page-link" href="?{% if client_filter_query %}{{ client_filter_query }}&{% endif %}page={{ page_obj.next_page_number }}"><i class="bi bi-chevron-right" aria-hidden="true"></i></a>{% endif %}</nav></div>{% endif %}
+    {% else %}<div class="crm-empty"><i class="bi bi-people" aria-hidden="true"></i><strong>No clients found</strong><span>Search by code, name or DNI, or create the first client record.</span>{% if can_create_clients %}<a class="nj-btn" href="{{ client_urls.create }}"><i class="bi bi-person-plus" aria-hidden="true"></i> Create client</a>{% endif %}</div>{% endif %}
+  </section>
+</div>
+
+<div class="client-delete-modal" id="clientDeleteModal" aria-hidden="true"><div class="client-delete-dialog" role="dialog" aria-modal="true" aria-labelledby="clientDeleteTitle"><span class="nj-icon-box is-danger"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i></span><h2 id="clientDeleteTitle">Delete client?</h2><p>This action removes the client only when its CRM relationships allow deletion.</p><form method="post" id="clientDeleteForm">{% csrf_token %}<div class="client-delete-actions"><button class="nj-btn nj-btn-secondary" type="button" data-client-delete-cancel>Cancel</button><button class="nj-btn nj-btn-danger" type="submit"><i class="bi bi-trash3" aria-hidden="true"></i> Delete</button></div></form></div></div>
+<script>(function(){const modal=document.getElementById('clientDeleteModal');const form=document.getElementById('clientDeleteForm');const cancel=document.querySelector('[data-client-delete-cancel]');let previousFocus=null;function closeModal(){if(!modal)return;modal.classList.remove('is-open');modal.setAttribute('aria-hidden','true');previousFocus?.focus();}document.querySelectorAll('[data-client-delete-url]').forEach((button)=>button.addEventListener('click',()=>{if(!modal||!form)return;previousFocus=button;form.action=button.dataset.clientDeleteUrl;modal.classList.add('is-open');modal.setAttribute('aria-hidden','false');cancel?.focus();}));cancel?.addEventListener('click',closeModal);modal?.addEventListener('click',(event)=>{if(event.target===modal)closeModal();});document.addEventListener('keydown',(event)=>{if(event.key==='Escape'&&modal?.classList.contains('is-open'))closeModal();});})();</script>
+{% endblock %}

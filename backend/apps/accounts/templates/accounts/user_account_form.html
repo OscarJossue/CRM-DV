@@ -1,0 +1,76 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}{{ form_title }}{% endblock %}
+{% block page_subtitle %}{% if is_create_form %}Create the employee profile and CRM access in one step.{% else %}Update personal information, employment data, role, status or password from one form.{% endif %}{% endblock %}
+
+{% block extra_head %}
+{% include "accounts/partials/_design_system.html" %}
+{% endblock %}
+
+{% block content %}
+<form class="account_theme account_form" method="post" novalidate>
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+    <section class="crm_card"><div class="account_error">{{ form.non_field_errors }}</div></section>
+  {% endif %}
+
+  {% if is_create_form and company_user_limit %}
+    <section class="account_stats" aria-label="User limit summary">
+      <article class="account_stat"><span class="account_stat_icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span><span><span class="account_stat_label">Active Users</span><span class="account_stat_value">{{ company_active_user_count }}</span></span></article>
+      <article class="account_stat"><span class="account_stat_icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg></span><span><span class="account_stat_label">User Limit</span><span class="account_stat_value">{{ company_user_limit }}</span></span></article>
+      <article class="account_stat"><span class="account_stat_icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span><span class="account_stat_label">Slots Left</span><span class="account_stat_value">{{ company_user_slots_left }}</span></span></article>
+      <article class="account_stat"><span class="account_stat_icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h18"/><path d="M12 3v18"/></svg></span><span><span class="account_stat_label">Capacity</span><span class="account_stat_value">{% if company_user_limit_reached %}Full{% else %}OK{% endif %}</span></span></article>
+    </section>
+  {% endif %}
+
+  <section class="crm_card">
+    <div class="account_toolbar" style="margin-bottom:18px;">
+      <div class="account_toolbar_title">
+        <h2 style="font-size:24px;">Personal Information</h2>
+        <p>Basic employee and contact information. The company is assigned automatically from the logged-in account.</p>
+      </div>
+    </div>
+    <div class="account_form_grid three">
+      <div class="account_form_field"><label for="{{ form.first_name.id_for_label }}">First Name</label>{{ form.first_name }}{% if form.first_name.errors %}<div class="account_error">{{ form.first_name.errors }}</div>{% endif %}</div>
+      <div class="account_form_field"><label for="{{ form.last_name.id_for_label }}">Last Name</label>{{ form.last_name }}{% if form.last_name.errors %}<div class="account_error">{{ form.last_name.errors }}</div>{% endif %}</div>
+      <div class="account_form_field"><label for="{{ form.email.id_for_label }}">Email</label>{{ form.email }}{% if form.email.errors %}<div class="account_error">{{ form.email.errors }}</div>{% endif %}</div>
+      <div class="account_form_field"><label for="{{ form.phone.id_for_label }}">Phone</label>{{ form.phone }}{% if form.phone.errors %}<div class="account_error">{{ form.phone.errors }}</div>{% endif %}</div>
+      <div class="account_form_field"><label for="{{ form.identification.id_for_label }}">DNI / Identification <span class="account_muted">(Optional)</span></label>{{ form.identification }}{% if form.identification.errors %}<div class="account_error">{{ form.identification.errors }}</div>{% endif %}</div>
+      <div class="account_form_field"><label for="{{ form.position.id_for_label }}">Position / Category</label>{{ form.position }}{% if form.position.errors %}<div class="account_error">{{ form.position.errors }}</div>{% endif %}</div>
+    </div>
+  </section>
+
+  <section class="crm_card">
+    <div class="account_toolbar" style="margin-bottom:18px;">
+      <div class="account_toolbar_title">
+        <h2 style="font-size:24px;">Role & Access</h2>
+        <p>The selected role controls module permissions. Inactive employees cannot log in.</p>
+      </div>
+    </div>
+    <div class="account_form_grid">
+      <div class="account_form_field"><label for="{{ form.id_role.id_for_label }}">Role</label>{{ form.id_role }}{% if form.id_role.errors %}<div class="account_error">{{ form.id_role.errors }}</div>{% endif %}</div>
+      <div class="account_form_field"><label for="{{ form.status.id_for_label }}">Status</label>{{ form.status }}{% if form.status.errors %}<div class="account_error">{{ form.status.errors }}</div>{% endif %}</div>
+      <div class="account_form_field"><label for="{{ form.password1.id_for_label }}">{% if is_create_form %}Password{% else %}New Password{% endif %}</label>{{ form.password1 }}{% if not is_create_form %}<p class="account_help">Leave both password fields empty to keep the current password.</p>{% endif %}{% if form.password1.errors %}<div class="account_error">{{ form.password1.errors }}</div>{% endif %}</div>
+      <div class="account_form_field"><label for="{{ form.password2.id_for_label }}">{% if is_create_form %}Confirm Password{% else %}Confirm New Password{% endif %}</label>{{ form.password2 }}{% if form.password2.errors %}<div class="account_error">{{ form.password2.errors }}</div>{% endif %}</div>
+    </div>
+  </section>
+
+  <section class="crm_card">
+    <div class="account_toolbar" style="align-items:center;">
+      <div class="account_toolbar_title">
+        <h3 style="margin:0;font-size:18px;">Automatic Hire Date</h3>
+        <p>{% if user_account and user_account.hire_date %}This employee was registered on {{ user_account.hire_date|date:"Y-m-d" }}. The date is protected and is not entered manually.{% else %}The hire date will be saved automatically when this employee is created.{% endif %}</p>
+      </div>
+      <span class="account_pill blue">{% if user_account and user_account.hire_date %}{{ user_account.hire_date|date:"Y-m-d" }}{% else %}Automatic{% endif %}</span>
+    </div>
+  </section>
+
+  <section class="crm_card">
+    <div class="account_actions_bar">
+      <a class="account_button account_button_secondary" href="../"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>Cancel</a>
+      <button class="account_button" type="submit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>{{ submit_label }}</button>
+    </div>
+  </section>
+</form>
+{% endblock %}

@@ -1,0 +1,71 @@
+<style>
+  .crm-inline-status-workflow { position:relative; display:inline-grid; justify-items:center; min-width:max-content; padding-top:16px; }
+  .crm-inline-status-workflow .nj-status-track { flex-wrap:nowrap; }
+  .crm-inline-status-workflow .nj-status-node { padding:0; font:inherit; line-height:1; appearance:none; -webkit-appearance:none; }
+  .crm-inline-status-workflow .nj-status-node.is-current {
+    border-color:var(--stage-color) !important;
+    background:var(--stage-color) !important;
+    color:#fff !important;
+    transform:scale(1.12);
+    box-shadow:0 0 0 2px #fff,0 0 0 4px color-mix(in srgb,var(--stage-color) 20%,transparent),0 0 12px color-mix(in srgb,var(--stage-color) 32%,transparent) !important;
+  }
+  .crm-inline-status-workflow .nj-status-node.is-current>i,
+  .crm-inline-status-workflow .nj-status-node.is-current>i::before { color:#fff !important; opacity:1 !important; }
+  .crm-inline-status-workflow .nj-status-line,
+  .crm-inline-status-workflow .nj-status-line.is-active { background:#d9e2ed !important; }
+  .crm-inline-status-workflow.is-interactive button.nj-status-node { cursor:pointer; }
+  .crm-inline-status-workflow.is-interactive .nj-status-node:hover,
+  .crm-inline-status-workflow.is-interactive .nj-status-node:focus,
+  .crm-inline-status-workflow.is-interactive .nj-status-node:focus-visible { outline:none; }
+  .crm-inline-status-workflow.is-interactive .nj-status-node:not(.is-current):hover,
+  .crm-inline-status-workflow.is-interactive .nj-status-node:not(.is-current):focus,
+  .crm-inline-status-workflow.is-interactive .nj-status-node:not(.is-current):focus-visible {
+    border-color:#cbd6e4 !important; background:#fff !important; color:#a3afc2 !important; transform:none !important; box-shadow:0 0 0 2px #fff !important;
+  }
+  .crm-inline-status-workflow.is-saving { pointer-events:none; opacity:.72; }
+  .crm-inline-status-hover-caption {
+    position:absolute; top:0; left:50%; display:block; min-height:12px; color:var(--nj-ink); font-size:9px; font-weight:900; line-height:12px; text-align:center; white-space:nowrap;
+    opacity:0; visibility:hidden; transform:translate(-50%, 2px); transition:opacity .1s ease,transform .1s ease,visibility .1s ease; pointer-events:none;
+  }
+  .crm-inline-status-hover-caption.is-visible { opacity:1; visibility:visible; transform:translate(-50%, 0); }
+  .crm-inline-status-workflow .nj-status-caption.is-saving { color:var(--nj-blue) !important; }
+  .crm-inline-status-workflow .nj-status-caption.is-error { color:var(--nj-danger) !important; }
+  .crm-inline-status-workflow.is-detail .nj-status-node { width:38px; height:38px; flex-basis:38px; }
+  .crm-inline-status-workflow.is-detail .nj-status-line { width:34px; min-width:34px; flex-basis:34px; }
+  .crm-inline-status-workflow.is-detail .nj-status-caption { margin-top:12px; font-size:13px; }
+  @media(max-width:700px){
+    .crm-inline-status-workflow .nj-status-node{width:27px;height:27px;flex-basis:27px}.crm-inline-status-workflow .nj-status-line{width:10px;min-width:10px;flex-basis:10px;margin:0 2px}
+    .crm-inline-status-workflow.is-detail .nj-status-node{width:32px;height:32px;flex-basis:32px}.crm-inline-status-workflow.is-detail .nj-status-line{width:15px;min-width:15px;flex-basis:15px}
+  }
+  html[data-bs-theme="dark"] .crm-inline-status-workflow.is-interactive .nj-status-node:not(.is-current):hover,
+  html[data-bs-theme="dark"] .crm-inline-status-workflow.is-interactive .nj-status-node:not(.is-current):focus { background:var(--nj-card) !important; box-shadow:0 0 0 2px var(--nj-card) !important; }
+
+  .crm-inline-status-workflow { min-width:0; width:100%; max-width:100%; }
+  .crm-inline-status-workflow .nj-status-track { width:100%; min-width:0; display:flex; align-items:center; }
+  .crm-inline-status-workflow .nj-status-line,
+  .crm-inline-status-workflow.is-detail .nj-status-line {
+    width:auto !important;
+    min-width:3px !important;
+    flex:1 1 22px !important;
+  }
+  .crm-inline-status-workflow .nj-status-node { flex:0 0 auto; }
+  .crm-inline-status-workflow .nj-status-node.is-actionable { cursor:pointer; }
+  .crm-inline-status-workflow .nj-status-node.is-actionable:not(.is-current):hover,
+  .crm-inline-status-workflow .nj-status-node.is-actionable:not(.is-current):focus-visible {
+    border-color:var(--stage-color) !important;
+    color:var(--stage-color) !important;
+    background:color-mix(in srgb,var(--stage-color) 9%,#fff) !important;
+    box-shadow:0 0 0 3px color-mix(in srgb,var(--stage-color) 13%,transparent) !important;
+  }
+  @media(max-width:520px){
+    .crm-inline-status-workflow.is-detail .nj-status-node{width:28px;height:28px;flex-basis:28px}
+    .crm-inline-status-workflow .nj-status-caption{font-size:10px}
+  }
+  @media(max-width:300px){
+    .crm-inline-status-workflow .nj-status-node,
+    .crm-inline-status-workflow.is-detail .nj-status-node{width:22px;height:22px;flex-basis:22px;font-size:9px}
+    .crm-inline-status-workflow .nj-status-line,
+    .crm-inline-status-workflow.is-detail .nj-status-line{min-width:2px!important;flex-basis:2px!important;margin:0 1px}
+  }
+
+</style>

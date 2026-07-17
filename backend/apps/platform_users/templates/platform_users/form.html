@@ -1,0 +1,416 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}{{ form_title }}{% endblock %}
+
+{% block page_subtitle %}
+Create or update an internal CEO MARKETING platform user and assign direct SaaS permissions.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .platform_user_form {
+    display: grid;
+    gap: 20px;
+  }
+
+  .platform_user_grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .platform_user_field {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .platform_user_label {
+    color: var(--crm_text);
+    font-size: 13px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .platform_user_error {
+    color: var(--crm_danger);
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+
+  .platform_user_note {
+    padding: 14px;
+    border: 1px solid rgba(31, 58, 138, 0.18);
+    border-radius: 14px;
+    background: rgba(31, 58, 138, 0.06);
+    color: var(--crm_primary);
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+  }
+
+  .platform_user_check_card {
+    display: grid;
+    gap: 8px;
+    padding: 14px;
+    border: 1px solid var(--crm_border);
+    border-radius: 14px;
+    background: #ffffff;
+    min-width: 0;
+  }
+
+  .platform_permissions_header {
+    display: grid;
+    gap: 12px;
+  }
+
+  .platform_permissions_toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .platform_permission_tool {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 9px 13px;
+    border: 1px solid var(--crm_border);
+    border-radius: 12px;
+    background: #ffffff;
+    color: var(--crm_primary);
+    font-size: 13px;
+    font-weight: 900;
+    cursor: pointer;
+    line-height: 1.25;
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+
+  .platform_permission_tool:hover {
+    border-color: var(--crm_primary);
+    background: rgba(31, 58, 138, 0.06);
+  }
+
+  .platform_permission_tool_primary {
+    border-color: var(--crm_primary);
+    background: var(--crm_primary);
+    color: #ffffff;
+  }
+
+  .platform_permission_tool_primary:hover {
+    background: var(--crm_primary_dark);
+    border-color: var(--crm_primary_dark);
+    color: #ffffff;
+  }
+
+  .platform_permission_tool_danger {
+    border-color: rgba(185, 28, 28, 0.24);
+    color: var(--crm_danger);
+    background: rgba(185, 28, 28, 0.06);
+  }
+
+  .platform_permission_tool_danger:hover {
+    border-color: var(--crm_danger);
+    background: rgba(185, 28, 28, 0.1);
+  }
+
+  .platform_permissions {
+    display: grid;
+    gap: 12px;
+  }
+
+  .platform_permission_row {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) repeat(5, minmax(96px, 0.42fr));
+    gap: 10px;
+    align-items: center;
+    padding: 14px;
+    border: 1px solid var(--crm_border);
+    border-radius: 16px;
+    background: #ffffff;
+    min-width: 0;
+  }
+
+  .platform_permission_module {
+    color: var(--crm_text);
+    font-size: 14px;
+    font-weight: 900;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .platform_permission_action {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--crm_muted);
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.35;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .platform_permission_action input {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+  }
+
+  .platform_permission_action span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .platform_permissions_note {
+    margin: 0;
+    color: var(--crm_muted);
+    font-size: 13px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+
+  @media (max-width: 1180px) {
+    .platform_permission_row {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .platform_permission_module {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .platform_user_grid,
+    .platform_permission_row {
+      grid-template-columns: 1fr;
+    }
+
+    .platform_permissions_toolbar {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+
+    .platform_permission_tool {
+      width: 100%;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="crm_card">
+  <form class="platform_user_form" method="post" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="crm_message">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div class="platform_user_note">
+      This user will be created as internal CEO MARKETING staff. It will not be a company employee and it will not be a Django superuser.
+    </div>
+
+    <div class="platform_user_grid">
+      <label class="platform_user_field">
+        <span class="platform_user_label">{{ form.status.label }}</span>
+        {{ form.status }}
+        {% for error in form.status.errors %}
+          <span class="platform_user_error">{{ error }}</span>
+        {% endfor %}
+      </label>
+
+      <div class="platform_user_check_card">
+        <label class="platform_user_label" for="{{ form.is_active.id_for_label }}">Active Login</label>
+        {{ form.is_active }}
+        {% for error in form.is_active.errors %}
+          <span class="platform_user_error">{{ error }}</span>
+        {% endfor %}
+      </div>
+
+      <label class="platform_user_field">
+        <span class="platform_user_label">{{ form.first_name.label }}</span>
+        {{ form.first_name }}
+        {% for error in form.first_name.errors %}
+          <span class="platform_user_error">{{ error }}</span>
+        {% endfor %}
+      </label>
+
+      <label class="platform_user_field">
+        <span class="platform_user_label">{{ form.last_name.label }}</span>
+        {{ form.last_name }}
+        {% for error in form.last_name.errors %}
+          <span class="platform_user_error">{{ error }}</span>
+        {% endfor %}
+      </label>
+
+      <label class="platform_user_field">
+        <span class="platform_user_label">{{ form.email.label }}</span>
+        {{ form.email }}
+        {% for error in form.email.errors %}
+          <span class="platform_user_error">{{ error }}</span>
+        {% endfor %}
+      </label>
+
+      <label class="platform_user_field">
+        <span class="platform_user_label">{{ form.phone.label }}</span>
+        {{ form.phone }}
+        {% for error in form.phone.errors %}
+          <span class="platform_user_error">{{ error }}</span>
+        {% endfor %}
+      </label>
+
+      <label class="platform_user_field">
+        <span class="platform_user_label">{{ form.password1.label }}</span>
+        {{ form.password1 }}
+        {% for error in form.password1.errors %}
+          <span class="platform_user_error">{{ error }}</span>
+        {% endfor %}
+      </label>
+
+      <label class="platform_user_field">
+        <span class="platform_user_label">{{ form.password2.label }}</span>
+        {{ form.password2 }}
+        {% for error in form.password2.errors %}
+          <span class="platform_user_error">{{ error }}</span>
+        {% endfor %}
+      </label>
+    </div>
+
+    <div class="platform_permissions_header">
+      <div>
+        <h2 class="crm_section_title">Platform Permissions</h2>
+        <p class="crm_page_text">
+          Select exactly what this internal user can see or manage inside the CEO MARKETING SaaS administration area.
+        </p>
+      </div>
+
+      <div class="platform_permissions_toolbar" aria-label="Permission quick actions">
+        <button class="platform_permission_tool platform_permission_tool_primary" type="button" data-permission-action="grant-all">
+          Grant All Permissions
+        </button>
+
+        <button class="platform_permission_tool" type="button" data-permission-action="view-only">
+          View Only
+        </button>
+
+        <button class="platform_permission_tool" type="button" data-permission-action="no-payments">
+          No Payments Access
+        </button>
+
+        <button class="platform_permission_tool platform_permission_tool_danger" type="button" data-permission-action="clear-all">
+          Clear Permissions
+        </button>
+      </div>
+
+      <p class="platform_permissions_note">
+        Approve is reserved for sensitive actions such as marking payments as approved, generating final invoices from paid proformas, approving renewals, or confirming administrative changes when those flows are connected.
+      </p>
+    </div>
+
+    <div class="platform_permissions">
+      {% for row in permission_rows %}
+        <div class="platform_permission_row" data-module="{{ row.module }}">
+          <strong class="platform_permission_module">{{ row.module_label }}</strong>
+
+          {% for action in row.actions %}
+            <label class="platform_permission_action">
+              <input
+                type="checkbox"
+                name="{{ action.field_name }}"
+                data-permission-checkbox
+                data-permission-module="{{ row.module }}"
+                data-permission-type="{{ action.permission_type|default:action.label|lower }}"
+                {% if action.checked %}checked{% endif %}
+              >
+              <span>{{ action.label }}</span>
+            </label>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="crm_actions">
+      <button class="crm_button" type="submit">{{ submit_label }}</button>
+      <a class="crm_button crm_button_secondary" href="{% url 'platform_users:user_list' %}">Cancel</a>
+    </div>
+  </form>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  (function () {
+    const toolbar = document.querySelector(".platform_permissions_toolbar");
+    const allCheckboxes = Array.from(document.querySelectorAll("[data-permission-checkbox]"));
+
+    if (!toolbar || !allCheckboxes.length) {
+      return;
+    }
+
+    function normalizeText(value) {
+      return String(value || "").trim().toLowerCase();
+    }
+
+    function setAllPermissions(checked) {
+      allCheckboxes.forEach(function (checkbox) {
+        checkbox.checked = checked;
+      });
+    }
+
+    function setViewOnly() {
+      allCheckboxes.forEach(function (checkbox) {
+        const type = normalizeText(checkbox.getAttribute("data-permission-type"));
+        checkbox.checked = type === "view";
+      });
+    }
+
+    function disablePaymentsAccess() {
+      allCheckboxes.forEach(function (checkbox) {
+        const moduleName = normalizeText(checkbox.getAttribute("data-permission-module"));
+
+        if (moduleName === "platform_payments") {
+          checkbox.checked = false;
+        } else {
+          checkbox.checked = true;
+        }
+      });
+    }
+
+    toolbar.addEventListener("click", function (event) {
+      const button = event.target.closest("[data-permission-action]");
+
+      if (!button) {
+        return;
+      }
+
+      const action = button.getAttribute("data-permission-action");
+
+      if (action === "grant-all") {
+        setAllPermissions(true);
+      }
+
+      if (action === "view-only") {
+        setViewOnly();
+      }
+
+      if (action === "no-payments") {
+        disablePaymentsAccess();
+      }
+
+      if (action === "clear-all") {
+        setAllPermissions(false);
+      }
+    });
+  })();
+</script>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Notification Detail{% endblock %}
+
+{% block page_subtitle %}
+Review the email notification sent from the SaaS administration platform.
+{% endblock %}
+
+{% block content %}
+  <section class="crm_card">
+    <div class="crm_actions" style="margin-bottom:18px;">
+      <a class="crm_button crm_button_secondary" href="{% url 'platform_notifications:list' %}">Back</a>
+    </div>
+
+    <h2 class="crm_section_title">{{ notification.subject }}</h2>
+
+    <p class="crm_page_text"><strong>Company:</strong> {{ notification.id_company.name }}</p>
+    <p class="crm_page_text"><strong>Type:</strong> {{ notification.get_notification_type_display }}</p>
+    <p class="crm_page_text"><strong>Channel:</strong> {{ notification.get_channel_display }}</p>
+    <p class="crm_page_text"><strong>Recipient:</strong> {{ notification.recipient_email }}</p>
+    <p class="crm_page_text"><strong>Status:</strong> {{ notification.get_status_display }}</p>
+    <p class="crm_page_text"><strong>Created:</strong> {{ notification.created_at }}</p>
+
+    {% if notification.sent_at %}
+      <p class="crm_page_text"><strong>Sent:</strong> {{ notification.sent_at }}</p>
+    {% endif %}
+
+    {% if notification.error_message %}
+      <p class="crm_page_text"><strong>Error:</strong> {{ notification.error_message }}</p>
+    {% endif %}
+
+    <div style="margin-top:18px;">
+      <h2 class="crm_section_title">Message</h2>
+      <pre style="white-space:pre-wrap;line-height:1.7;font-family:Arial, Helvetica, sans-serif;">{{ notification.message }}</pre>
+    </div>
+  </section>
+{% endblock %}

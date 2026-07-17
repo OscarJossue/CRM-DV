@@ -1,0 +1,145 @@
+<style>
+  .platform_confirm_overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 22px;
+    background: rgba(17, 24, 39, .58);
+    backdrop-filter: blur(6px);
+  }
+
+  .platform_confirm_overlay.is_open { display: flex; }
+
+  .platform_confirm_dialog {
+    width: min(480px, 100%);
+    border: 1px solid var(--crm_border);
+    border-radius: 24px;
+    background: #ffffff;
+    box-shadow: 0 28px 90px rgba(15, 23, 42, .28);
+    overflow: hidden;
+  }
+
+  .platform_confirm_head {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 22px;
+    border-bottom: 1px solid var(--crm_border);
+    background: radial-gradient(circle at 0 0, rgba(155, 120, 72, .16), transparent 34%), #ffffff;
+  }
+
+  .platform_confirm_icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    background: var(--crm_primary);
+    color: #ffffff;
+    font-size: 21px;
+  }
+
+  .platform_confirm_title {
+    margin: 0;
+    color: var(--crm_text);
+    font-size: 20px;
+    line-height: 1.2;
+    font-weight: 950;
+    letter-spacing: -.025em;
+  }
+
+  .platform_confirm_text {
+    margin: 7px 0 0;
+    color: var(--crm_muted);
+    font-size: 14px;
+    line-height: 1.55;
+    font-weight: 750;
+  }
+
+  .platform_confirm_actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 16px 22px 22px;
+  }
+
+  .platform_confirm_actions .crm_button {
+    min-height: 40px;
+  }
+
+  @media (max-width: 560px) {
+    .platform_confirm_actions { display: grid; }
+    .platform_confirm_actions .crm_button { width: 100%; }
+  }
+</style>
+
+<div class="platform_confirm_overlay" id="PlatformActionConfirm" aria-hidden="true">
+  <div class="platform_confirm_dialog" role="dialog" aria-modal="true" aria-labelledby="PlatformActionConfirmTitle">
+    <div class="platform_confirm_head">
+      <div class="platform_confirm_icon" id="PlatformActionConfirmIcon"><i class="bi bi-exclamation-triangle"></i></div>
+      <div>
+        <h3 class="platform_confirm_title" id="PlatformActionConfirmTitle">Confirm action</h3>
+        <p class="platform_confirm_text" id="PlatformActionConfirmText">Are you sure you want to continue?</p>
+      </div>
+    </div>
+    <div class="platform_confirm_actions">
+      <button type="button" class="crm_button crm_button_secondary" data-platform-confirm-cancel>Cancel</button>
+      <button type="button" class="crm_button" data-platform-confirm-ok>Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const overlay = document.getElementById("PlatformActionConfirm");
+    if (!overlay) return;
+
+    const title = document.getElementById("PlatformActionConfirmTitle");
+    const text = document.getElementById("PlatformActionConfirmText");
+    const icon = document.getElementById("PlatformActionConfirmIcon");
+    const okButton = overlay.querySelector("[data-platform-confirm-ok]");
+    const cancelButton = overlay.querySelector("[data-platform-confirm-cancel]");
+    let pendingForm = null;
+
+    function closeModal() {
+      overlay.classList.remove("is_open");
+      overlay.setAttribute("aria-hidden", "true");
+      pendingForm = null;
+    }
+
+    document.querySelectorAll("form[data-platform-confirm]").forEach(function (form) {
+      form.addEventListener("submit", function (event) {
+        if (form.dataset.platformConfirmed === "1") return;
+        event.preventDefault();
+        pendingForm = form;
+
+        title.textContent = form.getAttribute("data-platform-confirm-title") || "Confirm action";
+        text.textContent = form.getAttribute("data-platform-confirm-text") || "Are you sure you want to continue?";
+        okButton.textContent = form.getAttribute("data-platform-confirm-button") || "Confirm";
+        icon.innerHTML = form.getAttribute("data-platform-confirm-icon") || '<i class="bi bi-exclamation-triangle"></i>';
+
+        overlay.classList.add("is_open");
+        overlay.setAttribute("aria-hidden", "false");
+      });
+    });
+
+    okButton.addEventListener("click", function () {
+      if (!pendingForm) return;
+      pendingForm.dataset.platformConfirmed = "1";
+      pendingForm.submit();
+    });
+
+    cancelButton.addEventListener("click", closeModal);
+    overlay.addEventListener("click", function (event) {
+      if (event.target === overlay) closeModal();
+    });
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") closeModal();
+    });
+  })();
+</script>

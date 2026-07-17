@@ -1,0 +1,113 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}{{ calendar_event.title|default:"Calendar Event" }}{% endblock %}
+{% block page_subtitle %}Complete event information, responsibility, schedule and connected operational record.{% endblock %}
+
+{% block extra_head %}
+  {% include "partials/_crm_design_system.html" %}
+  <style>
+    .calendar-detail-page { max-width: 1120px; margin: 0 auto; }
+    .calendar-detail-hero { position: relative; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px; align-items: start; padding: 20px; background: linear-gradient(135deg, #fff, var(--nj-ice)); }
+    .calendar-detail-hero::after { content: ""; position: absolute; right: -58px; top: -75px; width: 200px; height: 200px; border-radius: 50%; background: rgba(8,104,232,.08); }
+    .calendar-detail-hero > * { position: relative; z-index: 1; }
+    .calendar-detail-title-row { display: flex; align-items: flex-start; gap: 13px; }
+    .calendar-detail-title-row .nj-icon-box { width: 50px; height: 50px; flex-basis: 50px; }
+    .calendar-detail-title { margin: 0; color: var(--nj-ink); font-size: clamp(28px, 3.5vw, 42px); font-weight: 950; line-height: 1.08; letter-spacing: -.045em; overflow-wrap: anywhere; }
+    .calendar-detail-badges { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+    .calendar-detail-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 7px; }
+    .calendar-detail-actions form { margin: 0; }
+
+    .calendar-detail-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 11px; }
+    .calendar-detail-summary-card { display: flex; align-items: center; gap: 11px; padding: 14px; }
+    .calendar-detail-summary-card div { min-width: 0; }
+    .calendar-detail-summary-card span { display: block; color: var(--nj-muted); font-size: 9px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
+    .calendar-detail-summary-card strong { display: block; margin-top: 4px; overflow: hidden; color: var(--nj-ink); font-size: 13px; font-weight: 900; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+
+    .calendar-detail-layout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(300px, .65fr); gap: 14px; align-items: start; }
+    .calendar-detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 16px; }
+    .calendar-detail-field { min-width: 0; display: grid; gap: 5px; padding: 13px; border: 1px solid var(--nj-line); border-radius: 13px; background: #fbfdff; }
+    .calendar-detail-field.is-full { grid-column: 1 / -1; }
+    .calendar-detail-field span { color: var(--nj-muted); font-size: 9px; font-weight: 900; letter-spacing: .065em; text-transform: uppercase; }
+    .calendar-detail-field strong { color: var(--nj-ink); font-size: 13px; font-weight: 800; line-height: 1.55; overflow-wrap: anywhere; white-space: pre-line; }
+
+    .calendar-connected { display: grid; gap: 11px; padding: 15px; }
+    .calendar-connected-card { display: grid; gap: 7px; padding: 13px; border: 1px solid rgba(8,104,232,.17); border-radius: 13px; background: linear-gradient(135deg, var(--nj-ice), #fff); }
+    .calendar-connected-card span { color: var(--nj-blue); font-size: 9px; font-weight: 900; letter-spacing: .07em; text-transform: uppercase; }
+    .calendar-connected-card strong { color: var(--nj-ink); font-size: 13px; font-weight: 900; line-height: 1.45; overflow-wrap: anywhere; }
+    .calendar-connected-empty { padding: 13px; border: 1px dashed var(--nj-line); border-radius: 13px; background: #fbfdff; color: var(--nj-muted); font-size: 11px; font-weight: 650; line-height: 1.5; }
+
+    @media (max-width: 960px) {
+      .calendar-detail-hero, .calendar-detail-layout { grid-template-columns: 1fr; }
+      .calendar-detail-actions { justify-content: flex-start; }
+      .calendar-detail-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 680px) {
+      .calendar-detail-summary, .calendar-detail-grid { grid-template-columns: 1fr; }
+      .calendar-detail-field.is-full { grid-column: auto; }
+      .calendar-detail-actions, .calendar-detail-actions .nj-btn { width: 100%; }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+<section class="nj-invoice nj-page calendar-detail-page">
+  <header class="nj-card calendar-detail-hero">
+    <div class="calendar-detail-title-row">
+      <span class="nj-icon-box"><i class="bi bi-calendar-event"></i></span>
+      <div>
+        <span class="nj-page-kicker"><i class="bi bi-info-circle"></i> Calendar activity</span>
+        <h2 class="calendar-detail-title">{{ calendar_event.title|default:"Untitled event" }}</h2>
+        <div class="calendar-detail-badges">
+          <span class="nj-badge is-blue">{{ calendar_event.get_category_display }}</span>
+          <span class="nj-badge {% if calendar_event.priority == 'high' or calendar_event.priority == 'urgent' %}is-danger{% else %}is-neutral{% endif %}">{{ calendar_event.get_priority_display }} priority</span>
+          <span class="nj-badge {% if calendar_event.status == 'completed' %}is-success{% elif calendar_event.status == 'cancelled' %}is-danger{% elif calendar_event.status == 'in_progress' %}is-warning{% else %}is-blue{% endif %}">{{ calendar_event.get_status_display }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="calendar-detail-actions">
+      <a class="nj-btn nj-btn-secondary" href="../"><i class="bi bi-arrow-left"></i> Calendar</a>
+      {% if can_edit_calendar_events %}
+        <a class="nj-icon-btn is-warning" data-tooltip="Edit event" href="edit/"><i class="bi bi-pencil"></i></a>
+        {% if calendar_event.status != "completed" and calendar_event.status != "cancelled" %}
+          <form method="post" action="complete/">{% csrf_token %}<button class="nj-btn nj-btn-success" type="submit"><i class="bi bi-check2-circle"></i> Complete</button></form>
+        {% endif %}
+      {% endif %}
+      {% if can_delete_calendar_events and calendar_event.status != "cancelled" %}
+        <form method="post" action="cancel/" onsubmit="return confirm('Cancel this calendar event?');">{% csrf_token %}<button class="nj-icon-btn is-void" data-tooltip="Cancel event" type="submit"><i class="bi bi-x-lg"></i></button></form>
+      {% endif %}
+    </div>
+  </header>
+
+  <section class="calendar-detail-summary">
+    <article class="nj-card calendar-detail-summary-card"><span class="nj-icon-box"><i class="bi bi-calendar3"></i></span><div><span>Date</span><strong>{{ calendar_event.event_date|date:"F d, Y" }}</strong></div></article>
+    <article class="nj-card calendar-detail-summary-card"><span class="nj-icon-box is-violet"><i class="bi bi-clock"></i></span><div><span>Time</span><strong>{% if calendar_event.start_time %}{{ calendar_event.start_time|time:"H:i" }}{% else %}All day{% endif %}{% if calendar_event.end_time %} – {{ calendar_event.end_time|time:"H:i" }}{% endif %}</strong></div></article>
+    <article class="nj-card calendar-detail-summary-card"><span class="nj-icon-box is-success"><i class="bi bi-person-check"></i></span><div><span>Assigned to</span><strong>{{ calendar_event.assigned_user_name }}</strong></div></article>
+    <article class="nj-card calendar-detail-summary-card"><span class="nj-icon-box is-warning"><i class="bi bi-building"></i></span><div><span>Company</span><strong>{{ calendar_event.id_company.name }}</strong></div></article>
+  </section>
+
+  <div class="calendar-detail-layout">
+    <section class="nj-card">
+      <div class="nj-card-head"><h2 class="nj-card-title"><i class="bi bi-card-text"></i> Event information</h2></div>
+      <div class="calendar-detail-grid">
+        <div class="calendar-detail-field"><span>Category</span><strong>{{ calendar_event.get_category_display }}</strong></div>
+        <div class="calendar-detail-field"><span>Status</span><strong>{{ calendar_event.get_status_display }}</strong></div>
+        <div class="calendar-detail-field is-full"><span>Description and instructions</span><strong>{{ calendar_event.description|default:"No additional description was provided." }}</strong></div>
+        <div class="calendar-detail-field is-full"><span>Location or meeting information</span><strong>{{ calendar_event.location|default:"No location was specified." }}</strong></div>
+      </div>
+    </section>
+
+    <aside class="nj-card">
+      <div class="nj-card-head"><h2 class="nj-card-title"><i class="bi bi-link-45deg"></i> Connected record</h2></div>
+      <div class="calendar-connected">
+        {% if related_record %}
+          <div class="calendar-connected-card"><span>{{ related_record.type }}</span><strong>{{ related_record.label }}</strong><a class="nj-btn" href="{{ related_record.url }}"><i class="bi bi-box-arrow-up-right"></i> Open {{ related_record.type }}</a></div>
+        {% else %}
+          <div class="calendar-connected-empty">This event is not connected to another module. Edit it to link a project, inspection, estimate, invoice, payment, client or opportunity.</div>
+          {% if can_edit_calendar_events %}<a class="nj-btn nj-btn-secondary" href="edit/"><i class="bi bi-link-45deg"></i> Connect record</a>{% endif %}
+        {% endif %}
+      </div>
+    </aside>
+  </div>
+</section>
+{% endblock %}

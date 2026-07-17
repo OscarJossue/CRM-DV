@@ -1,0 +1,87 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}{{ supplier.company_name }}{% endblock %}
+{% block page_subtitle %}Unified company supplier profile with products, purchases, documents and internal status control.{% endblock %}
+{% block extra_head %}{% include "suppliers/partials/_design_system.html" %}{% endblock %}
+
+{% block content %}
+<div class="nj-invoice nj-page supplier_theme">
+  <section class="supplier_header_card">
+    <div class="supplier_title_block">
+      <span class="supplier_kicker"><i class="bi bi-truck" aria-hidden="true"></i> Supplier detail</span>
+      <h2>{{ supplier.company_name }}</h2>
+      <p>{{ supplier.supplier_code|default:"No code" }} · {{ supplier.tax_id|default:"No DNI / Tax ID" }}</p>
+    </div>
+    <div class="supplier_actions">
+      <a class="supplier_btn supplier_btn_secondary" href="../list/"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back</a>
+      {% if can_edit_suppliers %}<a class="supplier_btn" href="edit/"><i class="bi bi-pencil" aria-hidden="true"></i> Edit</a>{% endif %}
+      {% if can_create_suppliers %}<a class="supplier_btn supplier_btn_secondary" href="products/create/"><i class="bi bi-box-seam" aria-hidden="true"></i> Add Product</a>{% endif %}
+      {% if can_create_suppliers %}<a class="supplier_btn supplier_btn_secondary" href="purchases/create/"><i class="bi bi-cart-plus" aria-hidden="true"></i> Register Purchase</a>{% endif %}
+    </div>
+  </section>
+
+  <section class="supplier_grid_4">
+    <article class="supplier_stat {% if supplier.status == 'active' %}is-success{% elif supplier.status == 'blocked' %}is-danger{% else %}is-neutral{% endif %}"><div><span>Status</span>{% include "suppliers/partials/_supplier_status_track.html" with current_status=supplier.status current_label=supplier.get_status_display %}</div></article>
+    <article class="supplier_stat is-violet"><div><span>Products / Services</span><strong>{{ supplier.offers.count }}</strong></div></article>
+    <article class="supplier_stat is-primary"><div><span>Purchases</span><strong>{{ supplier.purchases.count }}</strong></div></article>
+    <article class="supplier_stat is-warning"><div><span>Documents</span><strong>{{ supplier.documents.count }}</strong></div></article>
+  </section>
+
+  <section class="supplier_detail_layout">
+    <main class="supplier-internal-main">
+      <section class="nj-card">
+        <div class="supplier-section-head"><div class="supplier-section-title"><span class="nj-icon-box"><i class="bi bi-building" aria-hidden="true"></i></span><div><h2>Supplier information</h2><p>Identity, contact and location snapshot.</p></div></div></div>
+        <div class="supplier-section-body">
+          <div class="supplier_info_grid">
+            <div class="supplier_info_box"><span>DNI / Tax ID</span><strong>{{ supplier.tax_id|default:"—" }}</strong></div>
+            <div class="supplier_info_box"><span>Contact</span><strong>{{ supplier.contact_name|default:"—" }}</strong></div>
+            <div class="supplier_info_box"><span>Phone</span><strong>{{ supplier.phone|default:"—" }}</strong></div>
+            <div class="supplier_info_box"><span>Email</span><strong>{{ supplier.email|default:"—" }}</strong></div>
+            <div class="supplier_info_box"><span>Locality</span><strong>{{ supplier.city|default:"—" }}{% if supplier.state %}, {{ supplier.state }}{% endif %}</strong></div>
+            <div class="supplier_info_box"><span>Zip / Country</span><strong>{{ supplier.zip_code|default:"—" }}{% if supplier.country %} · {{ supplier.country }}{% endif %}</strong></div>
+            <div class="supplier_info_box" style="grid-column:1/-1;"><span>Address</span><strong>{{ supplier.address|default:"—" }}</strong></div>
+            <div class="supplier_info_box" style="grid-column:1/-1;"><span>Internal Notes</span><strong>{{ supplier.notes|default:"—" }}</strong></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <aside class="supplier-internal-side">
+      <section class="nj-card">
+        <div class="nj-card-head"><h2 class="nj-card-title"><i class="bi bi-sliders" aria-hidden="true"></i> Status control</h2></div>
+        <div class="nj-card-body">
+          <div class="supplier-side-list">
+            <div class="supplier-side-row"><i class="bi bi-activity" aria-hidden="true"></i><div><span>Current status</span>{% include "suppliers/partials/_supplier_status_track.html" with current_status=supplier.status current_label=supplier.get_status_display detail=True %}</div></div>
+            <div class="supplier-side-row"><i class="bi bi-clock-history" aria-hidden="true"></i><div><span>Created</span><strong>{{ supplier.created_at|date:"Y-m-d H:i"|default:"—" }}</strong></div></div>
+          </div>
+          <div class="supplier_actions" style="justify-content:flex-start;margin-top:12px;">
+            {% if can_edit_suppliers %}<form method="post" action="toggle-status/" class="supplier_inline_form">{% csrf_token %}<button class="supplier_btn {% if supplier.status == 'active' %}supplier_btn_secondary{% else %}supplier_btn_success{% endif %}" type="submit"><i class="bi {% if supplier.status == 'active' %}bi-pause-circle{% else %}bi-check2-circle{% endif %}" aria-hidden="true"></i> {% if supplier.status == 'active' %}Deactivate{% else %}Activate{% endif %}</button></form>{% endif %}
+            {% if can_delete_suppliers %}<form method="post" action="delete/" class="supplier_inline_form" onsubmit="return confirm('Delete this supplier? If it has purchases, it will be deactivated instead.');">{% csrf_token %}<button class="supplier_btn supplier_btn_danger" type="submit"><i class="bi bi-trash3" aria-hidden="true"></i> Delete</button></form>{% endif %}
+          </div>
+          <p class="supplier_muted" style="margin-top:10px;">Suppliers with purchase history are deactivated instead of deleted.</p>
+        </div>
+      </section>
+    </aside>
+  </section>
+
+  <section class="nj-card">
+    <div class="supplier-section-head"><div class="supplier-section-title"><span class="nj-icon-box is-violet"><i class="bi bi-box-seam" aria-hidden="true"></i></span><div><h2>Products and services</h2><p>Items currently registered under this supplier.</p></div></div>{% if can_create_suppliers %}<a class="supplier_btn supplier_btn_secondary" href="products/create/"><i class="bi bi-plus-lg" aria-hidden="true"></i> Add Product</a>{% endif %}</div>
+    <div class="supplier_table_wrap">
+      <table class="supplier_table">
+        <thead><tr><th>Product</th><th>Code</th><th>Category</th><th>Cost</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>{% for offer in supplier_offers %}<tr><td data-label="Product"><div class="supplier_name"><strong>{{ offer.name }}</strong><span>{{ offer.description|default:"—"|truncatechars:80 }}</span></div></td><td data-label="Code">{{ offer.product_code|default:"—" }}</td><td data-label="Category">{{ offer.get_category_display }}</td><td data-label="Cost" class="supplier_money">${{ offer.estimated_price|floatformat:2 }}</td><td data-label="Status">{% include "suppliers/partials/_supplier_status_track.html" with current_status=offer.status current_label=offer.get_status_display %}</td><td data-label="Actions"><div class="supplier_icon_actions">{% if can_edit_suppliers %}<a class="supplier_icon_action" href="../offers/{{ offer.id_supplier_offer }}/edit/" data-tooltip="Edit" aria-label="Edit product"><i class="bi bi-pencil" aria-hidden="true"></i><span>Edit</span></a>{% endif %}</div></td></tr>{% empty %}<tr><td colspan="6"><div class="supplier_empty">No products registered for this supplier.</div></td></tr>{% endfor %}</tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="nj-card">
+    <div class="supplier-section-head"><div class="supplier-section-title"><span class="nj-icon-box is-warning"><i class="bi bi-cart-check" aria-hidden="true"></i></span><div><h2>Recent purchases</h2><p>Latest purchase history linked to this supplier.</p></div></div>{% if can_create_suppliers %}<a class="supplier_btn supplier_btn_secondary" href="purchases/create/"><i class="bi bi-plus-lg" aria-hidden="true"></i> Register Purchase</a>{% endif %}</div>
+    <div class="supplier_table_wrap">
+      <table class="supplier_table">
+        <thead><tr><th>Purchase</th><th>Date</th><th>Total</th><th>Paid</th><th>Balance</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>{% for purchase in supplier_purchases %}<tr><td data-label="Purchase"><div class="supplier_name"><strong>{{ purchase.purchase_number }}</strong><span>{{ purchase.external_document_number|default:"No reference" }}</span></div></td><td data-label="Date">{{ purchase.purchase_date }}</td><td data-label="Total" class="supplier_money">${{ purchase.total|floatformat:2 }}</td><td data-label="Paid" class="supplier_money supplier_money_green">${{ purchase.paid_amount|floatformat:2 }}</td><td data-label="Balance" class="supplier_money {% if purchase.balance_due > 0 %}supplier_money_red{% endif %}">${{ purchase.balance_due|floatformat:2 }}</td><td data-label="Status">{% include "suppliers/partials/_purchase_status_track.html" with current_status=purchase.status current_label=purchase.get_status_display %}</td><td data-label="Actions"><div class="supplier_icon_actions"><a class="supplier_icon_action" href="../purchases/{{ purchase.id_supplier_purchase }}/" data-tooltip="View" aria-label="View purchase"><i class="bi bi-eye" aria-hidden="true"></i><span>View</span></a></div></td></tr>{% empty %}<tr><td colspan="7"><div class="supplier_empty">No purchases registered for this supplier.</div></td></tr>{% endfor %}</tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

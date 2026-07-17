@@ -1,0 +1,314 @@
+<style>
+  .crm-unified {
+    display: grid;
+    gap: 16px;
+  }
+
+  .crm-status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+    gap: 10px;
+  }
+
+  .crm-status-card {
+    --crm-status-color: var(--nj-blue);
+    position: relative;
+    min-width: 0;
+    min-height: 112px;
+    display: grid;
+    align-content: space-between;
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid var(--nj-line);
+    border-radius: 16px;
+    background: #fff;
+    color: var(--nj-ink) !important;
+    text-decoration: none;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(7,27,120,.045);
+    transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease, background .16s ease;
+  }
+
+  .crm-status-card::after {
+    content: "";
+    position: absolute;
+    right: -28px;
+    bottom: -34px;
+    width: 92px;
+    height: 92px;
+    border-radius: 999px;
+    background: var(--crm-status-color);
+    opacity: .08;
+    pointer-events: none;
+  }
+
+  .crm-status-card:hover,
+  .crm-status-card.is-active {
+    transform: translateY(-2px);
+    border-color: var(--crm-status-color);
+    background: color-mix(in srgb, var(--crm-status-color) 5%, #fff);
+    box-shadow: 0 14px 30px color-mix(in srgb, var(--crm-status-color) 15%, transparent);
+  }
+
+  .crm-status-card-top {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .crm-status-card .nj-icon-box {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    color: var(--crm-status-color);
+    background: color-mix(in srgb, var(--crm-status-color) 9%, #fff);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--crm-status-color) 18%, transparent);
+  }
+
+  .crm-status-card-count {
+    color: var(--nj-ink);
+    font-size: 27px;
+    font-weight: 950;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .crm-status-card-copy {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: 3px;
+  }
+
+  .crm-status-card-copy strong {
+    color: var(--nj-ink);
+    font-size: 12px;
+    font-weight: 900;
+  }
+
+  .crm-status-card-copy small {
+    color: var(--nj-muted);
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.35;
+  }
+
+  .crm-filter-card { padding: 14px; }
+
+  .crm-filter-row {
+    display: grid;
+    grid-template-columns: minmax(260px, 1fr) auto auto;
+    gap: 10px;
+    align-items: end;
+  }
+
+  .crm-filter-row.has-select {
+    grid-template-columns: minmax(240px, 1fr) minmax(190px, 230px) auto auto;
+  }
+
+  .crm-search-wrap { position: relative; }
+  .crm-search-wrap > i {
+    position: absolute;
+    left: 13px;
+    top: 50%;
+    z-index: 2;
+    color: var(--nj-muted);
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+  .crm-search-wrap input { padding-left: 38px !important; }
+
+  .crm-table-card { overflow: hidden; }
+  .crm-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+  }
+
+  .crm-table {
+    width: 100%;
+    min-width: 980px;
+    border-collapse: collapse;
+  }
+
+  .crm-table thead th {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--nj-line);
+    background: linear-gradient(180deg, #f8fbff, #f2f7fd);
+    color: var(--nj-muted);
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: .065em;
+    text-align: left;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .crm-table thead th.is-center,
+  .crm-table tbody td.is-center { text-align: center; }
+  .crm-table thead th.is-right,
+  .crm-table tbody td.is-right { text-align: right; }
+
+  .crm-table tbody td {
+    padding: 13px 14px;
+    border-bottom: 1px solid #e8eef6;
+    background: #fff;
+    color: var(--nj-ink);
+    font-size: 12px;
+    font-weight: 650;
+    vertical-align: middle;
+  }
+
+  .crm-table tbody tr:last-child td { border-bottom: 0; }
+  .crm-table tbody tr:hover td { background: #fbfdff; }
+
+  .crm-code-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--nj-navy) !important;
+    font-size: 12px;
+    font-weight: 950;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .crm-code-link:hover { color: var(--nj-blue) !important; }
+
+  .crm-cell-main {
+    display: grid;
+    gap: 3px;
+    min-width: 150px;
+  }
+  .crm-cell-main strong,
+  .crm-cell-main a {
+    color: var(--nj-ink);
+    font-size: 12px;
+    font-weight: 900;
+    text-decoration: none;
+  }
+  .crm-cell-main a:hover { color: var(--nj-blue); }
+  .crm-cell-main small {
+    color: var(--nj-muted);
+    font-size: 10.5px;
+    font-weight: 650;
+    line-height: 1.35;
+  }
+
+  .crm-status-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 28px;
+    padding: 5px 9px;
+    border: 1px solid var(--nj-line);
+    border-radius: 999px;
+    background: #f8fafc;
+    color: var(--nj-neutral);
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .crm-status-pill::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: currentColor;
+  }
+  .crm-status-pill.is-blue { border-color: rgba(8,104,232,.18); background: var(--nj-ice); color: var(--nj-blue); }
+  .crm-status-pill.is-violet { border-color: rgba(124,58,237,.17); background: var(--nj-violet-soft); color: var(--nj-violet); }
+  .crm-status-pill.is-warning { border-color: rgba(245,158,11,.22); background: var(--nj-warning-soft); color: #b36b00; }
+  .crm-status-pill.is-success { border-color: rgba(14,159,110,.19); background: var(--nj-success-soft); color: var(--nj-success); }
+  .crm-status-pill.is-danger { border-color: rgba(239,51,64,.18); background: var(--nj-danger-soft); color: var(--nj-danger); }
+  .crm-status-pill.is-neutral { border-color: rgba(100,116,139,.20); background: var(--nj-neutral-soft); color: var(--nj-neutral); }
+
+  .crm-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: nowrap;
+    gap: 4px;
+    white-space: nowrap;
+  }
+
+  .crm-progress {
+    width: 120px;
+    display: grid;
+    gap: 5px;
+  }
+  .crm-progress-track {
+    height: 7px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #e9eff7;
+  }
+  .crm-progress-bar {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--nj-sky), var(--nj-deep));
+  }
+  .crm-progress-label {
+    color: var(--nj-muted);
+    font-size: 10px;
+    font-weight: 850;
+  }
+
+  .crm-empty {
+    display: grid;
+    justify-items: center;
+    gap: 9px;
+    padding: 44px 22px;
+    color: var(--nj-muted);
+    text-align: center;
+  }
+  .crm-empty i { color: var(--nj-blue); font-size: 32px; }
+  .crm-empty strong { color: var(--nj-ink); font-size: 16px; font-weight: 900; }
+  .crm-empty span { max-width: 520px; font-size: 12px; font-weight: 650; line-height: 1.55; }
+
+  .crm-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 13px 15px;
+    border-top: 1px solid var(--nj-line);
+  }
+  .crm-pagination-label { color: var(--nj-muted); font-size: 11px; font-weight: 750; }
+  .crm-pagination-links { display: flex; align-items: center; gap: 6px; }
+  .crm-page-link {
+    min-width: 34px;
+    min-height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 7px 9px;
+    border: 1px solid var(--nj-line);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--nj-navy) !important;
+    font-size: 11px;
+    font-weight: 900;
+    text-decoration: none;
+  }
+  .crm-page-link.is-active { border-color: var(--nj-blue); background: var(--nj-blue); color: #fff !important; }
+
+  @media (max-width: 860px) {
+    .crm-filter-row,
+    .crm-filter-row.has-select { grid-template-columns: 1fr 1fr; }
+    .crm-filter-row .nj-field { grid-column: 1 / -1; }
+    .crm-filter-row .nj-btn { width: 100%; }
+  }
+
+  @media (max-width: 620px) {
+    .crm-status-grid { grid-template-columns: 1fr 1fr; }
+    .crm-filter-row,
+    .crm-filter-row.has-select { grid-template-columns: 1fr; }
+    .crm-pagination { align-items: flex-start; flex-direction: column; }
+  }
+</style>

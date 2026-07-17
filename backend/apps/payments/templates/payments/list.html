@@ -1,0 +1,722 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Payments{% endblock %}
+
+{% block page_subtitle %}
+General balance, payment vouchers, invoice allocations and credit control in one compact dashboard.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .payment_page {
+    display: grid;
+    gap: 12px;
+  }
+
+  .payment_toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .payment_toolbar_title {
+    display: grid;
+    gap: 3px;
+  }
+
+  .payment_toolbar_title h2 {
+    margin: 0;
+    color: var(--crm_text);
+    font-size: clamp(22px, 2vw, 30px);
+    font-weight: 950;
+    letter-spacing: -0.035em;
+    line-height: 1.05;
+  }
+
+  .payment_toolbar_title p {
+    margin: 0;
+    color: var(--crm_muted);
+    font-size: 13px;
+    line-height: 1.4;
+    font-weight: 700;
+  }
+
+  .payment_toolbar_actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  .payment_btn_icon,
+  .payment_icon_svg {
+    width: 15px;
+    height: 15px;
+    flex: 0 0 auto;
+  }
+
+  .payment_overview {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 220px;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .payment_balance_summary_grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 9px;
+  }
+
+  .payment_balance_summary_card {
+    min-width: 0;
+    border: 1px solid var(--crm_border);
+    border-radius: 15px;
+    background: #ffffff;
+  }
+
+  .payment_donut_card {
+    border: 1px solid var(--crm_border);
+    border-radius: 17px;
+    background: #ffffff;
+    padding: 12px;
+    display: grid;
+    grid-template-columns: 86px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .payment_donut {
+    width: 86px;
+    height: 86px;
+    border-radius: 999px;
+    background: conic-gradient(#48658f 0deg, #48658f 360deg);
+    position: relative;
+    display: grid;
+    place-items: center;
+  }
+
+  .payment_donut::after {
+    content: "";
+    position: absolute;
+    inset: 15px;
+    border-radius: 999px;
+    background: #ffffff;
+  }
+
+  .payment_donut_center {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    display: grid;
+    gap: 0;
+    color: var(--crm_text);
+  }
+
+  .payment_donut_center strong {
+    font-size: 20px;
+    line-height: 1;
+    font-weight: 950;
+  }
+
+  .payment_donut_center span {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--crm_muted);
+    font-weight: 950;
+  }
+
+  .payment_donut_legend {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .payment_legend_item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    color: var(--crm_muted);
+    font-size: 11px;
+    font-weight: 850;
+  }
+
+  .payment_legend_label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .payment_dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 999px;
+    flex: 0 0 auto;
+  }
+
+  .payment_dot_registered { background: #48658f; }
+  .payment_dot_pending { background: #ab7224; }
+  .payment_dot_void { background: #c53d3d; }
+
+  .payment_filter_card {
+    padding: 12px;
+  }
+
+  .payment_filters {
+    display: grid;
+    grid-template-columns: minmax(180px, 1.2fr) minmax(160px, 1fr) 160px auto;
+    gap: 9px;
+    align-items: end;
+  }
+
+  .payment_filter_field {
+    display: grid;
+    gap: 5px;
+    min-width: 0;
+  }
+
+  .payment_filter_field label {
+    color: var(--crm_text);
+    font-size: 10.5px;
+    font-weight: 950;
+    text-transform: uppercase;
+    letter-spacing: .055em;
+  }
+
+  .payment_filter_input,
+  .payment_filter_select {
+    width: 100%;
+    height: 38px;
+    border: 1px solid var(--crm_border);
+    border-radius: 10px;
+    background: #ffffff;
+    color: var(--crm_text);
+    padding: 7px 10px;
+    font-size: 13px;
+    font-weight: 750;
+    outline: none;
+  }
+
+  .payment_filter_input:focus,
+  .payment_filter_select:focus {
+    border-color: var(--crm_primary);
+    box-shadow: 0 0 0 3px rgba(29,78,216,.10);
+  }
+
+  .payment_filter_meta {
+    color: var(--crm_muted);
+    font-size: 12px;
+    font-weight: 800;
+    margin-top: 9px;
+  }
+
+  .payment_table_wrap {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+  }
+
+  .payment_table {
+    width: 100%;
+    min-width: 1160px;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .payment_table th,
+  .payment_table td {
+    padding: 9px 9px;
+    border-bottom: 1px solid var(--crm_border);
+    text-align: left;
+    vertical-align: middle;
+    font-size: 12.5px;
+  }
+
+  .payment_table th {
+    color: var(--crm_muted);
+    font-size: 10.5px;
+    font-weight: 950;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    background: #ffffff;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+
+  .payment_name {
+    font-weight: 950;
+    color: var(--crm_text);
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+
+  .payment_muted {
+    margin-top: 2px;
+    color: var(--crm_muted);
+    line-height: 1.35;
+    font-size: 11.5px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+
+  .payment_money {
+    font-weight: 950;
+    white-space: nowrap;
+  }
+
+  .payment_money_green { color: var(--crm_success); }
+  .payment_money_yellow { color: var(--crm_warning); }
+  .payment_money_gray { color: #94a3b8; }
+
+  .payment_status {
+    display: inline-flex;
+    min-height: 25px;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 10.5px;
+    font-weight: 950;
+    text-transform: uppercase;
+    border: 1px solid var(--crm_border);
+    white-space: nowrap;
+  }
+
+  .payment_status_pending_payment {
+    color: var(--crm_warning);
+    background: rgba(171, 114, 36, 0.08);
+  }
+
+  .payment_status_paid,
+  .payment_status_verified,
+  .payment_status_confirmed {
+    color: var(--crm_success);
+    background: rgba(63, 107, 94, 0.08);
+  }
+
+  .payment_status_rejected,
+  .payment_status_cancelled,
+  .payment_status_void {
+    color: var(--crm_danger);
+    background: rgba(197, 61, 61, 0.08);
+  }
+
+  .payment_allocation_list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    max-width: 260px;
+  }
+
+  .payment_allocation_item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: 1px solid var(--crm_border);
+    border-radius: 999px;
+    padding: 3px 7px;
+    color: var(--crm_text);
+    font-size: 11px;
+    font-weight: 850;
+    line-height: 1.2;
+  }
+
+  .payment_allocation_amount {
+    color: var(--crm_success);
+    font-weight: 950;
+  }
+
+  .payment_allocation_credit {
+    background: rgba(63, 107, 94, 0.07);
+    border-color: rgba(63, 107, 94, 0.18);
+  }
+
+  .payment_actions {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 5px;
+    position: relative;
+    z-index: 3;
+  }
+
+  .payment_icon_action {
+    position: relative;
+    width: 31px;
+    height: 31px;
+    border: 0;
+    border-radius: 999px;
+    display: inline-grid;
+    place-items: center;
+    background: rgba(29, 78, 216, 0.10);
+    color: var(--crm_primary);
+    line-height: 1;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform 0.16s ease, background 0.16s ease, color 0.16s ease;
+  }
+
+  .payment_icon_action:hover {
+    transform: translateY(-1px);
+    background: rgba(29, 78, 216, 0.16);
+    z-index: 30;
+  }
+
+  .payment_icon_action > span {
+    position: absolute;
+    top: calc(100% + 7px);
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 98px;
+    max-width: 170px;
+    padding: 6px 8px;
+    border-radius: 9px;
+    background: var(--crm_text);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 900;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .15s ease;
+    text-align: center;
+    white-space: nowrap;
+    z-index: 60;
+  }
+
+  .payment_icon_action:hover > span { opacity: 1; }
+  .payment_icon_success { background: rgba(63, 107, 94, 0.12); color: var(--crm_success); }
+  .payment_icon_success:hover { background: rgba(63, 107, 94, 0.18); }
+  .payment_icon_danger { background: rgba(197, 61, 61, 0.12); color: var(--crm_danger); }
+  .payment_icon_danger:hover { background: rgba(197, 61, 61, 0.18); }
+  .payment_icon_warning { background: rgba(171, 114, 36, 0.12); color: var(--crm_warning); }
+  .payment_icon_dark { background: rgba(17, 24, 39, 0.10); color: var(--crm_text); }
+
+  .payment_inline_form { margin: 0; }
+  .payment_empty { padding: 24px; text-align: center; color: var(--crm_muted); font-weight: 800; }
+  .payment_hidden { display: none !important; }
+
+  @media (max-width: 1320px) {
+    .payment_overview {
+      grid-template-columns: 1fr;
+    }
+
+    .payment_balance_summary_grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 860px) {
+    .payment_toolbar {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .payment_toolbar_actions,
+    .payment_toolbar_actions .crm_button {
+      width: 100%;
+    }
+
+    .payment_filters {
+      grid-template-columns: 1fr;
+    }
+
+    .payment_balance_summary_grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Final UX polish: no floating custom tooltip boxes and no desktop internal scroll. */
+  .payment_icon_action > span { display: none !important; }
+  .payment_table_wrap { overflow: visible; }
+  .payment_table { min-width: 0; table-layout: auto; }
+  .payment_table th, .payment_table td { padding: 8px 7px; font-size: 12px; }
+  .payment_table th { font-size: 10px; }
+  @media (max-width: 1180px) { .payment_table_wrap { overflow-x: auto; } .payment_table { min-width: 980px; } }
+
+</style>
+{% include "payments/partials/_design_system.html" %}
+{% endblock %}
+
+{% block content %}
+  <div class="payment_theme payment_page nj-invoice nj-page finance-standard">
+    <div class="payment_toolbar">
+      <div class="payment_toolbar_title">
+        <h2>Payments</h2>
+        <p>Fast balance view, simple search and compact payment actions.</p>
+      </div>
+
+      <div class="payment_toolbar_actions">
+        <a class="crm_button crm_button_secondary" href="{% url 'payments:finance_clients' %}">
+          <svg class="payment_btn_icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V5"></path><path d="M4 19h16"></path><path d="M8 16v-5M13 16V8M18 16v-9"></path></svg>
+          Financial Summary
+        </a>
+        {% if can_create_payments %}
+          <a class="crm_button" href="{% url 'payments:payment_create' %}">
+            <svg class="payment_btn_icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+            New Payment
+          </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <section class="payment_overview" aria-label="Payment overview">
+      <div class="payment_balance_summary_grid">
+        <article class="payment_balance_summary_card is-blue">
+          <span class="payment-summary-icon"><i class="bi bi-cash-stack" aria-hidden="true"></i></span>
+          <div class="payment-summary-copy"><span>Total registered</span><strong>${{ payment_balance_summary.total_amount|default:"0.00" }}</strong><small>All recorded payment operations</small></div>
+        </article>
+        <article class="payment_balance_summary_card is-success">
+          <span class="payment-summary-icon"><i class="bi bi-check2-circle" aria-hidden="true"></i></span>
+          <div class="payment-summary-copy"><span>Allocated</span><strong>${{ payment_balance_summary.total_allocated|default:"0.00" }}</strong><small>Applied to invoices and projects</small></div>
+        </article>
+        <article class="payment_balance_summary_card is-warning">
+          <span class="payment-summary-icon"><i class="bi bi-piggy-bank" aria-hidden="true"></i></span>
+          <div class="payment-summary-copy"><span>Available credit</span><strong>${{ payment_balance_summary.total_available_credit|default:"0.00" }}</strong><small>Client credit ready to apply</small></div>
+        </article>
+        <article class="payment_balance_summary_card is-danger">
+          <span class="payment-summary-icon"><i class="bi bi-exclamation-circle" aria-hidden="true"></i></span>
+          <div class="payment-summary-copy"><span>Balance due</span><strong>${{ financial_overview.total_balance_due|default:"0.00" }}</strong><small>Outstanding invoice balance</small></div>
+        </article>
+      </div>
+
+      <article class="payment_donut_card">
+        <div class="payment_donut" id="PaymentStatusDonut" aria-hidden="true">
+          <div class="payment_donut_center"><strong id="PaymentDonutTotal">0</strong><span>visible</span></div>
+        </div>
+        <div class="payment_donut_legend">
+          <div class="payment_legend_item"><span class="payment_legend_label"><span class="payment_dot payment_dot_registered"></span>Registered</span><strong id="PaymentRegisteredCount">0</strong></div>
+          <div class="payment_legend_item"><span class="payment_legend_label"><span class="payment_dot payment_dot_pending"></span>Pending</span><strong id="PaymentPendingCount">0</strong></div>
+          <div class="payment_legend_item"><span class="payment_legend_label"><span class="payment_dot payment_dot_void"></span>Void / rejected</span><strong id="PaymentVoidCount">0</strong></div>
+        </div>
+      </article>
+    </section>
+
+    <section class="crm_card payment_filter_card">
+      <div class="payment_filters">
+        <div class="payment_filter_field">
+          <label for="PaymentClientSearch">Client</label>
+          <input class="payment_filter_input" id="PaymentClientSearch" type="search" placeholder="Name, code or DNI" autocomplete="off">
+        </div>
+        <div class="payment_filter_field">
+          <label for="PaymentCodeSearch">Payment / voucher</label>
+          <input class="payment_filter_input" id="PaymentCodeSearch" type="search" placeholder="Payment or reference code" autocomplete="off">
+        </div>
+        <div class="payment_filter_field">
+          <label for="PaymentStatusFilter">Status</label>
+          <select class="payment_filter_select" id="PaymentStatusFilter">
+            <option value="">All statuses</option>
+            <option value="pending_payment">Pending Payment</option>
+            <option value="paid">Paid</option>
+            <option value="verified">Verified</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="rejected">Rejected</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="void">Void</option>
+          </select>
+        </div>
+        <button class="crm_button crm_button_secondary" id="PaymentClearFilters" type="button">Clear</button>
+      </div>
+      <div class="payment_filter_meta"><span id="PaymentVisibleCount">0</span> payment(s) visible on this page.</div>
+    </section>
+
+    <section class="crm_card">
+      <div class="payment_table_wrap">
+        <table class="payment_table">
+          <thead>
+            <tr>
+              <th>Payment</th>
+              <th>Voucher / Ref</th>
+              <th>Client</th>
+              <th>Date</th>
+              <th>Method</th>
+              <th>Amount</th>
+              <th>Allocations</th>
+              <th>Credit</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for payment in payments %}
+              <tr class="payment_row"
+                  data-payment-client="{{ payment.id_client.client_code|default:''|lower }} {{ payment.id_client.name|default:''|lower }} {{ payment.id_client.dni|default:''|lower }}"
+                  data-payment-code="{{ payment.payment_number|default:''|lower }} {{ payment.voucher_code|default:''|lower }} {{ payment.reference_code|default:''|lower }}"
+                  data-payment-status="{{ payment.status }}">
+                <td>
+                  <div class="payment_name">{{ payment.payment_number|default:"Payment" }}</div>
+                  <div class="payment_muted">#{{ payment.id_payment }}</div>
+                </td>
+                <td>
+                  <div class="payment_name">{{ payment.voucher_code|default:payment.reference_code|default:"-" }}</div>
+                  {% if payment.voucher_code and payment.reference_code and payment.voucher_code != payment.reference_code %}<div class="payment_muted">{{ payment.reference_code }}</div>{% endif %}
+                </td>
+                <td>
+                  {% if payment.id_client %}
+                    <div class="payment_name">{{ payment.id_client.name|default:"-" }}</div>
+                    <div class="payment_muted">{% if payment.id_client.client_code %}{{ payment.id_client.client_code }}{% elif payment.id_client.dni %}{{ payment.id_client.dni }}{% endif %}</div>
+                  {% else %}
+                    <div class="payment_name">No client</div>
+                    <div class="payment_muted">Legacy payment</div>
+                  {% endif %}
+                </td>
+                <td>{{ payment.payment_date|date:"Y-m-d" }}</td>
+                <td>{{ payment.get_payment_method_display|default:payment.payment_method|default:"-" }}</td>
+                <td><span class="payment_money">${{ payment.ui_operation_amount|default:payment.amount }}</span></td>
+                <td>
+                  <div class="payment_allocation_list">
+                    {% for allocation in payment.allocations.all %}
+                      <a class="payment_allocation_item" href="{% url 'invoices:invoice_detail' allocation.id_invoice.id_invoice %}" title="View invoice">
+                        {{ allocation.id_invoice.invoice_number|default:allocation.id_invoice.id_invoice }}
+                        <span class="payment_allocation_amount">${{ allocation.amount }}</span>
+                      </a>
+                    {% endfor %}
+                    {% for credit in payment.ui_credit_applications %}
+                      <a class="payment_allocation_item payment_allocation_credit" href="{% url 'invoices:invoice_detail' credit.id_invoice.id_invoice %}" title="View invoice">
+                        {{ credit.id_invoice.invoice_number|default:credit.id_invoice.id_invoice }}
+                        <span class="payment_allocation_amount">${{ credit.amount }} credit</span>
+                      </a>
+                    {% endfor %}
+                    {% if not payment.allocations.all and not payment.ui_credit_applications %}<span class="payment_muted">Not allocated</span>{% endif %}
+                  </div>
+                </td>
+                <td><span class="payment_money {% if payment.ui_credit_amount > 0 %}payment_money_green{% else %}payment_money_gray{% endif %}">${{ payment.ui_credit_amount|default:payment.available_amount }}</span></td>
+                <td>{% include "payments/partials/_status_track.html" with payment=payment compact=True %}</td>
+                <td>
+                  <div class="payment_actions">
+                    <a class="payment_icon_action" href="{% url 'payments:payment_detail' payment.id_payment %}" title="View" aria-label="View">
+                      <svg class="payment_icon_svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                      <span>View</span>
+                    </a>
+                    {% if can_edit_payments and payment.status == "pending_payment" or can_edit_payments and payment.status == "paid" %}
+                      <a class="payment_icon_action" href="{% url 'payments:payment_update' payment.id_payment %}" title="Edit" aria-label="Edit"><i class="bi bi-pencil" aria-hidden="true"></i><span>Edit</span></a>
+                    {% endif %}
+                    {% if can_edit_payments and payment.status == "pending_payment" %}
+                      <form class="payment_inline_form" method="post" action="{% url 'payments:payment_mark_paid' payment.id_payment %}">{% csrf_token %}<button class="payment_icon_action payment_icon_success" type="submit" title="Mark paid" aria-label="Mark paid"><svg class="payment_icon_svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6 9 17l-5-5"></path></svg><span>Mark Paid</span></button></form>
+                    {% endif %}
+                    {% if can_approve_payments and payment.status == "paid" %}
+                      <form class="payment_inline_form" method="post" action="{% url 'payments:payment_verify' payment.id_payment %}">{% csrf_token %}<button class="payment_icon_action payment_icon_success" type="submit" title="Verify" aria-label="Verify"><svg class="payment_icon_svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6 9 17l-5-5"></path></svg><span>Verify</span></button></form>
+                      <form class="payment_inline_form" method="post" action="{% url 'payments:payment_reject' payment.id_payment %}">{% csrf_token %}<button class="payment_icon_action payment_icon_danger" type="submit" title="Reject" aria-label="Reject"><svg class="payment_icon_svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6 6 18M6 6l12 12"></path></svg><span>Reject</span></button></form>
+                    {% endif %}
+                    {% if can_approve_payments and payment.status == "paid" or can_approve_payments and payment.status == "verified" %}
+                      <form class="payment_inline_form" method="post" action="{% url 'payments:payment_confirm' payment.id_payment %}">{% csrf_token %}<button class="payment_icon_action payment_icon_success" type="submit" title="Confirm" aria-label="Confirm"><svg class="payment_icon_svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6 9 17l-5-5"></path><circle cx="12" cy="12" r="9"></circle></svg><span>Confirm</span></button></form>
+                    {% endif %}
+                    {% if can_approve_payments and payment.status == "paid" or can_approve_payments and payment.status == "verified" or can_approve_payments and payment.status == "confirmed" %}
+                      <button class="payment_icon_action payment_icon_danger" type="button" title="Void" aria-label="Void" data-crm-void-modal data-void-action="{% url 'payments:payment_void' payment.id_payment %}" data-void-title="Void Payment" data-void-object="Payment {{ payment.payment_number|default:payment.voucher_code|default:payment.id_payment }}" data-void-message="Enter the reason for voiding this payment." data-void-placeholder="Reason for voiding this payment"><svg class="payment_icon_svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><path d="m4.9 4.9 14.2 14.2"></path></svg><span>Void</span></button>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+            {% empty %}
+              <tr><td class="payment_empty" colspan="10">No payments found.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    (function () {
+      const clientInput = document.getElementById("PaymentClientSearch");
+      const codeInput = document.getElementById("PaymentCodeSearch");
+      const statusSelect = document.getElementById("PaymentStatusFilter");
+      const clearButton = document.getElementById("PaymentClearFilters");
+      const rows = Array.from(document.querySelectorAll(".payment_row"));
+      const visibleCount = document.getElementById("PaymentVisibleCount");
+      const donut = document.getElementById("PaymentStatusDonut");
+      const donutTotal = document.getElementById("PaymentDonutTotal");
+      const registeredCount = document.getElementById("PaymentRegisteredCount");
+      const pendingCount = document.getElementById("PaymentPendingCount");
+      const voidCount = document.getElementById("PaymentVoidCount");
+
+      function rowGroup(status) {
+        if (status === "pending_payment") {
+          return "pending";
+        }
+        if (["rejected", "cancelled", "void"].includes(status)) {
+          return "void";
+        }
+        return "registered";
+      }
+
+      function updateDonut(visibleRows) {
+        const counts = { registered: 0, pending: 0, void: 0 };
+
+        visibleRows.forEach(function (row) {
+          counts[rowGroup(row.getAttribute("data-payment-status") || "")] += 1;
+        });
+
+        const total = visibleRows.length;
+        const pendingDeg = total ? (counts.pending / total) * 360 : 0;
+        const registeredDeg = total ? (counts.registered / total) * 360 : 0;
+        const registeredEnd = registeredDeg;
+        const pendingEnd = registeredEnd + pendingDeg;
+
+        if (donut) {
+          if (total === 0) {
+            donut.style.background = "#d6dde8";
+          } else {
+            donut.style.background = "conic-gradient(#48658f 0deg " + registeredEnd + "deg, #ab7224 " + registeredEnd + "deg " + pendingEnd + "deg, #c53d3d " + pendingEnd + "deg 360deg)";
+          }
+        }
+
+        if (donutTotal) { donutTotal.textContent = total; }
+        if (registeredCount) { registeredCount.textContent = counts.registered; }
+        if (pendingCount) { pendingCount.textContent = counts.pending; }
+        if (voidCount) { voidCount.textContent = counts.void; }
+      }
+
+      function applyFilters() {
+        const clientTerm = (clientInput ? clientInput.value : "").trim().toLowerCase();
+        const codeTerm = (codeInput ? codeInput.value : "").trim().toLowerCase();
+        const statusTerm = statusSelect ? statusSelect.value : "";
+        const visibleRows = [];
+
+        rows.forEach(function (row) {
+          const client = row.getAttribute("data-payment-client") || "";
+          const code = row.getAttribute("data-payment-code") || "";
+          const status = row.getAttribute("data-payment-status") || "";
+          const show = (!clientTerm || client.includes(clientTerm)) &&
+                       (!codeTerm || code.includes(codeTerm)) &&
+                       (!statusTerm || status === statusTerm);
+
+          row.classList.toggle("payment_hidden", !show);
+          if (show) {
+            visibleRows.push(row);
+          }
+        });
+
+        if (visibleCount) {
+          visibleCount.textContent = visibleRows.length;
+        }
+
+        updateDonut(visibleRows);
+      }
+
+      [clientInput, codeInput, statusSelect].forEach(function (field) {
+        if (field) {
+          field.addEventListener("input", applyFilters);
+          field.addEventListener("change", applyFilters);
+        }
+      });
+
+      if (clearButton) {
+        clearButton.addEventListener("click", function () {
+          if (clientInput) { clientInput.value = ""; }
+          if (codeInput) { codeInput.value = ""; }
+          if (statusSelect) { statusSelect.value = ""; }
+          applyFilters();
+        });
+      }
+
+      applyFilters();
+    })();
+  </script>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends "contractor_portal/base.html" %}
+{% block content %}
+<section class="field-list-hero">
+  <div class="field-list-hero-icon" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M9 5h6M9 3h6a1 1 0 0 1 1 1v2H8V4a1 1 0 0 1 1-1Z"/><path d="M7 5H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1"/><path d="m8 13 2 2 5-5"/></svg>
+  </div>
+  <div class="field-page-heading">
+    <span>{{ labels.assigned_work }}</span>
+    <h1>{{ labels.my_inspections }}</h1>
+  </div>
+  <div class="field-total" aria-label="{{ total_assignments }}">
+    <strong>{{ total_assignments }}</strong>
+  </div>
+</section>
+
+<nav class="field-filter-bar" aria-label="{{ labels.filter_by_status }}">
+  <div class="field-filter-title">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+    <span>{{ labels.filter_by_status }}</span>
+  </div>
+  <div class="field-filter-options">
+    {% for filter in status_filters %}
+      <a class="field-filter-chip is-{{ filter.value }}{% if filter.active %} is-active{% endif %}" href="{{ filter.url }}"{% if filter.active %} aria-current="page"{% endif %}>
+        <span>{{ filter.label }}</span>
+        <strong>{{ filter.count }}</strong>
+      </a>
+    {% endfor %}
+  </div>
+</nav>
+
+<section class="field-card-list">
+  {% for assignment in assignments %}
+    <a class="field-work-card is-{{ assignment.status }}" href="{{ assignment.portal_url }}">
+      <span class="field-card-accent" aria-hidden="true"></span>
+      <div class="field-work-card-top">
+        <span class="field-code">INS-{{ assignment.id_assignment }}</span>
+        <span class="field-status is-{{ assignment.status }}">{{ assignment.portal_status }}</span>
+      </div>
+      <div class="field-work-card-body">
+        <h2>{{ assignment.client.name }}</h2>
+        <div class="field-work-meta">
+          <div>
+            <span class="field-meta-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M7 3v3M17 3v3M4 9h16"/><rect x="4" y="5" width="16" height="16" rx="3"/></svg>
+            </span>
+            <span>
+              <small>{{ labels.scheduled_for }}</small>
+              <strong>{% if portal_language == 'es' %}{{ assignment.inspection_date|date:"d M Y · H:i" }}{% else %}{{ assignment.inspection_date|date:"M j, Y · g:i A" }}{% endif %}</strong>
+            </span>
+          </div>
+          <div>
+            <span class="field-meta-icon is-audit" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M22 2 11 13"/><path d="m22 2-7 20-4-9-9-4 20-7Z"/></svg>
+            </span>
+            <span>
+              <small>{{ labels.sent_for_audit }}</small>
+              <strong>{% if assignment.submitted_for_audit_at %}{% if portal_language == 'es' %}{{ assignment.submitted_for_audit_at|date:"d M Y · H:i" }}{% else %}{{ assignment.submitted_for_audit_at|date:"M j, Y · g:i A" }}{% endif %}{% else %}{{ labels.not_sent_yet }}{% endif %}</strong>
+            </span>
+          </div>
+          <div>
+            <span class="field-meta-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+            </span>
+            <span><small>{{ labels.location }}</small><strong>{{ assignment.client.address|default:"—" }}</strong></span>
+          </div>
+        </div>
+      </div>
+      <div class="field-work-card-footer">
+        <span>{{ labels.open }}</span>
+        <span class="field-open-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none"><path d="m9 5 7 7-7 7"/></svg>
+        </span>
+      </div>
+    </a>
+  {% empty %}
+    <div class="field-empty">
+      <span class="field-empty-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M9 5h6M9 3h6a1 1 0 0 1 1 1v2H8V4a1 1 0 0 1 1-1Z"/><path d="M7 5H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1"/></svg>
+      </span>
+      <p>{{ labels.inspection_empty }}</p>
+    </div>
+  {% endfor %}
+</section>
+{% endblock %}

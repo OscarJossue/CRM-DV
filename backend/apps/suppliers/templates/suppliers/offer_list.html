@@ -1,0 +1,71 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Products and Services{% endblock %}
+{% block page_subtitle %}Products and services offered by suppliers registered under your company.{% endblock %}
+{% block extra_head %}{% include "suppliers/partials/_design_system.html" %}{% endblock %}
+
+{% block content %}
+<div class="nj-invoice nj-page supplier_theme">
+  <section class="supplier_header_card">
+    <div class="supplier_title_block">
+      <span class="supplier_kicker"><i class="bi bi-box-seam" aria-hidden="true"></i> Supplier catalog</span>
+      <h2>Products and Services</h2>
+      <p>Every catalog item remains linked to a supplier from the active company.</p>
+    </div>
+    <div class="supplier_actions">
+      {% if can_create_suppliers %}<a class="supplier_btn" href="create/"><i class="bi bi-plus-lg" aria-hidden="true"></i> Add Product / Service</a>{% endif %}
+      {% if can_create_suppliers %}<a class="supplier_btn supplier_btn_secondary" href="../create/"><i class="bi bi-person-plus" aria-hidden="true"></i> Register Supplier</a>{% endif %}
+      <a class="supplier_btn supplier_btn_secondary" href="../list/"><i class="bi bi-truck" aria-hidden="true"></i> Suppliers</a>
+      <a class="supplier_btn supplier_btn_secondary" href="../purchases/"><i class="bi bi-cart3" aria-hidden="true"></i> Purchases</a>
+    </div>
+  </section>
+
+  <section class="supplier_grid_4" aria-label="Product status summary">
+    <article class="supplier_stat is-primary"><span>Total Products / Services</span><strong class="primary">{{ offer_status_summary.total }}</strong></article>
+    {% for item in offer_status_summary.items %}
+      <article class="supplier_stat {% if item.key == 'active' %}is-success{% elif item.key == 'blocked' %}is-danger{% else %}is-neutral{% endif %}"><span>{{ item.label }}</span><strong>{{ item.count }}</strong></article>
+    {% endfor %}
+  </section>
+
+  <section class="supplier_panel">
+    <form method="get" class="supplier_filters">
+      <div class="supplier_filter_field"><label for="offerSearch">Search</label><input id="offerSearch" class="crm_input" type="text" name="q" value="{{ current_search }}" placeholder="Product, code, supplier or description"></div>
+      <div class="supplier_filter_field"><label for="offerSupplier">Supplier</label><select id="offerSupplier" name="supplier" class="crm_input"><option value="">All suppliers</option>{% for supplier in suppliers %}<option value="{{ supplier.id_supplier }}" {% if current_supplier == supplier.id_supplier|stringformat:'s' %}selected{% endif %}>{{ supplier.company_name }}</option>{% endfor %}</select></div>
+      <div class="supplier_filter_field"><label for="offerStatus">Status</label><select id="offerStatus" name="status" class="crm_input"><option value="">All statuses</option>{% for value,label in status_options %}<option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+      <div class="supplier_filter_field"><label for="offerCategory">Category</label><select id="offerCategory" name="category" class="crm_input"><option value="">All categories</option>{% for value,label in category_options %}<option value="{{ value }}" {% if current_category == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+      <button class="supplier_btn" type="submit"><i class="bi bi-search" aria-hidden="true"></i> Filter</button>
+      <a class="supplier_btn supplier_btn_secondary" href="."><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Clear</a>
+    </form>
+  </section>
+
+  <section class="supplier_panel">
+    <div class="supplier_table_wrap">
+      <table class="supplier_table">
+        <thead><tr><th>Product / Service</th><th>Supplier</th><th>Code</th><th>Category</th><th>Unit</th><th>Reference Cost</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+          {% for offer in offers %}
+            <tr>
+              <td data-label="Product / Service"><div class="supplier_name"><strong>{{ offer.name }}</strong><span>{{ offer.description|default:"No description"|truncatechars:90 }}</span></div></td>
+              <td data-label="Supplier">{{ offer.id_supplier.company_name }}</td>
+              <td data-label="Code">{{ offer.product_code|default:"—" }}</td>
+              <td data-label="Category">{{ offer.get_category_display }}</td>
+              <td data-label="Unit">{{ offer.unit|default:"—" }}</td>
+              <td data-label="Reference Cost" class="supplier_money">${{ offer.estimated_price|floatformat:2 }}</td>
+              <td data-label="Status">{% include "suppliers/partials/_supplier_status_track.html" with current_status=offer.status current_label=offer.get_status_display %}</td>
+              <td data-label="Actions">
+                <div class="supplier_icon_actions">
+                  {% if can_edit_suppliers %}<a class="supplier_icon_action" href="{{ offer.id_supplier_offer }}/edit/" data-tooltip="Edit" aria-label="Edit product"><i class="bi bi-pencil" aria-hidden="true"></i><span>Edit</span></a>{% endif %}
+                  {% if can_edit_suppliers %}<form method="post" action="{{ offer.id_supplier_offer }}/toggle-status/" class="supplier_inline_form">{% csrf_token %}<button class="supplier_icon_action {% if offer.status != 'active' %}supplier_icon_success{% else %}supplier_icon_warning{% endif %}" type="submit" data-tooltip="{% if offer.status == 'active' %}Deactivate{% else %}Activate{% endif %}" aria-label="{% if offer.status == 'active' %}Deactivate{% else %}Activate{% endif %}"><i class="bi {% if offer.status == 'active' %}bi-pause-circle{% else %}bi-check2-circle{% endif %}" aria-hidden="true"></i><span>Change status</span></button></form>{% endif %}
+                  {% if can_delete_suppliers %}<form method="post" action="{{ offer.id_supplier_offer }}/delete/" class="supplier_inline_form" onsubmit="return confirm('Delete this product? If it is already used in purchases, it will be deactivated instead.');">{% csrf_token %}<button class="supplier_icon_action supplier_icon_danger" type="submit" data-tooltip="Delete" aria-label="Delete product"><i class="bi bi-trash3" aria-hidden="true"></i><span>Delete</span></button></form>{% endif %}
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="8"><div class="supplier_empty">No products found. Add products after registering suppliers.</div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

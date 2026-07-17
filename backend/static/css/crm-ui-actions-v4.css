@@ -1,0 +1,185 @@
+/* CRM UI Actions V4
+   Deliberately scoped: typography, headers, buttons and action icons only.
+   It does NOT alter cards, tables, statuses, sidebar, dashboards or module colors. */
+
+:root {
+  --crm-font-body: "Poppins", Arial, Helvetica, sans-serif;
+  --crm-font-heading: "Montserrat", "Poppins", Arial, sans-serif;
+  --crm-action-view: #0868e8;
+  --crm-action-create: #0e9f6e;
+  --crm-action-edit: #7c3aed;
+  --crm-action-warning: #b36b00;
+  --crm-action-danger: #ef3340;
+  --crm-action-neutral: #475569;
+}
+
+body,
+button,
+input,
+select,
+textarea {
+  font-family: var(--crm-font-body);
+}
+
+h1, h2, h3, h4, h5, h6,
+.crm_page_title,
+.nj-page-title,
+.page-title,
+.role-title,
+.invoice-title,
+.estimate-title {
+  font-family: var(--crm-font-heading);
+  letter-spacing: -0.015em;
+}
+
+/* Known header/action rows only. */
+.crm_page_header,
+.nj-page-head,
+.nj-page-header,
+.page-header,
+.list-header,
+.module-header,
+.role-page-head,
+.invoice-page-head,
+.estimate-page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.crm_page_header > .crm_actions,
+.nj-page-head > .nj-actions,
+.nj-page-header > .nj-actions,
+.page-header > .page-actions,
+.list-header > .list-actions,
+.module-header > .module-actions,
+.role-page-head > .role-actions,
+.invoice-page-head > .invoice-actions,
+.estimate-page-head > .estimate-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* Text buttons keep their current module colors; only geometry and typography are unified. */
+.crm_button,
+.nj-btn,
+.role-btn,
+.estimate_btn,
+.invoice-btn,
+.btn-main,
+.public_action_btn,
+.public_btn_plain {
+  min-height: 40px;
+  padding: 9px 15px;
+  border-radius: 10px;
+  font-family: var(--crm-font-body);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.15;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+/* Icon-only controls: line icon only, no tile, circle or colored background. */
+.nj-icon-btn,
+.role-icon-btn,
+.estimate_btn_icon,
+.invoice-icon-btn,
+.table-action-icon,
+.action-icon-btn,
+.btn-icon-only {
+  width: 30px !important;
+  min-width: 30px !important;
+  height: 30px !important;
+  min-height: 30px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  text-decoration: none !important;
+  line-height: 1 !important;
+  transition: color .15s ease, opacity .15s ease, transform .15s ease !important;
+}
+
+.nj-icon-btn:hover,
+.role-icon-btn:hover,
+.estimate_btn_icon:hover,
+.invoice-icon-btn:hover,
+.table-action-icon:hover,
+.action-icon-btn:hover,
+.btn-icon-only:hover {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  transform: translateY(-1px) scale(1.06);
+  opacity: .80;
+}
+
+.nj-icon-btn i,
+.role-icon-btn i,
+.estimate_btn_icon i,
+.invoice-icon-btn i,
+.table-action-icon i,
+.action-icon-btn i,
+.btn-icon-only i {
+  font-size: 20px !important;
+  line-height: 1 !important;
+}
+
+/* Existing semantic classes determine color; no text-based guessing or JavaScript. */
+:is(.nj-icon-btn,.role-icon-btn,.estimate_btn_icon,.invoice-icon-btn,.table-action-icon,.action-icon-btn).is-success,
+:is(.nj-icon-btn,.role-icon-btn,.estimate_btn_icon,.invoice-icon-btn,.table-action-icon,.action-icon-btn).is-create,
+:is(.nj-icon-btn,.role-icon-btn,.estimate_btn_icon,.invoice-icon-btn,.table-action-icon,.action-icon-btn).is-approve { color: var(--crm-action-create) !important; }
+
+:is(.nj-icon-btn,.role-icon-btn,.estimate_btn_icon,.invoice-icon-btn,.table-action-icon,.action-icon-btn).is-danger,
+:is(.nj-icon-btn,.role-icon-btn,.estimate_btn_icon,.invoice-icon-btn,.table-action-icon,.action-icon-btn).is-void,
+:is(.nj-icon-btn,.role-icon-btn,.estimate_btn_icon,.invoice-icon-btn,.table-action-icon,.action-icon-btn).is-delete,
+:is(.nj-icon-btn,.role-icon-btn,.estimate_btn_icon,.invoice-icon-btn,.table-action-icon,.action-icon-btn).is-reject { color: var(--crm-action-danger) !important; }
+
+:is(.nj-icon-btn,.role-icon-btn,.estimate_btn_icon,.invoice-icon-btn,.table-action-icon,.action-icon-btn).is-warning { color: var(--crm-action-warning) !important; }
+:is(.nj-icon-btn,.role-icon-btn,.estimate_btn_icon,.invoice-icon-btn,.table-action-icon,.action-icon-btn).is-violet,
+:is(.nj-icon-btn,.role-icon-btn,.estimate_btn_icon,.invoice-icon-btn,.table-action-icon,.action-icon-btn).is-edit { color: var(--crm-action-edit) !important; }
+:is(.nj-icon-btn,.role-icon-btn,.estimate_btn_icon,.invoice-icon-btn,.table-action-icon,.action-icon-btn).is-neutral { color: var(--crm-action-neutral) !important; }
+:is(.nj-icon-btn,.role-icon-btn,.estimate_btn_icon,.invoice-icon-btn,.table-action-icon,.action-icon-btn).is-pdf { color: #d62839 !important; }
+
+/* Form controls: geometry only, preserving module-specific colors. */
+.crm_content :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea),
+.nj-form :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea),
+.role-form :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea) {
+  border-radius: 10px;
+  font-family: var(--crm-font-body);
+}
+
+@media (max-width: 720px) {
+  .crm_page_header,
+  .nj-page-head,
+  .nj-page-header,
+  .page-header,
+  .list-header,
+  .module-header {
+    align-items: stretch;
+  }
+
+  .crm_page_header > .crm_actions,
+  .nj-page-head > .nj-actions,
+  .nj-page-header > .nj-actions,
+  .page-header > .page-actions,
+  .list-header > .list-actions,
+  .module-header > .module-actions {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+}

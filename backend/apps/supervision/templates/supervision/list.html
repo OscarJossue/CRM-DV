@@ -1,0 +1,79 @@
+{% extends "layouts/base.html" %}
+{% block page_title %}Audit{% endblock %}
+{% block page_subtitle %}Review contractor submissions before completing inspections or projects.{% endblock %}
+{% block extra_head %}
+  {% include "partials/_crm_design_system.html" %}
+  {% include "partials/_crm_unified_dashboard.html" %}
+{% endblock %}
+{% block content %}
+<div class="nj-invoice nj-page crm-unified">
+  <header class="nj-page-head">
+    <div>
+      <span class="nj-page-kicker"><i class="bi bi-shield-check"></i> Quality control</span>
+      <h1 class="nj-page-title">Audit</h1>
+      <p class="nj-page-subtitle">Review the photos, observations and recommendations submitted from the field.</p>
+    </div>
+    {% if can_create_supervision %}
+      <div class="nj-head-actions"><a class="nj-btn" href="{{ supervision_create_url }}"><i class="bi bi-plus-lg"></i> Create audit</a></div>
+    {% endif %}
+  </header>
+
+  <section class="crm-status-grid" aria-label="Audit statuses">
+    {% for item in supervision_dashboard_items %}
+      <a class="crm-status-card {% if item.is_active %}is-active{% endif %}" style="--crm-status-color:{{ item.color }};" href="?{{ item.query_string }}">
+        <div class="crm-status-card-top"><span class="nj-icon-box"><i class="bi {{ item.icon }}"></i></span><span class="crm-status-card-count">{{ item.count }}</span></div>
+        <div class="crm-status-card-copy"><strong>{{ item.label }}</strong><small>{{ item.caption }}</small></div>
+      </a>
+    {% endfor %}
+  </section>
+
+  <form class="nj-card crm-filter-card" method="get">
+    {% if supervision_filters.status %}<input type="hidden" name="status" value="{{ supervision_filters.status }}">{% endif %}
+    <div class="crm-filter-row">
+      <div class="nj-field">
+        <label for="AuditSearch">Search</label>
+        <div class="crm-search-wrap"><i class="bi bi-search"></i><input id="AuditSearch" type="search" name="q" value="{{ supervision_filters.q }}" placeholder="Code, client, contractor or notes"></div>
+      </div>
+      <div class="nj-field" style="min-width:180px;">
+        <label for="AuditTarget">Work type</label>
+        <select class="crm_input" id="AuditTarget" name="target">
+          <option value="">All</option>
+          <option value="inspection" {% if supervision_filters.target == 'inspection' %}selected{% endif %}>Inspections</option>
+          <option value="project" {% if supervision_filters.target == 'project' %}selected{% endif %}>Projects</option>
+        </select>
+      </div>
+      <button class="nj-btn" type="submit"><i class="bi bi-funnel"></i> Filter</button>
+      <a class="nj-btn nj-btn-secondary" href="{{ supervision_list_url }}"><i class="bi bi-x-lg"></i> Clear</a>
+    </div>
+  </form>
+
+  <section class="nj-card crm-table-card">
+    {% if supervisions %}
+      <div class="crm-table-wrap">
+        <table class="crm-table" style="min-width:1050px;">
+          <thead><tr><th>Type</th><th>Work</th><th>Client</th><th>Contractor</th><th class="is-center">Photos</th><th class="is-center">Status</th><th>Submitted</th><th class="is-center">Review</th></tr></thead>
+          <tbody>
+            {% for supervision in supervisions %}
+              <tr>
+                <td><span class="crm-status-pill {% if supervision.target_type == 'inspection' %}is-info{% else %}is-violet{% endif %}">{% if supervision.target_type == 'inspection' %}<i class="bi bi-clipboard2-pulse"></i> Inspection{% else %}<i class="bi bi-kanban"></i> Project{% endif %}</span></td>
+                <td><div class="crm-cell-main"><a class="crm-code-link" href="{{ supervision.target_url }}">{{ supervision.target_code }}</a><strong>{{ supervision.target_name }}</strong></div></td>
+                <td><div class="crm-cell-main"><strong>{{ supervision.client.name }}</strong><small>{{ supervision.client.client_code|default:"No code" }}</small></div></td>
+                <td>{% if supervision.contractor %}{{ supervision.contractor.first_name }} {{ supervision.contractor.last_name }}<small style="display:block;color:#64748b;">{{ supervision.contractor.email }}</small>{% else %}<span class="text-muted">Unassigned</span>{% endif %}</td>
+                <td class="is-center"><strong>{{ supervision.evidence_count }}</strong></td>
+                <td class="is-center"><span class="crm-status-pill {{ supervision.status_class }}">{{ supervision.status_label }}</span></td>
+                <td>{{ supervision.created_at|date:"d/m/Y H:i" }}</td>
+                <td class="is-center"><a class="nj-icon-btn" href="{{ supervision.detail_url }}" data-tooltip="Review submission" aria-label="Review submission"><i class="bi bi-eye"></i></a></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if is_paginated %}
+        <div class="crm-pagination"><span class="crm-pagination-label">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} · {{ page_obj.paginator.count }} audits</span><nav class="crm-pagination-links">{% if page_obj.has_previous %}<a class="crm-page-link" href="?{% if supervision_filter_query %}{{ supervision_filter_query }}&{% endif %}page={{ page_obj.previous_page_number }}"><i class="bi bi-chevron-left"></i></a>{% endif %}<span class="crm-page-link is-active">{{ page_obj.number }}</span>{% if page_obj.has_next %}<a class="crm-page-link" href="?{% if supervision_filter_query %}{{ supervision_filter_query }}&{% endif %}page={{ page_obj.next_page_number }}"><i class="bi bi-chevron-right"></i></a>{% endif %}</nav></div>
+      {% endif %}
+    {% else %}
+      <div class="crm-empty"><i class="bi bi-shield-check"></i><strong>No audit records found</strong><span>Submitted inspections and projects will appear here automatically.</span></div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

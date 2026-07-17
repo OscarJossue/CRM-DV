@@ -1,0 +1,287 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Language & Region{% endblock %}
+{% block page_subtitle %}Choose the language used in your CEO MARKETING administration console.{% endblock %}
+
+{% block extra_head %}
+<style>
+  .platform_language_page {
+    max-width: 980px;
+    margin: 0 auto;
+  }
+
+  .platform_language_card {
+    overflow: hidden;
+    border: 1px solid var(--crm_border);
+    border-radius: 26px;
+    background: var(--crm_surface);
+    box-shadow: var(--crm_shadow_soft);
+  }
+
+  .platform_language_header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 26px;
+    border-bottom: 1px solid var(--crm_border);
+    background:
+      radial-gradient(circle at 92% 5%, rgba(155, 120, 72, .16), transparent 34%),
+      linear-gradient(145deg, rgba(255,255,255,.96), rgba(248,244,237,.92));
+  }
+
+  .platform_language_header h2 {
+    margin: 0;
+    color: var(--crm_text);
+    font-size: 24px;
+    font-weight: 900;
+    letter-spacing: -.025em;
+  }
+
+  .platform_language_header p {
+    max-width: 660px;
+    margin: 9px 0 0;
+    color: var(--crm_muted);
+    font-size: 14px;
+    font-weight: 650;
+    line-height: 1.7;
+  }
+
+  .platform_language_badge {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 13px;
+    border: 1px solid rgba(155, 120, 72, .22);
+    border-radius: 999px;
+    background: rgba(155, 120, 72, .10);
+    color: var(--crm_primary_dark);
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+  }
+
+  .platform_language_form {
+    display: grid;
+    gap: 22px;
+    padding: 26px;
+  }
+
+  .platform_language_choices {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .platform_language_option {
+    position: relative;
+  }
+
+  .platform_language_option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .platform_language_option label {
+    min-height: 104px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px;
+    border: 1px solid var(--crm_border);
+    border-radius: 20px;
+    background: var(--crm_bg);
+    color: var(--crm_text);
+    cursor: pointer;
+    transition: transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
+  }
+
+  .platform_language_option label:hover {
+    transform: translateY(-2px);
+    border-color: rgba(155, 120, 72, .52);
+    background: rgba(155, 120, 72, .06);
+  }
+
+  .platform_language_option input:focus-visible + label {
+    outline: 3px solid rgba(155, 120, 72, .20);
+    outline-offset: 3px;
+  }
+
+  .platform_language_option input:checked + label {
+    border-color: var(--crm_primary);
+    background: rgba(155, 120, 72, .10);
+    box-shadow: 0 0 0 3px rgba(155, 120, 72, .10);
+  }
+
+  .platform_language_code {
+    width: 52px;
+    height: 52px;
+    flex: 0 0 52px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--crm_border);
+    border-radius: 16px;
+    background: #fff;
+    color: var(--crm_primary_dark);
+    font-size: 14px;
+    font-weight: 950;
+  }
+
+  .platform_language_name {
+    display: grid;
+    gap: 5px;
+  }
+
+  .platform_language_name strong {
+    color: var(--crm_text);
+    font-size: 16px;
+    font-weight: 900;
+  }
+
+  .platform_language_name span {
+    color: var(--crm_muted);
+    font-size: 13px;
+    font-weight: 650;
+    line-height: 1.45;
+  }
+
+  .platform_language_note {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px 18px;
+    border: 1px solid rgba(155, 120, 72, .18);
+    border-radius: 17px;
+    background: rgba(155, 120, 72, .07);
+    color: var(--crm_muted);
+    font-size: 13px;
+    font-weight: 650;
+    line-height: 1.65;
+  }
+
+  .platform_language_note i {
+    margin-top: 2px;
+    color: var(--crm_primary_dark);
+    font-size: 17px;
+  }
+
+  .platform_language_actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+  }
+
+  .platform_language_save {
+    min-height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    padding: 0 20px;
+    border: 0;
+    border-radius: 14px;
+    background: var(--crm_primary_dark);
+    color: #fff;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 10px 24px rgba(111, 80, 43, .20);
+  }
+
+  @media (max-width: 760px) {
+    .platform_language_header {
+      display: grid;
+    }
+
+    .platform_language_badge {
+      width: fit-content;
+    }
+
+    .platform_language_choices {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="platform_language_page">
+  <section class="platform_language_card">
+    <header class="platform_language_header">
+      <div>
+        <h2>Personal platform language</h2>
+        <p>
+          Select English or Spanish. The complete CEO MARKETING administration interface changes immediately and the preference remains saved for your platform account.
+        </p>
+      </div>
+
+      <span class="platform_language_badge">
+        <i class="bi bi-globe-americas"></i>
+        Platform preference
+      </span>
+    </header>
+
+    <form class="platform_language_form" method="post">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{% url 'platform_languages:settings' %}">
+
+      <div class="platform_language_choices" role="radiogroup" aria-label="Platform language">
+        <div class="platform_language_option">
+          <input
+            id="platform_language_en"
+            type="radio"
+            name="language"
+            value="en"
+            {% if current_language == "en" %}checked{% endif %}
+          >
+          <label for="platform_language_en">
+            <span class="platform_language_code">EN</span>
+            <span class="platform_language_name">
+              <strong>English</strong>
+              <span>Use the administration console in English.</span>
+            </span>
+          </label>
+        </div>
+
+        <div class="platform_language_option">
+          <input
+            id="platform_language_es"
+            type="radio"
+            name="language"
+            value="es"
+            {% if current_language == "es" %}checked{% endif %}
+          >
+          <label for="platform_language_es">
+            <span class="platform_language_code">ES</span>
+            <span class="platform_language_name">
+              <strong>Español</strong>
+              <span>Use the administration console in Spanish.</span>
+            </span>
+          </label>
+        </div>
+      </div>
+
+      {% if form.language.errors %}
+        <div class="text-danger">{{ form.language.errors }}</div>
+      {% endif %}
+
+      <div class="platform_language_note">
+        <i class="bi bi-shield-check"></i>
+        <span>
+          Company names, customer information, document numbers, email addresses, notes and every other user-entered value remain exactly as they were entered. Only interface labels and system messages are translated.
+        </span>
+      </div>
+
+      <div class="platform_language_actions">
+        <button class="platform_language_save" type="submit">
+          <i class="bi bi-check2-circle"></i>
+          Save language
+        </button>
+      </div>
+    </form>
+  </section>
+</div>
+{% endblock %}

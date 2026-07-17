@@ -1,0 +1,127 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="{{ portal_language|default:'en' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b2a6f">
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="icon" href="{% static 'contractor_portal/branding/nexxtjob-symbol.svg' %}?v=20260715-1635" type="image/svg+xml">
+  <link rel="shortcut icon" href="{% static 'contractor_portal/branding/nexxtjob-symbol.svg' %}?v=20260715-1635" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800;900&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'contractor_portal/css/portal_v5.css' %}?v=20260715-1648">
+  <style>
+    /* Critical portal UI rules live in the template as a cache-safe fallback. */
+    .field-brand-mark.has-company-logo{width:76px!important;height:56px!important;padding:0!important;border:0!important;border-radius:12px!important;background:transparent!important;box-shadow:none!important;overflow:hidden!important}
+    .field-brand-mark.has-company-logo img{width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:contain!important;object-position:center!important}
+    .field-filter-bar{margin:0 0 20px!important;padding:12px!important;display:grid!important;grid-template-columns:auto minmax(0,1fr)!important;align-items:center!important;gap:12px!important;border:1px solid #d7e1ee!important;border-radius:18px!important;background:#fff!important;box-shadow:0 8px 24px rgba(17,37,70,.07)!important}
+    .field-filter-title{display:inline-flex!important;align-items:center!important;gap:7px!important;color:#5f6f86!important;font-family:"Montserrat",sans-serif!important;font-size:9px!important;font-weight:800!important;letter-spacing:.07em!important;text-transform:uppercase!important;white-space:nowrap!important}
+    .field-filter-options{min-width:0!important;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:8px!important}
+    .field-filter-chip{min-width:0!important;min-height:42px!important;padding:0 9px 0 11px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:7px!important;border:1px solid #dce5f0!important;border-radius:12px!important;background:#f7f9fc!important;color:#41516a!important;font-family:"Montserrat",sans-serif!important;font-size:9px!important;font-weight:800!important;text-decoration:none!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.8)!important}
+    .field-filter-chip>span{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+    .field-filter-chip>span:before{content:"";width:7px;height:7px;margin-right:7px;display:inline-block;border-radius:999px;background:#71839c;vertical-align:1px}
+    .field-filter-chip strong{min-width:25px!important;height:25px!important;padding:0 6px!important;display:grid!important;place-items:center!important;border-radius:8px!important;background:#e7edf5!important;color:#40516a!important;font-size:8px!important;font-weight:900!important}
+    .field-filter-chip.is-pending>span:before{background:#4d7fc9}.field-filter-chip.is-in_progress>span:before{background:#d18a00}.field-filter-chip.is-review>span:before{background:#7047c7}.field-filter-chip.is-completed>span:before{background:#0a8064}
+    .field-filter-chip:hover{border-color:#aec5e7!important;background:#f0f6ff!important;color:#145fcf!important;transform:translateY(-1px)!important}
+    .field-filter-chip.is-active{color:#fff!important;box-shadow:0 8px 18px rgba(17,37,70,.14)!important}.field-filter-chip.is-active>span:before{background:#fff!important}.field-filter-chip.is-active strong{background:rgba(255,255,255,.2)!important;color:#fff!important}
+    .field-filter-chip.is-pending.is-active{border-color:#4777bd!important;background:#4777bd!important}.field-filter-chip.is-in_progress.is-active{border-color:#a96d00!important;background:#a96d00!important}.field-filter-chip.is-review.is-active{border-color:#6840b8!important;background:#6840b8!important}.field-filter-chip.is-completed.is-active{border-color:#08745b!important;background:#08745b!important}
+    .field-photo-workspace{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(170px,210px))!important;justify-content:start!important;align-items:start!important;gap:12px!important}
+    .field-photo-card,.field-add-photo-card{width:100%!important;max-width:210px!important;min-width:0!important}
+    .field-photo-media{width:100%!important;height:auto!important;min-height:0!important;aspect-ratio:4/3!important;overflow:hidden!important}
+    .field-photo-media img{width:100%!important;height:100%!important;object-fit:cover!important}
+    .field-add-photo-card{min-height:178px!important;height:178px!important;padding:13px!important}
+    .field-photo-card-controls{padding:9px!important}.field-photo-card-controls textarea{min-height:62px!important;max-height:92px!important}
+    @media(min-width:1024px){.field-filter-title{font-size:11px!important}.field-filter-chip{font-size:12px!important}.field-filter-chip strong{font-size:10px!important}}
+    @media(max-width:820px){.field-filter-bar{grid-template-columns:1fr!important}.field-filter-options{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+    @media(max-width:430px){.field-filter-options{grid-template-columns:1fr!important}.field-photo-workspace{grid-template-columns:minmax(0,1fr)!important}.field-photo-card,.field-add-photo-card{max-width:none!important}.field-brand-mark.has-company-logo{width:62px!important;height:46px!important}}
+    @media(max-width:250px){.field-filter-bar{padding:7px!important}.field-filter-chip{min-height:34px!important;padding:0 6px!important;font-size:7px!important}.field-filter-chip strong{min-width:21px!important;height:21px!important}.field-photo-media{aspect-ratio:1/1!important}}
+  </style>
+  <title>{{ page_title }} · {{ company.name }}</title>
+</head>
+<body>
+  <a class="field-skip-link" href="#field-main-content">{{ page_title }}</a>
+
+  <div class="field-shell">
+    <header class="field-header">
+      <div class="field-header-inner">
+        <div class="field-header-main">
+          <a class="field-brand" href="{{ portal_home_url }}" aria-label="{{ company.name }}">
+            <span class="field-brand-mark{% if company.logo %} has-company-logo{% endif %}">
+              {% if company.logo %}
+                <img src="{{ company.logo.url }}" alt="{{ company.name }}">
+              {% else %}
+                <span class="field-brand-fallback" aria-hidden="true">{{ company.name|slice:":1"|upper }}</span>
+              {% endif %}
+            </span>
+            <span class="field-brand-copy">
+              <strong>{{ company.name }}</strong>
+              <small>{{ labels.portal }}</small>
+            </span>
+          </a>
+
+          <nav class="field-tabs" aria-label="{{ labels.portal }}">
+            <a class="{% if active_portal_tab == 'inspections' %}is-active{% endif %}" href="{{ portal_inspection_list_url }}">
+              <span class="field-tab-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M9 5h6M9 3h6a1 1 0 0 1 1 1v2H8V4a1 1 0 0 1 1-1Z"/><path d="M7 5H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1"/><path d="m8 13 2 2 5-5"/></svg>
+              </span>
+              <span>{{ labels.my_inspections }}</span>
+            </a>
+            <a class="{% if active_portal_tab == 'projects' %}is-active{% endif %}" href="{{ portal_project_list_url }}">
+              <span class="field-tab-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M3 8.5h18M5.5 5h4l1.5 2h7.5A2.5 2.5 0 0 1 21 9.5v8A2.5 2.5 0 0 1 18.5 20h-13A2.5 2.5 0 0 1 3 17.5v-10A2.5 2.5 0 0 1 5.5 5Z"/></svg>
+              </span>
+              <span>{{ labels.my_projects }}</span>
+            </a>
+          </nav>
+
+          <div class="field-header-actions">
+            <form class="field-language" method="post" action="{{ portal_language_url }}" aria-label="{{ labels.language }}">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.get_full_path }}">
+              <span class="field-control-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z"/><path d="M3.6 9h16.8M3.6 15h16.8M12 3c2.1 2.5 3.2 5.5 3.2 9S14.1 18.5 12 21c-2.1-2.5-3.2-5.5-3.2-9S9.9 5.5 12 3Z"/></svg>
+              </span>
+              <div class="field-language-options">
+                <button type="submit" name="language" value="en" class="{% if portal_language == 'en' %}is-active{% endif %}" aria-pressed="{% if portal_language == 'en' %}true{% else %}false{% endif %}">EN</button>
+                <button type="submit" name="language" value="es" class="{% if portal_language == 'es' %}is-active{% endif %}" aria-pressed="{% if portal_language == 'es' %}true{% else %}false{% endif %}">ES</button>
+              </div>
+            </form>
+
+            <form class="field-logout-form" method="post" action="{% url 'logout' %}">
+              {% csrf_token %}
+              <button class="field-logout" type="submit" title="{{ labels.logout }}" aria-label="{{ labels.logout }}">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10 5H6.8A2.8 2.8 0 0 0 4 7.8v8.4A2.8 2.8 0 0 0 6.8 19H10"/><path d="M14 8l4 4-4 4M8.5 12H18"/></svg>
+                <span>{{ labels.logout }}</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="field-main" id="field-main-content">
+      {% if messages %}
+        <div class="field-messages" aria-live="polite">
+          {% for message in messages %}
+            <div class="field-message {% if message.tags %}is-{{ message.tags }}{% endif %}">
+              <span class="field-message-icon" aria-hidden="true">
+                {% if 'error' in message.tags %}
+                  <svg viewBox="0 0 24 24" fill="none"><path d="M12 8v5M12 17h.01"/><path d="M10.3 4.3 2.8 17.5A2 2 0 0 0 4.5 20h15a2 2 0 0 0 1.7-2.5L13.7 4.3a2 2 0 0 0-3.4 0Z"/></svg>
+                {% else %}
+                  <svg viewBox="0 0 24 24" fill="none"><path d="m5 12 4 4L19 6"/></svg>
+                {% endif %}
+              </span>
+              <span>{{ message }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <script src="{% static 'contractor_portal/js/portal_v5.js' %}?v=20260715-1648"></script>
+</body>
+</html>

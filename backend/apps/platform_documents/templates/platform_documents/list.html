@@ -1,0 +1,371 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Platform Documents{% endblock %}
+
+{% block page_subtitle %}
+Manage SaaS proformas and invoices issued by CEO MARKETING to companies.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .docs_page {
+    display: grid;
+    gap: 20px;
+  }
+
+  .docs_top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 18px;
+    align-items: center;
+    padding: 22px;
+    border: 1px solid var(--crm_border);
+    border-radius: 22px;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(31, 58, 138, 0.12), transparent 32%),
+      #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .docs_top h2 {
+    margin: 0;
+    color: var(--crm_text);
+    font-size: 22px;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+  }
+
+  .docs_top p {
+    margin: 6px 0 0;
+    color: var(--crm_muted);
+    font-size: 14px;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+  }
+
+  .docs_stats {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .docs_stat {
+    display: grid;
+    gap: 6px;
+    padding: 16px;
+    border: 1px solid var(--crm_border);
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .docs_stat span {
+    color: var(--crm_muted);
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .docs_stat strong {
+    color: var(--crm_primary);
+    font-size: 26px;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .docs_tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .docs_tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 9px 14px;
+    border: 1px solid var(--crm_border);
+    border-radius: 12px;
+    background: #ffffff;
+    color: var(--crm_text);
+    font-size: 13px;
+    font-weight: 900;
+  }
+
+  .docs_tab.is_active {
+    background: var(--crm_primary);
+    border-color: var(--crm_primary);
+    color: #ffffff;
+  }
+
+  .docs_filters {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) minmax(180px, .35fr) auto auto;
+    gap: 12px;
+    align-items: end;
+    padding: 18px;
+    border: 1px solid var(--crm_border);
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .docs_filter_field {
+    display: grid;
+    gap: 6px;
+  }
+
+  .docs_filter_label {
+    color: var(--crm_text);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .docs_table_wrap {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .docs_table {
+    width: 100%;
+    min-width: 980px;
+    border-collapse: collapse;
+  }
+
+  .docs_table th,
+  .docs_table td {
+    padding: 14px 12px;
+    border-bottom: 1px solid var(--crm_border);
+    text-align: left;
+    vertical-align: top;
+    font-size: 14px;
+  }
+
+  .docs_table th {
+    color: var(--crm_muted);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .docs_number {
+    color: var(--crm_text);
+    font-weight: 900;
+    overflow-wrap: anywhere;
+  }
+
+  .docs_muted {
+    color: var(--crm_muted);
+    font-size: 13px;
+    overflow-wrap: anywhere;
+  }
+
+  .docs_badge {
+    display: inline-flex;
+    width: fit-content;
+    min-height: 30px;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    border: 1px solid var(--crm_border);
+    border-radius: 10px;
+    background: rgba(31, 58, 138, 0.08);
+    color: var(--crm_primary);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .docs_actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .docs_link {
+    color: var(--crm_primary);
+    font-size: 13px;
+    font-weight: 900;
+  }
+
+  .docs_empty {
+    padding: 20px;
+    color: var(--crm_muted);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 1120px) {
+    .docs_stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .docs_filters {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 700px) {
+    .docs_top,
+    .docs_filters,
+    .docs_stats {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <section class="docs_page">
+    <div class="docs_top">
+      <div>
+        <h2>SaaS Documents</h2>
+        <p>
+          Create, filter and export proformas and invoices that CEO MARKETING issues to companies using the CRM platform.
+        </p>
+      </div>
+
+      <a class="crm_button" href="{% url 'platform_documents:create' %}">Create Document</a>
+    </div>
+
+    <div class="docs_stats">
+      <article class="docs_stat">
+        <span>Total</span>
+        <strong>{{ total_documents }}</strong>
+      </article>
+
+      <article class="docs_stat">
+        <span>Proformas</span>
+        <strong>{{ total_proformas }}</strong>
+      </article>
+
+      <article class="docs_stat">
+        <span>Invoices</span>
+        <strong>{{ total_invoices }}</strong>
+      </article>
+
+      <article class="docs_stat">
+        <span>Paid</span>
+        <strong>{{ total_paid }}</strong>
+      </article>
+
+      <article class="docs_stat">
+        <span>Open</span>
+        <strong>{{ total_pending }}</strong>
+      </article>
+    </div>
+
+    <div class="docs_tabs">
+      <a class="docs_tab {% if not document_type_filter %}is_active{% endif %}" href="{{ all_documents_url }}">
+        All Documents
+      </a>
+
+      <a class="docs_tab {% if document_type_filter == 'proforma' %}is_active{% endif %}" href="{{ proformas_url }}">
+        Proformas
+      </a>
+
+      <a class="docs_tab {% if document_type_filter == 'invoice' %}is_active{% endif %}" href="{{ invoices_url }}">
+        Invoices
+      </a>
+    </div>
+
+    <form class="docs_filters" method="get">
+      {% if document_type_filter %}
+        <input type="hidden" name="type" value="{{ document_type_filter }}">
+      {% endif %}
+
+      <label class="docs_filter_field">
+        <span class="docs_filter_label">Search</span>
+        <input class="crm_input" type="search" name="q" value="{{ q }}" placeholder="Document number or company name">
+      </label>
+
+      <label class="docs_filter_field">
+        <span class="docs_filter_label">Status</span>
+        <select class="crm_input" name="status">
+          <option value="">All Statuses</option>
+          {% for value, label in status_choices %}
+            <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <button class="crm_button" type="submit">Apply Filters</button>
+
+      <a
+        class="crm_button crm_button_secondary"
+        href="{% url 'platform_documents:export_csv' %}{% if active_querystring %}?{{ active_querystring }}{% endif %}"
+      >
+        Export CSV
+      </a>
+    </form>
+
+    <div class="crm_card">
+      <div class="docs_table_wrap">
+        <table class="docs_table">
+          <thead>
+            <tr>
+              <th>Document</th>
+              <th>Company</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>Issue</th>
+              <th>Due</th>
+              <th>Total</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for document in documents %}
+              <tr>
+                <td>
+                  <div class="docs_number">{{ document.document_number }}</div>
+                  <div class="docs_muted">Created {{ document.created_at|date:"Y-m-d" }}</div>
+                </td>
+
+                <td>
+                  <div class="docs_number">{{ document.id_company.name }}</div>
+                  <div class="docs_muted">/{{ document.id_company.slug }}/</div>
+                </td>
+
+                <td>
+                  <span class="docs_badge">{{ document.get_document_type_display }}</span>
+                </td>
+
+                <td>
+                  <span class="docs_badge">{{ document.get_status_display }}</span>
+                </td>
+
+                <td>{{ document.issue_date }}</td>
+                <td>{{ document.due_date|default:"No date" }}</td>
+
+                <td>
+                  <div class="docs_number">${{ document.total }}</div>
+                </td>
+
+                <td>
+                  <div class="docs_actions">
+                    <a class="docs_link" href="{% url 'platform_documents:detail' document.id_document %}">View</a>
+                    <a class="docs_link" href="{% url 'platform_documents:update' document.id_document %}">Edit</a>
+                    <a class="docs_link" href="{% url 'platform_documents:print' document.id_document %}" target="_blank">Print</a>
+                  </div>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td class="docs_empty" colspan="8">
+                  No SaaS documents found for the current filters.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+{% endblock %}

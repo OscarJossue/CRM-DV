@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 470 116" role="img" aria-labelledby="title desc">
+  <title id="title">NexxtJob CRM</title>
+  <desc id="desc">White NexxtJob CRM logo.</desc>
+  <g transform="translate(4 4)">
+    <rect width="108" height="108" rx="29" fill="#FFFFFF" fill-opacity=".12" stroke="#FFFFFF" stroke-opacity=".25"/>
+    <path d="M22 79V29c0-5 4-9 9-9h4l28 34V29c0-5 4-9 9-9h14v59c0 5-4 9-9 9h-5L44 54v25c0 5-4 9-9 9H22z" fill="#FFFFFF"/>
+    <path d="M63 54 87 25v26L74 67z" fill="#8AC8FF"/>
+    <path d="M44 54 21 28h18l16 19z" fill="#B9DEFF"/>
+    <circle cx="86" cy="21" r="6" fill="#B9DEFF"/>
+  </g>
+  <g transform="translate(132 17)">
+    <text x="0" y="48" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="49" font-weight="800" letter-spacing="-2.2" fill="#FFFFFF">Nexxt</text>
+    <text x="126" y="48" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="49" font-weight="800" letter-spacing="-2.2" fill="#B9DEFF">Job</text>
+    <g transform="translate(2 66)">
+      <rect x="0" y="0" width="46" height="3" rx="1.5" fill="#FFFFFF" fill-opacity=".9"/>
+      <text x="58" y="8" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="17" font-weight="700" letter-spacing="7" fill="#FFFFFF">CRM</text>
+      <rect x="126" y="0" width="46" height="3" rx="1.5" fill="#B9DEFF"/>
+    </g>
+  </g>
+</svg>

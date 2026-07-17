@@ -1,0 +1,135 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}{{ form_title }}{% endblock %}
+
+{% block page_subtitle %}
+Create or update an internal CRM notification.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .notification_form {
+    display: grid;
+    gap: 18px;
+  }
+
+  .notification_form_grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .notification_form_field {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .notification_form_field_full {
+    grid-column: 1 / -1;
+  }
+
+  .notification_form_field label {
+    color: var(--crm_text);
+    font-size: 13px;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+  }
+
+  .crm_input {
+    width: 100%;
+    min-height: 44px;
+    border: 1px solid var(--crm_border);
+    border-radius: 12px;
+    padding: 10px 12px;
+    color: var(--crm_text);
+    background: #ffffff;
+    font: inherit;
+  }
+
+  textarea.crm_input {
+    min-height: 130px;
+    resize: vertical;
+  }
+
+  .notification_error {
+    color: var(--crm_danger);
+    font-size: 13px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+
+  .notification_form_actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  @media (max-width: 760px) {
+    .notification_form_grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <section class="crm_card">
+    <h2 class="crm_section_title">{{ form_title }}</h2>
+
+    <form class="notification_form" method="post">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="notification_error">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="notification_form_grid">
+        <div class="notification_form_field">
+          <label for="{{ form.id_user.id_for_label }}">Assigned User</label>
+          {{ form.id_user }}
+          {% if form.id_user.errors %}
+            <div class="notification_error">{{ form.id_user.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="notification_form_field">
+          <label for="{{ form.type.id_for_label }}">Type</label>
+          {{ form.type }}
+          {% if form.type.errors %}
+            <div class="notification_error">{{ form.type.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="notification_form_field">
+          <label for="{{ form.status.id_for_label }}">Status</label>
+          {{ form.status }}
+          {% if form.status.errors %}
+            <div class="notification_error">{{ form.status.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="notification_form_field">
+          <label for="{{ form.title.id_for_label }}">Title</label>
+          {{ form.title }}
+          {% if form.title.errors %}
+            <div class="notification_error">{{ form.title.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="notification_form_field notification_form_field_full">
+          <label for="{{ form.message.id_for_label }}">Message</label>
+          {{ form.message }}
+          {% if form.message.errors %}
+            <div class="notification_error">{{ form.message.errors }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="notification_form_actions">
+        <button class="crm_button" type="submit">{{ submit_label }}</button>
+        <a class="crm_button crm_button_secondary" href="{% url 'notifications:notification_list' %}">Cancel</a>
+      </div>
+    </form>
+  </section>
+{% endblock %}

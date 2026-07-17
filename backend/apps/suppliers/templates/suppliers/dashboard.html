@@ -1,0 +1,128 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Suppliers{% endblock %}
+{% block page_subtitle %}Control suppliers, offered products/services, purchases and documents without connecting this module to invoices or payments.{% endblock %}
+
+{% block extra_head %}{% include "suppliers/partials/_design_system.html" %}{% endblock %}
+
+{% block content %}
+<div class="nj-invoice nj-page supplier_theme">
+  <section class="crm_card supplier_header_card">
+    <div class="supplier_title_block">
+      <span class="supplier_kicker">Suppliers Module</span>
+      <h2>Supplier Control Center</h2>
+      <p>Simple internal control for external companies, what they offer and what your company purchases from them.</p>
+    </div>
+    <div class="supplier_actions">
+      {% if can_create_suppliers %}
+        <a class="supplier_btn" href="create/"><svg class="supplier_btn_icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg> Register Supplier</a>
+        <a class="supplier_btn supplier_btn_secondary" href="purchases/create/"><svg class="supplier_btn_icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg> Register Purchase</a>
+      {% endif %}
+      <a class="supplier_btn supplier_btn_secondary" href="reports/"><svg class="supplier_btn_icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"></path><path d="M7 15l4-4 3 3 5-7"></path></svg> Reports</a>
+    </div>
+  </section>
+
+  <section class="supplier_grid_4">
+    <div class="supplier_stat"><span>Total Suppliers</span><strong class="primary">{{ suppliers_count }}</strong></div>
+    <div class="supplier_stat"><span>Active Suppliers</span><strong class="green">{{ active_suppliers_count }}</strong></div>
+    <div class="supplier_stat"><span>Products / Services</span><strong>{{ offers_count }}</strong></div>
+    <div class="supplier_stat"><span>Documents</span><strong>{{ documents_count }}</strong></div>
+  </section>
+
+  <section class="supplier_grid_3">
+    <div class="supplier_stat"><span>Total Purchases</span><strong>${{ total_purchases|floatformat:2 }}</strong></div>
+    <div class="supplier_stat"><span>Paid Internal Control</span><strong class="green">${{ paid_purchases|floatformat:2 }}</strong></div>
+    <div class="supplier_stat"><span>Pending Balance</span><strong class="red">${{ pending_balance|floatformat:2 }}</strong></div>
+  </section>
+
+  <section class="supplier_grid_2">
+    <div class="supplier_panel">
+      <div class="supplier_toolbar">
+        <div class="supplier_title_block">
+          <span class="supplier_kicker">Supplier Status</span>
+          <h3>Current Suppliers</h3>
+        </div>
+        <a class="supplier_btn supplier_btn_secondary" href="list/">View List</a>
+      </div>
+      <div class="supplier_donut_panel" style="--supplier-chart: {{ supplier_status_summary.chart_gradient }}; margin-top:12px;">
+        <div class="supplier_donut"><div class="supplier_donut_inner"><strong>{{ supplier_status_summary.total }}</strong><span>Suppliers</span></div></div>
+        <div class="supplier_legend">
+          {% for item in supplier_status_summary.items %}
+            <div class="supplier_legend_item" style="--legend-color: {{ item.color }};">
+              <i class="supplier_legend_dot"></i><span>{{ item.label }}</span><strong>{{ item.count }}</strong>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="supplier_panel">
+      <div class="supplier_toolbar">
+        <div class="supplier_title_block">
+          <span class="supplier_kicker">Purchase Status</span>
+          <h3>Internal Purchases</h3>
+        </div>
+        <a class="supplier_btn supplier_btn_secondary" href="purchases/">View Purchases</a>
+      </div>
+      <div class="supplier_donut_panel" style="--supplier-chart: {{ purchase_status_summary.chart_gradient }}; margin-top:12px;">
+        <div class="supplier_donut"><div class="supplier_donut_inner"><strong>{{ purchase_status_summary.total }}</strong><span>Purchases</span></div></div>
+        <div class="supplier_legend">
+          {% for item in purchase_status_summary.items %}
+            <div class="supplier_legend_item" style="--legend-color: {{ item.color }};">
+              <i class="supplier_legend_dot"></i><span>{{ item.label }}</span><strong>{{ item.count }}</strong>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="supplier_grid_2">
+    <div class="supplier_panel">
+      <div class="supplier_toolbar">
+        <div class="supplier_title_block"><span class="supplier_kicker">Recent</span><h3>Latest Suppliers</h3></div>
+      </div>
+      <div class="supplier_table_wrap">
+        <table class="supplier_table" >
+          <thead><tr><th>Supplier</th><th>Type</th><th>Status</th><th>Phone</th></tr></thead>
+          <tbody>
+          {% for supplier in recent_suppliers %}
+            <tr>
+              <td data-label="Supplier"><a class="supplier_name" href="{{ supplier.id_supplier }}/"><strong>{{ supplier.company_name }}</strong><span>{{ supplier.supplier_code|default:"No code" }}</span></a></td>
+              <td data-label="Type">{{ supplier.get_supplier_type_display }}</td>
+              <td data-label="Status">{% include "suppliers/partials/_supplier_status_track.html" with current_status=supplier.status current_label=supplier.get_status_display %}</td>
+              <td data-label="Phone">{{ supplier.phone|default:"—" }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="4"><div class="supplier_empty">No suppliers registered yet.</div></td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="supplier_panel">
+      <div class="supplier_toolbar">
+        <div class="supplier_title_block"><span class="supplier_kicker">Recent</span><h3>Latest Purchases</h3></div>
+      </div>
+      <div class="supplier_table_wrap">
+        <table class="supplier_table" >
+          <thead><tr><th>Purchase</th><th>Supplier</th><th>Total</th><th>Status</th></tr></thead>
+          <tbody>
+          {% for purchase in recent_purchases %}
+            <tr>
+              <td data-label="Purchase"><a class="supplier_name" href="purchases/{{ purchase.id_supplier_purchase }}/"><strong>{{ purchase.purchase_number }}</strong><span>{{ purchase.purchase_date|date:"Y-m-d" }}</span></a></td>
+              <td data-label="Supplier">{{ purchase.id_supplier.company_name }}</td>
+              <td data-label="Total" class="supplier_money">${{ purchase.total|floatformat:2 }}</td>
+              <td data-label="Status">{% include "suppliers/partials/_purchase_status_track.html" with current_status=purchase.status current_label=purchase.get_status_display %}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="4"><div class="supplier_empty">No purchases registered yet.</div></td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,109 @@
+<div
+  class="nj-workflow opportunity-status-workflow{% if interactive and can_edit_opportunities and not lead.id_converted_project_id %} is-interactive{% endif %}"
+  aria-label="Opportunity status: {{ lead.get_status_display }}"
+  {% if interactive and can_edit_opportunities and not lead.id_converted_project_id %}
+    data-opportunity-status-workflow
+    data-current-status="{{ lead.status }}"
+    data-current-label="{{ lead.get_status_display }}"
+    data-status-update-url="{{ lead.ui_urls.status_update }}"
+  {% endif %}>
+  {% if interactive and can_edit_opportunities and not lead.id_converted_project_id %}
+    <span class="opportunity-status-hover-caption" data-opportunity-status-hover-caption aria-hidden="true"></span>
+  {% endif %}
+
+  <div class="nj-status-track opportunity-status-track">
+    {% if interactive and can_edit_opportunities and not lead.id_converted_project_id %}
+      <button
+        class="nj-status-node is-blue{% if lead.status == 'new' %} is-current{% endif %}"
+        style="--stage-color:#0868e8;"
+        type="button"
+        data-opportunity-status-node
+        data-status-value="new"
+        data-status-label="New"
+        aria-label="Change status to New"
+        aria-pressed="{% if lead.status == 'new' %}true{% else %}false{% endif %}">
+        <i class="bi bi-plus-lg" aria-hidden="true"></i>
+      </button>
+    {% else %}
+      <span class="nj-status-node is-blue{% if lead.status == 'new' %} is-current{% endif %}" style="--stage-color:#0868e8;" title="New" aria-label="New">
+        <i class="bi bi-plus-lg" aria-hidden="true"></i>
+      </span>
+    {% endif %}
+
+    <span class="nj-status-line" data-status-line="new-qualified" aria-hidden="true"></span>
+
+    {% if interactive and can_edit_opportunities and not lead.id_converted_project_id %}
+      <button
+        class="nj-status-node is-violet{% if lead.status == 'qualified' %} is-current{% endif %}"
+        style="--stage-color:#7c3aed;"
+        type="button"
+        data-opportunity-status-node
+        data-status-value="qualified"
+        data-status-label="Qualified"
+        aria-label="Change status to Qualified"
+        aria-pressed="{% if lead.status == 'qualified' %}true{% else %}false{% endif %}">
+        <i class="bi bi-stars" aria-hidden="true"></i>
+      </button>
+    {% else %}
+      <span class="nj-status-node is-violet{% if lead.status == 'qualified' %} is-current{% endif %}" style="--stage-color:#7c3aed;" title="Qualified" aria-label="Qualified">
+        <i class="bi bi-stars" aria-hidden="true"></i>
+      </span>
+    {% endif %}
+
+    <span class="nj-status-line" data-status-line="qualified-won" aria-hidden="true"></span>
+
+    {% if interactive and can_edit_opportunities and not lead.id_converted_project_id %}
+      <button
+        class="nj-status-node is-success{% if lead.status == 'won' %} is-current{% endif %}"
+        style="--stage-color:#0e9f6e;"
+        type="button"
+        data-opportunity-status-node
+        data-status-value="won"
+        data-status-label="Won"
+        aria-label="Change status to Won"
+        aria-pressed="{% if lead.status == 'won' %}true{% else %}false{% endif %}">
+        <i class="bi bi-trophy" aria-hidden="true"></i>
+      </button>
+    {% else %}
+      <span class="nj-status-node is-success{% if lead.status == 'won' %} is-current{% endif %}" style="--stage-color:#0e9f6e;" title="Won" aria-label="Won">
+        <i class="bi bi-trophy" aria-hidden="true"></i>
+      </span>
+    {% endif %}
+
+    <span class="nj-status-line" data-status-line="won-converted" aria-hidden="true"></span>
+
+    <span
+      class="nj-status-node is-success{% if lead.status == 'converted' %} is-current{% endif %}{% if interactive and can_edit_opportunities and not lead.id_converted_project_id %} is-locked{% endif %}"
+      style="--stage-color:#0f8f83;"
+      data-opportunity-status-node
+      data-status-value="converted"
+      data-status-label="Converted"
+      data-status-locked="true"
+      {% if not interactive or not can_edit_opportunities or lead.id_converted_project_id %}title="Converted"{% endif %}
+      aria-label="Converted; use Convert to project">
+      <i class="bi bi-briefcase" aria-hidden="true"></i>
+    </span>
+
+    <span class="nj-status-line" data-status-line="converted-cancelled" aria-hidden="true"></span>
+
+    {% if interactive and can_edit_opportunities and not lead.id_converted_project_id %}
+      <button
+        class="nj-status-node is-void{% if lead.status == 'cancelled' %} is-current{% endif %}"
+        style="--stage-color:#6b7280;"
+        type="button"
+        data-opportunity-status-node
+        data-status-value="cancelled"
+        data-status-label="Cancelled"
+        aria-label="Change status to Cancelled"
+        aria-pressed="{% if lead.status == 'cancelled' %}true{% else %}false{% endif %}">
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
+      </button>
+    {% else %}
+      <span class="nj-status-node is-void{% if lead.status == 'cancelled' %} is-current{% endif %}" style="--stage-color:#6b7280;" title="Cancelled" aria-label="Cancelled">
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
+      </span>
+    {% endif %}
+  </div>
+
+  <span class="nj-status-caption {% if lead.status == 'new' %}is-blue{% elif lead.status == 'qualified' %}is-violet{% elif lead.status == 'won' or lead.status == 'converted' %}is-success{% else %}is-void{% endif %}" data-opportunity-status-caption>{{ lead.get_status_display }}</span>
+</div>

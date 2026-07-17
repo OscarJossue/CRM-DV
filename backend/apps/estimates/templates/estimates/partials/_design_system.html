@@ -1,0 +1,423 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  .estimate_theme {
+    --estimate-ink: #212227;
+    --estimate-muted: #637074;
+    --estimate-line: #d6dde8;
+    --estimate-line-strong: #c8d2e0;
+    --estimate-panel: #ffffff;
+    --estimate-panel-soft: #f7f9fc;
+    --estimate-accent: #8693AB;
+    --estimate-accent-soft: #AAB9CF;
+    --estimate-accent-pale: #BDD4E7;
+    --estimate-blue: #48658f;
+    --estimate-blue-dark: #344a69;
+    --estimate-danger: #c53d3d;
+    --estimate-danger-soft: #fde9e8;
+    --estimate-success: #3f6b5e;
+    --estimate-success-soft: #e8f3ee;
+    --estimate-warning: #ab7224;
+    --estimate-warning-soft: #fff3e2;
+    --estimate-shadow: 0 22px 55px rgba(33, 34, 39, 0.08);
+    --estimate-shadow-soft: 0 12px 26px rgba(33, 34, 39, 0.06);
+    font-family: 'Inter', Arial, sans-serif;
+    color: var(--estimate-ink);
+  }
+
+  .estimate_theme, .estimate_theme * { font-family: 'Inter', Arial, sans-serif; }
+  .estimate_theme h1, .estimate_theme h2, .estimate_theme h3, .estimate_theme h4,
+  .estimate_theme .crm_section_title, .estimate_theme .estimate_toolbar_title h2,
+  .estimate_theme .estimate_detail_title { font-family: 'Poppins', 'Inter', Arial, sans-serif; letter-spacing: -0.03em; }
+
+  .estimate_theme .crm_card,
+  .estimate_theme.crm_card,
+  .estimate_theme .estimate_detail_hero,
+  .estimate_theme .estimate_void_card,
+  .estimate_theme .estimate_send_grid > section,
+  .estimate_theme .estimate_send_grid > aside {
+    border: 1px solid var(--estimate-line) !important;
+    border-radius: 24px !important;
+    background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%) !important;
+    box-shadow: var(--estimate-shadow-soft) !important;
+  }
+
+  .estimate_theme .crm_button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 14px !important;
+    border: 1px solid var(--estimate-blue) !important;
+    background: linear-gradient(180deg, var(--estimate-blue) 0%, var(--estimate-blue-dark) 100%) !important;
+    color: #ffffff !important;
+    font-weight: 800 !important;
+    box-shadow: 0 12px 24px rgba(72, 101, 143, 0.16);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+  }
+
+  .estimate_theme .crm_button:hover { transform: translateY(-1px); box-shadow: 0 16px 28px rgba(72, 101, 143, 0.22); }
+
+  .estimate_theme .crm_button_secondary {
+    background: #ffffff !important;
+    color: var(--estimate-blue) !important;
+    border-color: var(--estimate-line-strong) !important;
+    box-shadow: none !important;
+  }
+
+  .estimate_theme .crm_button_secondary:hover { background: #f6f8fb !important; color: var(--estimate-blue-dark) !important; }
+
+  .estimate_theme .estimate_button_success { background: linear-gradient(180deg, #4e8372 0%, var(--estimate-success) 100%) !important; border-color: var(--estimate-success) !important; }
+  .estimate_theme .estimate_button_danger { background: linear-gradient(180deg, #e35d5d 0%, var(--estimate-danger) 100%) !important; border-color: var(--estimate-danger) !important; }
+
+  .estimate_theme input, .estimate_theme select, .estimate_theme textarea,
+  .estimate_theme .crm_input, .estimate_theme .estimate_filter_input {
+    min-height: 44px;
+    border: 1px solid var(--estimate-line-strong) !important;
+    border-radius: 14px !important;
+    background-color: #ffffff !important;
+    color: var(--estimate-ink) !important;
+    box-shadow: none !important;
+  }
+
+  .estimate_theme input:focus, .estimate_theme select:focus, .estimate_theme textarea:focus,
+  .estimate_theme .crm_input:focus, .estimate_theme .estimate_filter_input:focus {
+    outline: 0;
+    border-color: var(--estimate-blue) !important;
+    box-shadow: 0 0 0 4px rgba(72, 101, 143, 0.12) !important;
+  }
+
+  .estimate_theme select, .estimate_theme .estimate_filter_input[name="status"], .estimate_theme .estimate_filter_input[name="payment_status"] {
+    appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, var(--estimate-blue) 50%), linear-gradient(135deg, var(--estimate-blue) 50%, transparent 50%), linear-gradient(180deg, #ffffff 0%, #f7f9fc 100%);
+    background-position: calc(100% - 18px) calc(50% - 2px), calc(100% - 12px) calc(50% - 2px), 0 0;
+    background-size: 6px 6px, 6px 6px, 100% 100%;
+    background-repeat: no-repeat;
+    padding-right: 42px !important;
+    font-weight: 800;
+  }
+
+  .estimate_theme .estimate_page { gap: 18px !important; }
+  .estimate_theme .estimate_toolbar { align-items: flex-end !important; gap: 18px !important; flex-wrap: wrap; }
+  .estimate_theme .estimate_toolbar_title { gap: 10px !important; }
+  .estimate_theme .estimate_toolbar_title h2 { color: var(--estimate-ink) !important; font-size: clamp(28px, 2.5vw, 36px) !important; font-weight: 800 !important; }
+  .estimate_theme .estimate_toolbar_title p, .estimate_theme .estimate_muted, .estimate_theme .crm_page_text { color: var(--estimate-muted) !important; font-weight: 600 !important; }
+
+  .estimate_theme .estimate_dashboard_panel {
+    padding: 22px !important;
+    border: 1px solid var(--estimate-line) !important;
+    border-radius: 28px !important;
+    background: linear-gradient(135deg, rgba(189,212,231,.28) 0%, #ffffff 50%, rgba(170,185,207,.18) 100%) !important;
+    box-shadow: var(--estimate-shadow-soft) !important;
+  }
+
+  .estimate_theme .estimate_donut {
+    position: relative;
+    width: min(240px, 62vw) !important;
+    padding: 14px;
+    border: 10px solid rgba(255,255,255,.72);
+    box-shadow: 0 26px 45px rgba(33,34,39,.18), inset 12px 12px 22px rgba(255,255,255,.26), inset -12px -16px 22px rgba(33,34,39,.15) !important;
+    transform: perspective(900px) rotateX(7deg);
+  }
+
+  .estimate_theme .estimate_donut::before {
+    content: "";
+    position: absolute;
+    inset: 14px 18px auto 18px;
+    height: 38%;
+    border-radius: 999px 999px 45% 45%;
+    background: linear-gradient(180deg, rgba(255,255,255,.58), rgba(255,255,255,0));
+    pointer-events: none;
+  }
+
+  .estimate_theme .estimate_donut_inner { width: 62% !important; background: linear-gradient(180deg, #ffffff 0%, #f8fbfe 100%) !important; border: 1px solid rgba(134,147,171,.22); box-shadow: inset 0 1px 0 rgba(255,255,255,.8) !important; }
+  .estimate_theme .estimate_donut_total { color: var(--estimate-ink) !important; }
+
+  .estimate_theme .estimate_status_indicator {
+    min-height: 64px !important;
+    padding: 14px !important;
+    border: 1px solid var(--estimate-line) !important;
+    border-radius: 18px !important;
+    background: #ffffff !important;
+    box-shadow: 0 10px 22px rgba(33,34,39,.04);
+  }
+
+  .estimate_theme .estimate_status_indicator:hover,
+  .estimate_theme .estimate_status_indicator_active { transform: translateY(-2px) !important; box-shadow: 0 18px 28px rgba(33,34,39,.08) !important; }
+  .estimate_theme .estimate_status_indicator_count { font-size: 22px !important; color: var(--estimate-ink) !important; }
+
+  .estimate_theme .estimate_money_summary_card {
+    border-radius: 18px !important;
+    background: linear-gradient(135deg, #212227 0%, #4a5669 100%) !important;
+    box-shadow: 0 18px 34px rgba(33,34,39,.16);
+  }
+
+  .estimate_theme .estimate_filters_card { padding: 18px !important; border-radius: 24px !important; }
+  .estimate_theme .estimate_filters { gap: 12px !important; }
+  .estimate_theme .estimate_filter_field label { color: var(--estimate-ink) !important; font-size: 12px !important; letter-spacing: .06em; }
+
+  .estimate_theme .estimate_table { border-spacing: 0 10px !important; }
+  .estimate_theme .estimate_table th { background: transparent !important; color: var(--estimate-muted) !important; border: 0 !important; padding: 0 14px 10px !important; }
+  .estimate_theme .estimate_table td { background: #ffffff !important; border-top: 1px solid var(--estimate-line) !important; border-bottom: 1px solid var(--estimate-line) !important; padding: 15px 14px !important; }
+  .estimate_theme .estimate_table td:first-child { border-left: 1px solid var(--estimate-line) !important; border-radius: 18px 0 0 18px; }
+  .estimate_theme .estimate_table td:last-child { border-right: 1px solid var(--estimate-line) !important; border-radius: 0 18px 18px 0; }
+  .estimate_theme .estimate_table tbody tr:hover td { background: #fafcff !important; }
+
+  .estimate_theme .estimate_name, .estimate_theme .estimate_detail_title, .estimate_theme .estimate_detail_value { color: var(--estimate-ink) !important; }
+  .estimate_theme .estimate_money_paid, .estimate_theme .estimate_summary_green { color: var(--estimate-success) !important; }
+  .estimate_theme .estimate_money_due, .estimate_theme .estimate_summary_red { color: var(--estimate-danger) !important; }
+
+  .estimate_theme .estimate_status { border-radius: 999px !important; font-weight: 900 !important; border: 1px solid var(--estimate-line) !important; }
+  .estimate_theme .estimate_status_draft { color: #4b5563 !important; background: #eef2f7 !important; border-color: #dbe2ec !important; }
+  .estimate_theme .estimate_status_pending_send, .estimate_theme .estimate_status_partial { color: var(--estimate-warning) !important; background: var(--estimate-warning-soft) !important; border-color: rgba(171,114,36,.28) !important; }
+  .estimate_theme .estimate_status_sent { color: var(--estimate-blue) !important; background: rgba(189,212,231,.40) !important; border-color: rgba(72,101,143,.22) !important; }
+  .estimate_theme .estimate_status_paid { color: var(--estimate-success) !important; background: var(--estimate-success-soft) !important; border-color: rgba(63,107,94,.22) !important; }
+  .estimate_theme .estimate_status_void, .estimate_theme .estimate_status_unpaid { color: var(--estimate-danger) !important; background: var(--estimate-danger-soft) !important; border-color: rgba(197,61,61,.22) !important; }
+
+  .estimate_theme .estimate_actions { gap: 8px !important; overflow: visible; }
+  .estimate_theme .estimate_icon_action {
+    display: inline-grid !important;
+    place-items: center !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+    width: 38px !important; height: 38px !important; border-radius: 12px !important; border: 1px solid rgba(72,101,143,.14) !important;
+    background: linear-gradient(180deg, rgba(189,212,231,.34) 0%, rgba(170,185,207,.16) 100%) !important;
+    color: var(--estimate-blue) !important; box-shadow: 0 10px 22px rgba(72,101,143,.10); position: relative; overflow: visible !important;
+    transition: transform .12s ease, box-shadow .12s ease, background .12s ease, color .12s ease;
+  }
+  .estimate_theme .estimate_icon_action:hover { transform: translateY(-1px) !important; color: var(--estimate-blue-dark) !important; box-shadow: 0 15px 28px rgba(72,101,143,.14); }
+  .estimate_theme .estimate_icon_success { background: linear-gradient(180deg, #ebf6f1 0%, #dcefe7 100%) !important; color: var(--estimate-success) !important; border-color: rgba(63,107,94,.16) !important; }
+  .estimate_theme .estimate_icon_danger, .estimate_theme .estimate_button_danger { background: linear-gradient(180deg, #e35d5d 0%, var(--estimate-danger) 100%) !important; color: #fff !important; border-color: rgba(197,61,61,.3) !important; }
+  .estimate_theme .estimate_icon_pdf { background: linear-gradient(180deg, #ffecec 0%, #fee2e2 100%) !important; color: var(--estimate-danger) !important; border-color: rgba(197,61,61,.16) !important; }
+  .estimate_theme .estimate_icon_svg { width: 16px !important; height: 16px !important; display: block !important; margin: 0 auto !important; flex: 0 0 auto !important; }
+  .estimate_theme .estimate_icon_action > span { display: none !important; }
+
+  .estimate_theme .estimate_icon_action[data-tooltip]::after { content: attr(data-tooltip); position: absolute; left: 50%; bottom: calc(100% + 9px); z-index: 80; min-width: max-content; max-width: 180px; padding: 7px 10px; border-radius: 10px; background: linear-gradient(180deg, var(--estimate-blue) 0%, var(--estimate-blue-dark) 100%); color: #fff; font-size: 11px; font-weight: 900; line-height: 1; white-space: nowrap; box-shadow: 0 12px 22px rgba(33,34,39,.18); opacity: 0; visibility: hidden; transform: translate(-50%, 2px); pointer-events: none; transition: opacity .04s ease, transform .04s ease, visibility .04s ease; }
+  .estimate_theme .estimate_icon_action[data-tooltip]::before { content: ""; position: absolute; left: 50%; bottom: calc(100% + 3px); z-index: 81; width: 10px; height: 10px; background: var(--estimate-blue-dark); transform: translate(-50%, 2px) rotate(45deg); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .04s ease, transform .04s ease, visibility .04s ease; }
+  .estimate_theme .estimate_icon_action[data-tooltip]:hover::after, .estimate_theme .estimate_icon_action[data-tooltip]:hover::before { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+  .estimate_theme .estimate_icon_danger[data-tooltip]::after, .estimate_theme .estimate_icon_pdf[data-tooltip]::after { background: linear-gradient(180deg, #e35d5d 0%, var(--estimate-danger) 100%); }
+  .estimate_theme .estimate_icon_danger[data-tooltip]::before, .estimate_theme .estimate_icon_pdf[data-tooltip]::before { background: var(--estimate-danger); }
+  .estimate_theme .estimate_icon_success[data-tooltip]::after { background: linear-gradient(180deg, #4e8372 0%, var(--estimate-success) 100%); }
+  .estimate_theme .estimate_icon_success[data-tooltip]::before { background: var(--estimate-success); }
+
+
+
+  .estimate_theme .estimate_pdf_style_form {
+    display: inline-flex;
+    align-items: center;
+    min-height: 42px;
+    margin: 0;
+  }
+  .estimate_theme .estimate_pdf_style_toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 42px;
+    padding: 9px 13px;
+    border: 1px solid var(--estimate-line-strong);
+    border-radius: 999px;
+    background: linear-gradient(180deg, #ffffff 0%, #f7f9fc 100%);
+    color: var(--estimate-ink);
+    font-size: 12px;
+    line-height: 1;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 8px 18px rgba(72,101,143,.08);
+  }
+  .estimate_theme .estimate_pdf_style_toggle:hover {
+    border-color: var(--estimate-blue);
+    transform: translateY(-1px);
+    box-shadow: 0 12px 22px rgba(72,101,143,.14);
+  }
+  .estimate_theme .estimate_style_switch {
+    position: relative;
+    width: 34px;
+    height: 19px;
+    border-radius: 999px;
+    background: #d6dde8;
+    border: 1px solid var(--estimate-line-strong);
+    flex: 0 0 34px;
+  }
+  .estimate_theme .estimate_style_switch::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 13px;
+    height: 13px;
+    border-radius: 999px;
+    background: #ffffff;
+    box-shadow: 0 2px 5px rgba(33,34,39,.20);
+    transition: transform .12s ease;
+  }
+  .estimate_theme .estimate_style_switch.is_on {
+    background: var(--estimate-blue);
+    border-color: var(--estimate-blue);
+  }
+  .estimate_theme .estimate_style_switch.is_on::after {
+    transform: translateX(15px);
+  }
+
+  @media (max-width: 992px) { .estimate_theme .estimate_dashboard_panel { grid-template-columns: 1fr !important; } .estimate_theme .estimate_filters { grid-template-columns: 1fr 1fr !important; } }
+  @media (max-width: 700px) { .estimate_theme .estimate_filters { grid-template-columns: 1fr !important; } .estimate_theme .crm_button { width: 100%; } }
+</style>
+
+
+<style>
+  .estimate_theme .estimate_form,
+  .estimate_theme .estimate_send_page,
+  .estimate_theme .estimate_detail_page,
+  .estimate_theme .project_form {
+    gap: 18px !important;
+  }
+
+  .estimate_theme .estimate_card_compact,
+  .estimate_theme .estimate_item_card,
+  .estimate_theme .estimate_accordion,
+  .estimate_theme .estimate_detail_collapse,
+  .estimate_theme .estimate_info_item,
+  .estimate_theme .estimate_billing_box,
+  .estimate_theme .estimate_source_box,
+  .estimate_theme .estimate_send_grid > section,
+  .estimate_theme .estimate_send_grid > aside {
+    border: 1px solid var(--estimate-line) !important;
+    border-radius: 24px !important;
+    background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%) !important;
+    box-shadow: var(--estimate-shadow-soft) !important;
+  }
+
+  .estimate_theme .estimate_card_compact {
+    overflow: hidden;
+  }
+
+  .estimate_theme .estimate_card_compact::before {
+    background: linear-gradient(90deg, var(--estimate-blue) 0%, var(--estimate-accent-soft) 55%, var(--estimate-accent-pale) 100%) !important;
+  }
+
+  .estimate_theme .estimate_line_total,
+  .estimate_theme .estimate_summary {
+    background: linear-gradient(135deg, #212227 0%, #4a5669 100%) !important;
+    color: #ffffff !important;
+    box-shadow: 0 18px 34px rgba(33,34,39,.16) !important;
+  }
+
+  .estimate_theme .estimate_summary_box {
+    border-radius: 18px !important;
+    background: rgba(255,255,255,.10) !important;
+    border: 1px solid rgba(255,255,255,.10) !important;
+  }
+
+  .estimate_theme .estimate_info_grid,
+  .estimate_theme .estimate_summary_grid,
+  .estimate_theme .project_form_grid,
+  .estimate_theme .estimate_billing_grid {
+    gap: 12px !important;
+  }
+
+  .estimate_theme .estimate_detail_hero {
+    background: linear-gradient(135deg, rgba(189,212,231,.32) 0%, #ffffff 58%, rgba(170,185,207,.18) 100%) !important;
+  }
+
+  .estimate_theme .estimate_items_table,
+  .estimate_theme .estimate_table {
+    border-spacing: 0 10px !important;
+  }
+
+  .estimate_theme .estimate_items_table th,
+  .estimate_theme .estimate_table th {
+    background: transparent !important;
+    color: var(--estimate-muted) !important;
+    border: 0 !important;
+    padding: 0 14px 10px !important;
+  }
+
+  .estimate_theme .estimate_items_table td,
+  .estimate_theme .estimate_table td {
+    background: #ffffff !important;
+    border-top: 1px solid var(--estimate-line) !important;
+    border-bottom: 1px solid var(--estimate-line) !important;
+  }
+
+  .estimate_theme .estimate_items_table td:first-child,
+  .estimate_theme .estimate_table td:first-child {
+    border-left: 1px solid var(--estimate-line) !important;
+    border-radius: 18px 0 0 18px !important;
+  }
+
+  .estimate_theme .estimate_items_table td:last-child,
+  .estimate_theme .estimate_table td:last-child {
+    border-right: 1px solid var(--estimate-line) !important;
+    border-radius: 0 18px 18px 0 !important;
+  }
+
+  .estimate_theme .estimate_table_wrap,
+  .estimate_theme .estimate_items_wrap,
+  .estimate_theme .estimate_actions {
+    overflow: visible !important;
+  }
+
+  .estimate_theme .estimate_table_wrap {
+    overflow-x: auto !important;
+  }
+
+  .estimate_theme .estimate_icon_action svg,
+  .estimate_theme .estimate_icon_action .estimate_icon_svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  .estimate_theme .estimate_icon_action > span {
+    display: none !important;
+  }
+
+  .estimate_theme .estimate_icon_danger,
+  .estimate_theme .estimate_button_danger {
+    background: linear-gradient(180deg, #e35d5d 0%, var(--estimate-danger) 100%) !important;
+    color: #ffffff !important;
+    border-color: rgba(197,61,61,.30) !important;
+  }
+
+  .estimate_theme .estimate_icon_pdf {
+    background: linear-gradient(180deg, #ffecec 0%, #fee2e2 100%) !important;
+    color: var(--estimate-danger) !important;
+    border-color: rgba(197,61,61,.16) !important;
+  }
+
+  .estimate_theme .estimate_icon_success,
+  .estimate_theme .estimate_button_success {
+    background: linear-gradient(180deg, #ebf6f1 0%, #dcefe7 100%) !important;
+    color: var(--estimate-success) !important;
+    border-color: rgba(63,107,94,.16) !important;
+  }
+
+  .estimate_theme .estimate_button_success {
+    background: linear-gradient(180deg, #4e8372 0%, var(--estimate-success) 100%) !important;
+    color: #ffffff !important;
+    border-color: var(--estimate-success) !important;
+  }
+
+  .estimate_theme .estimate_filter_input[name="status"],
+  .estimate_theme select.crm_input,
+  .estimate_theme select {
+    appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, var(--estimate-blue) 50%), linear-gradient(135deg, var(--estimate-blue) 50%, transparent 50%), linear-gradient(180deg, #ffffff 0%, #f7f9fc 100%) !important;
+    background-position: calc(100% - 18px) calc(50% - 2px), calc(100% - 12px) calc(50% - 2px), 0 0 !important;
+    background-size: 6px 6px, 6px 6px, 100% 100% !important;
+    background-repeat: no-repeat !important;
+    padding-right: 42px !important;
+    font-weight: 800 !important;
+  }
+
+  @media (max-width: 992px) {
+    .estimate_theme .estimate_dashboard_panel { grid-template-columns: 1fr !important; }
+    .estimate_theme .estimate_filters { grid-template-columns: 1fr 1fr !important; }
+  }
+
+  @media (max-width: 700px) {
+    .estimate_theme .estimate_filters { grid-template-columns: 1fr !important; }
+    .estimate_theme .crm_button { width: 100%; }
+  }
+</style>

@@ -1,0 +1,75 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}{% if form.instance.pk %}Edit Subscription{% else %}Create Subscription{% endif %}{% endblock %}
+{% block page_subtitle %}Assign or update the company plan, renewal date and access status.{% endblock %}
+
+{% block extra_head %}
+<style>
+  .platform_form_layout { display:grid; grid-template-columns:minmax(0,1fr) minmax(310px,.68fr); gap:18px; align-items:start; }
+  .platform_form { display:grid; gap:18px; }
+  .platform_group { display:grid; gap:14px; padding-bottom:18px; border-bottom:1px solid var(--crm_border); }
+  .platform_group:last-of-type { padding-bottom:0; border-bottom:0; }
+  .platform_group h2 { margin:0; color:var(--crm_text); font-size:18px; font-weight:950; }
+  .platform_grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+  .platform_field { display:grid; gap:7px; min-width:0; }
+  .platform_field_full { grid-column:1/-1; }
+  .platform_label { color:var(--crm_text); font-size:13px; font-weight:950; text-transform:uppercase; letter-spacing:.04em; }
+  .crm_input { width:100%; min-height:44px; border:1px solid var(--crm_border); border-radius:12px; padding:10px 12px; color:var(--crm_text); background:#fff; font:inherit; }
+  textarea.crm_input { min-height:112px; resize:vertical; }
+  .platform_error { color:var(--crm_danger); font-size:13px; font-weight:800; line-height:1.45; }
+  .platform_help { color:var(--crm_muted); font-size:12px; line-height:1.45; font-weight:700; }
+  .platform_side { display:grid; gap:14px; }
+  .platform_panel { display:grid; gap:10px; padding:20px; border:1px solid var(--crm_border); border-radius:20px; background:radial-gradient(circle at 0 0, rgba(155,120,72,.14), transparent 34%), #fff; box-shadow:var(--crm_shadow); }
+  .platform_panel h2 { margin:0; color:var(--crm_text); font-size:18px; font-weight:950; }
+  .platform_panel p, .platform_panel li { margin:0; color:var(--crm_muted); font-size:14px; line-height:1.6; font-weight:700; }
+  .platform_rules { display:grid; gap:10px; padding:0; margin:0; list-style:none; }
+  .platform_rules li { padding:12px; border:1px solid var(--crm_border); border-radius:14px; background:#fff; color:var(--crm_text); font-weight:800; }
+  @media(max-width:980px){ .platform_form_layout{grid-template-columns:1fr;} }
+  @media(max-width:650px){ .platform_grid{grid-template-columns:1fr;} }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="platform_form_layout">
+  <form class="crm_card platform_form" method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="crm_message">{{ form.non_field_errors }}</div>{% endif %}
+
+    <div class="platform_group">
+      <h2><i class="bi bi-building"></i> Company & Plan</h2>
+      <div class="platform_grid">
+        <label class="platform_field"><span class="platform_label">{{ form.id_company.label }}</span>{{ form.id_company }}{% if form.id_company.help_text %}<span class="platform_help">{{ form.id_company.help_text }}</span>{% endif %}{% for error in form.id_company.errors %}<span class="platform_error">{{ error }}</span>{% endfor %}</label>
+        <label class="platform_field"><span class="platform_label">{{ form.id_plan.label }}</span>{{ form.id_plan }}{% for error in form.id_plan.errors %}<span class="platform_error">{{ error }}</span>{% endfor %}</label>
+      </div>
+    </div>
+
+    <div class="platform_group">
+      <h2><i class="bi bi-calendar-check"></i> Access & Renewal</h2>
+      <div class="platform_grid">
+        <label class="platform_field"><span class="platform_label">{{ form.status.label }}</span>{{ form.status }}{% for error in form.status.errors %}<span class="platform_error">{{ error }}</span>{% endfor %}</label>
+        <label class="platform_field"><span class="platform_label">{{ form.start_date.label }}</span>{{ form.start_date }}{% for error in form.start_date.errors %}<span class="platform_error">{{ error }}</span>{% endfor %}</label>
+        <label class="platform_field"><span class="platform_label">{{ form.renewal_date.label }}</span>{{ form.renewal_date }}{% for error in form.renewal_date.errors %}<span class="platform_error">{{ error }}</span>{% endfor %}</label>
+        <label class="platform_field"><span class="platform_label">{{ form.end_date.label }}</span>{{ form.end_date }}{% for error in form.end_date.errors %}<span class="platform_error">{{ error }}</span>{% endfor %}</label>
+        <label class="platform_field platform_field_full"><span class="platform_label">{{ form.notes.label }}</span>{{ form.notes }}{% for error in form.notes.errors %}<span class="platform_error">{{ error }}</span>{% endfor %}</label>
+      </div>
+    </div>
+
+    <div class="crm_actions">
+      <button class="crm_button" type="submit"><i class="bi bi-check2-circle"></i>&nbsp; {% if form.instance.pk %}Update Subscription{% else %}Create Subscription{% endif %}</button>
+      <a class="crm_button crm_button_secondary" href="{% url 'platform_subscriptions:list' %}"><i class="bi bi-arrow-left"></i>&nbsp; Cancel</a>
+    </div>
+  </form>
+
+  <aside class="platform_side">
+    <div class="platform_panel">
+      <h2>Important</h2>
+      <ul class="platform_rules">
+        <li>Active or Trial requires a valid renewal date.</li>
+        <li>If renewal is expired, use Reactivate to create a fresh cycle.</li>
+        <li>Suspended or canceled blocks company access.</li>
+        <li>Company operational invoices/payments are not handled here.</li>
+      </ul>
+    </div>
+  </aside>
+</section>
+{% endblock %}

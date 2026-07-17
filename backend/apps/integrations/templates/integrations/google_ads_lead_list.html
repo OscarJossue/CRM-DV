@@ -1,0 +1,109 @@
+{% extends "layouts/base.html" %}
+{% block page_title %}Google Leads Inbox{% endblock %}
+{% block page_subtitle %}Receive Google Ads lead forms and sync Google Guaranteed / Local Services leads into the CRM.{% endblock %}
+{% block extra_head %}{% include "integrations/partials/_design_system.html" %}{% endblock %}
+{% block content %}
+<div class="account_theme integration_theme account_page">
+  <div class="account_toolbar">
+    <div class="account_toolbar_title">
+      <h2>Google Leads Inbox</h2>
+      <p>Central inbox for Google Ads Lead Forms and Google Guaranteed / Local Services leads. Leads can be linked automatically to the CRM.</p>
+    </div>
+    <div class="integration_inline">
+      <a class="account_button account_button_secondary" href="../connections/google/setup/">
+        <i class="bi bi-pencil" aria-hidden="true"></i>
+        Settings
+      </a>
+      <a class="account_button account_button_secondary" href="../ads/">
+        <svg viewBox="0 0 24 24"><path d="M3 11h18"/><path d="M6 7h12"/><path d="M8 15h8"/><path d="M10 19h4"/></svg>
+        Ads Reports
+      </a>
+    </div>
+  </div>
+
+  <section class="crm_card">
+    <div class="account_info_grid">
+      <div class="account_info_item">
+        <span class="account_detail_label">Lead Form Webhook URL</span>
+        <span class="account_detail_value integration_code">{{ webhook_url|default:"Configure Google first" }}</span>
+      </div>
+      <div class="account_info_item">
+        <span class="account_detail_label">Webhook Key</span>
+        <span class="account_detail_value">{{ webhook_key_masked|default:"Missing" }}</span>
+      </div>
+      <div class="account_info_item">
+        <span class="account_detail_label">Google Ads Customer ID</span>
+        <span class="account_detail_value">{{ connection.ads_customer_id|default:"Missing" }}</span>
+      </div>
+    </div>
+    <p class="account_muted" style="margin-top:12px">Use the webhook URL and key inside your Google Ads lead form asset. For Google Guaranteed / Local Services, use the sync button below after OAuth and Google Ads settings are configured.</p>
+  </section>
+
+  {% if can_sync_integrations %}
+  <section class="crm_card">
+    <div class="account_toolbar" style="margin-bottom:10px">
+      <div class="account_toolbar_title"><h2 style="font-size:24px">Sync Google Leads</h2><p>Pull Google Guaranteed / LSA leads or Lead Form submissions by date range.</p></div>
+    </div>
+    <form method="post" action="sync/" class="integration_form_grid">
+      {% csrf_token %}
+      {% for field in sync_form %}
+        <div class="integration_form_field">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}<span class="account_muted">{{ field.help_text }}</span>{% endif %}
+          {% for error in field.errors %}<span class="integration_error">{{ error }}</span>{% endfor %}
+        </div>
+      {% endfor %}
+      <div class="integration_form_field integration_form_field_full">
+        <button class="account_button" type="submit"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/><path d="M3 12a9 9 0 0 1 15.74-6.26L21 8"/><path d="M21 3v5h-5"/></svg> Sync Leads</button>
+      </div>
+    </form>
+  </section>
+  {% endif %}
+
+  <section class="crm_card">
+    <form method="get" class="integration_inline" style="margin-bottom:14px">
+      <input class="account_input" type="text" name="q" value="{{ request.GET.q }}" placeholder="Search name, phone or email">
+      <select class="account_input" name="source">
+        <option value="">All sources</option>
+        <option value="google_ads_webhook" {% if request.GET.source == 'google_ads_webhook' %}selected{% endif %}>Google Ads Webhook</option>
+        <option value="google_local_services" {% if request.GET.source == 'google_local_services' %}selected{% endif %}>Google Guaranteed / LSA</option>
+        <option value="google_lead_form_api" {% if request.GET.source == 'google_lead_form_api' %}selected{% endif %}>Lead Form API</option>
+      </select>
+      <select class="account_input" name="status">
+        <option value="">All CRM status</option>
+        <option value="new" {% if request.GET.status == 'new' %}selected{% endif %}>New</option>
+        <option value="contacted" {% if request.GET.status == 'contacted' %}selected{% endif %}>Contacted</option>
+        <option value="booked" {% if request.GET.status == 'booked' %}selected{% endif %}>Booked</option>
+        <option value="lost" {% if request.GET.status == 'lost' %}selected{% endif %}>Lost</option>
+        <option value="archived" {% if request.GET.status == 'archived' %}selected{% endif %}>Archived</option>
+      </select>
+      <button class="account_button account_button_secondary" type="submit"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Filter</button>
+    </form>
+
+    <div class="account_table_wrap">
+      <table class="account_table">
+        <thead>
+          <tr><th>Lead</th><th>Source</th><th>Contact</th><th>Service</th><th>Status</th><th>CRM Lead</th><th>Received</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          {% for lead in ads_leads %}
+          <tr>
+            <td><div class="account_main"><span class="account_strong">{{ lead.display_contact }}</span><span class="account_muted">{{ lead.external_lead_id|default:lead.external_resource_name|truncatechars:42 }}</span></div></td>
+            <td><span class="account_pill blue">{{ lead.get_source_display }}</span>{% if lead.is_test %}<span class="account_pill warning">Test</span>{% endif %}</td>
+            <td><div class="account_main"><span>{{ lead.phone|default:"—" }}</span><span class="account_muted">{{ lead.email|default:"" }}</span></div></td>
+            <td>{{ lead.service_interest|default:lead.category_id|default:"—" }}</td>
+            <td><span class="account_pill {% if lead.crm_status == 'new' %}warning{% elif lead.crm_status == 'lost' %}danger{% else %}success{% endif %}">{{ lead.get_crm_status_display }}</span></td>
+            <td>{% if lead.crm_lead %}<span class="account_pill success">Linked</span>{% else %}<span class="account_pill warning">Pending</span>{% endif %}</td>
+            <td>{{ lead.received_at|date:"Y-m-d H:i"|default:lead.created_at|date:"Y-m-d H:i" }}</td>
+            <td><div class="account_actions"><a class="account_icon_action" href="{{ lead.pk }}/" data-tooltip="View"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></a>{% if lead.phone %}<a class="account_icon_action" href="tel:{{ lead.phone }}" data-tooltip="Call"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.32 1.78.59 2.63a2 2 0 0 1-.45 2.11L8 9.7a16 16 0 0 0 6.3 6.3l1.24-1.24a2 2 0 0 1 2.11-.45c.85.27 1.73.47 2.63.59A2 2 0 0 1 22 16.92z"/></svg></a>{% endif %}</div></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8" class="account_empty">No Google leads yet. Configure webhook or sync Google Guaranteed leads.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

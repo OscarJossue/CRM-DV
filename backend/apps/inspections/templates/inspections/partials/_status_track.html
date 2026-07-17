@@ -1,0 +1,25 @@
+<div class="nj-workflow crm-inline-status-workflow inspection-status-workflow{% if detail %} is-detail{% endif %}{% if interactive and assignment.can_change_status %} is-interactive{% endif %}{% if interactive_close and assignment.can_open_completion_options %} has-completion-action{% endif %}"
+  aria-label="Inspection status: {{ assignment.status_label|default:assignment.get_status_display }}"
+  {% if interactive and assignment.can_change_status %}data-inspection-status-workflow data-current-status="{{ assignment.status }}" data-current-label="{{ assignment.status_label|default:assignment.get_status_display }}" data-status-update-url="{{ assignment.status_update_url }}"{% endif %}>
+  {% if interactive and assignment.can_change_status %}<span class="crm-inline-status-hover-caption" data-inspection-status-hover-caption aria-hidden="true"></span>{% endif %}
+  <div class="nj-status-track inspection-status-track">
+    {% for value,label,icon,color,css_class in inspection_status_stages %}
+      {% if value == "completed" and interactive_close and assignment.can_open_completion_options %}
+        <button class="nj-status-node {{ css_class }}{% if assignment.status == value %} is-current{% endif %} is-actionable" style="--stage-color:{{ color }};" type="button"
+          data-inspection-action="complete"
+          data-action-url="{{ assignment.close_url }}"
+          data-record-label="INS-{{ assignment.id_assignment }} · {{ assignment.client.name }}"
+          data-is-completed="{% if assignment.status == 'completed' %}true{% else %}false{% endif %}"
+          data-can-create-project="{% if assignment.can_prepare_project %}true{% else %}false{% endif %}"
+          data-create-project-url="{{ assignment.create_project_url|default:'' }}"
+          aria-label="Inspection closure options" title="Close inspection or create project"><i class="bi {{ icon }}" aria-hidden="true"></i></button>
+      {% elif interactive and assignment.can_change_status %}
+        <button class="nj-status-node {{ css_class }}{% if assignment.status == value %} is-current{% endif %}" style="--stage-color:{{ color }};" type="button" data-inspection-status-node data-status-value="{{ value }}" data-status-label="{{ label }}" aria-label="Change status to {{ label }}" aria-pressed="{% if assignment.status == value %}true{% else %}false{% endif %}"><i class="bi {{ icon }}" aria-hidden="true"></i></button>
+      {% else %}
+        <span class="nj-status-node {{ css_class }}{% if assignment.status == value %} is-current{% endif %}" style="--stage-color:{{ color }};" title="{{ label }}" aria-label="{{ label }}"><i class="bi {{ icon }}" aria-hidden="true"></i></span>
+      {% endif %}
+      {% if not forloop.last %}<span class="nj-status-line" aria-hidden="true"></span>{% endif %}
+    {% endfor %}
+  </div>
+  <span class="nj-status-caption {{ assignment.status_caption_class }}" data-inspection-status-caption>{{ assignment.status_label|default:assignment.get_status_display }}</span>
+</div>

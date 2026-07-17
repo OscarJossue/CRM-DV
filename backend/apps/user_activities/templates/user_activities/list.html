@@ -1,0 +1,306 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}User Activities{% endblock %}
+
+{% block page_subtitle %}
+Track projects, inspections and assigned activities by user.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+*{box-sizing:border-box}
+
+.activities_page{
+  width:100%;
+  margin:0;
+  padding:5%;
+}
+
+.activities_hero{
+  background:#ffffff;
+  border:1px solid #e5e7eb;
+  border-radius:30px;
+  padding:5%;
+  margin-bottom:28px;
+  box-shadow:0 24px 60px rgba(15,23,42,.08);
+}
+
+.activities_hero h2{
+  margin:0 0 14px;
+  text-align:center;
+  font-family:Poppins,sans-serif;
+  font-size:48px;
+  line-height:1.1;
+  color:#0f172a;
+}
+
+.activities_hero p{
+  max-width:960px;
+  margin:0 auto;
+  text-align:justify;
+  text-align-last:center;
+  font-family:Montserrat,sans-serif;
+  font-size:16px;
+  line-height:1.7;
+  font-weight:500;
+  color:#475569;
+}
+
+.activities_top_actions{
+  display:flex;
+  justify-content:flex-end;
+  margin-bottom:22px;
+}
+
+.activities_card{
+  background:#ffffff;
+  border:1px solid #e5e7eb;
+  border-radius:30px;
+  padding:28px;
+  box-shadow:0 24px 60px rgba(15,23,42,.08);
+}
+
+.activities_card_head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:22px;
+}
+
+.activities_card_head h3{
+  margin:0;
+  font-family:Poppins,sans-serif;
+  font-size:30px;
+  color:#0f172a;
+}
+
+.activities_table_wrap{
+  width:100%;
+  overflow-x:auto;
+}
+
+.activities_table{
+  width:100%;
+  min-width:980px;
+  border-collapse:collapse;
+}
+
+.activities_table th{
+  text-align:left;
+  padding:14px 12px;
+  border-bottom:1px solid #e5e7eb;
+  font-family:Montserrat,sans-serif;
+  font-size:14px;
+  font-weight:800;
+  color:#334155;
+}
+
+.activities_table td{
+  padding:16px 12px;
+  border-bottom:1px solid #edf2f7;
+  vertical-align:middle;
+  font-family:Montserrat,sans-serif;
+  font-size:15px;
+  color:#0f172a;
+}
+
+.activities_badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:7px 12px;
+  border-radius:999px;
+  background:#eef2ff;
+  color:#1d4ed8;
+  font-size:13px;
+  font-weight:800;
+}
+
+.activities_status{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:7px 12px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:800;
+}
+
+.activities_status.pending,
+.activities_status.assigned,
+.activities_status.scheduled,
+.activities_status.on_hold{
+  background:#fef3c7;
+  color:#92400e;
+}
+
+.activities_status.in_progress{
+  background:#dbeafe;
+  color:#1d4ed8;
+}
+
+.activities_status.completed,
+.activities_status.done,
+.activities_status.approved,
+.activities_status.completed_inspection{
+  background:#dcfce7;
+  color:#166534;
+}
+
+.activities_button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:42px;
+  padding:10px 18px;
+  border-radius:14px;
+  background:#2563eb;
+  color:#ffffff;
+  text-decoration:none;
+  font-family:Montserrat,sans-serif;
+  font-size:14px;
+  font-weight:800;
+  transition:.25s ease;
+}
+
+.activities_button:hover{
+  background:#0f172a;
+  color:#ffffff;
+  transform:translateY(-2px);
+}
+
+.activities_empty{
+  padding:38px;
+  text-align:center;
+  border:1px dashed #cbd5e1;
+  border-radius:24px;
+  font-family:Montserrat,sans-serif;
+  color:#64748b;
+}
+
+@media(max-width:700px){
+  .activities_hero h2{
+    font-size:32px;
+  }
+
+  .activities_card_head{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+  .activities_top_actions{
+    justify-content:stretch;
+  }
+
+  .activities_button{
+    width:100%;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="activities_page">
+
+  <div class="activities_hero">
+    <h2>User Activities</h2>
+
+    <p>
+      Review projects, inspections, assigned users and activity status based on the logged-in user, company and role permissions.
+    </p>
+  </div>
+
+  <div class="activities_top_actions">
+    <a href="dashboard/" class="activities_button">
+      View Dashboard
+    </a>
+  </div>
+
+  <div class="activities_card">
+
+    <div class="activities_card_head">
+      <h3>Activity List</h3>
+    </div>
+
+    {% if activities %}
+
+      <div class="activities_table_wrap">
+
+        <table class="activities_table">
+
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Type</th>
+              <th>Code</th>
+              <th>Title</th>
+              <th>Client</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+
+          <tbody>
+
+            {% for item in activities %}
+              <tr>
+
+                <td>{{ item.user }}</td>
+
+                <td>
+                  <span class="activities_badge">
+                    {{ item.type }}
+                  </span>
+                </td>
+
+                <td>{{ item.code }}</td>
+
+                <td>{{ item.title }}</td>
+
+                <td>
+                  {% if item.client %}
+                    {{ item.client }}
+                  {% else %}
+                    No client
+                  {% endif %}
+                </td>
+
+                <td>
+                  <span class="activities_status {{ item.status }}">
+                    {{ item.status|title }}
+                  </span>
+                </td>
+
+                <td>
+                  {{ item.created_at|date:"Y-m-d H:i" }}
+                </td>
+
+                <td>
+                  <a href="{{ item.detail_url }}" class="activities_button">
+                    View
+                  </a>
+                </td>
+
+              </tr>
+            {% endfor %}
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    {% else %}
+
+      <div class="activities_empty">
+        No user activities found.
+      </div>
+
+    {% endif %}
+
+  </div>
+
+</section>
+{% endblock %}

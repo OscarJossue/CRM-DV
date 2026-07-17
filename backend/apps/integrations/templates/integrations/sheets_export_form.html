@@ -1,0 +1,11 @@
+{% extends "layouts/base.html" %}
+{% block page_title %}New Sheet Export{% endblock %}
+{% block page_subtitle %}Append CRM data into Google Sheets.{% endblock %}
+{% block extra_head %}{% include "integrations/partials/_design_system.html" %}{% endblock %}
+{% block content %}
+<form class="account_theme integration_theme account_form" method="post">{% csrf_token %}
+  <div class="account_toolbar"><div class="account_toolbar_title"><h2>New Sheet Export</h2><p>Select the CRM source, spreadsheet ID and sheet tab name.</p></div><a class="account_button account_button_secondary" href="../">Cancel</a></div>
+  <section class="crm_card"><div class="integration_form_grid">{% for field in form %}<div class="integration_form_field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.errors %}<div class="integration_error">{{ field.errors }}</div>{% endif %}</div>{% endfor %}</div></section>
+  <section class="crm_card"><button class="account_button" type="submit"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M4 10h16M10 4v16"/></svg> Export Rows</button></section>
+</form>
+{% endblock %}

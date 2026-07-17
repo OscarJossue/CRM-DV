@@ -1,0 +1,139 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Send Platform Test Email{% endblock %}
+
+{% block page_subtitle %}
+Test CEO MARKETING platform email delivery without touching company SMTP settings.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .email_test_layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 0.65fr);
+    gap: 18px;
+    align-items: start;
+  }
+
+  .email_test_form {
+    display: grid;
+    gap: 16px;
+  }
+
+  .email_test_field {
+    display: grid;
+    gap: 7px;
+  }
+
+  .email_test_label {
+    color: var(--crm_text);
+    font-size: 14px;
+    font-weight: 900;
+  }
+
+  .email_test_help {
+    color: var(--crm_muted);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .email_test_side {
+    display: grid;
+    gap: 14px;
+  }
+
+  .email_test_panel {
+    display: grid;
+    gap: 8px;
+    padding: 18px;
+    border: 1px solid var(--crm_border);
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .email_test_panel span {
+    color: var(--crm_muted);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .email_test_panel strong {
+    color: var(--crm_text);
+    font-size: 13px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+
+  .email_test_warning {
+    padding: 14px 16px;
+    border: 1px solid rgba(180, 83, 9, 0.28);
+    border-radius: 16px;
+    background: rgba(180, 83, 9, 0.08);
+    color: var(--crm_warning);
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 900px) {
+    .email_test_layout {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <section class="email_test_layout">
+    <form class="crm_card email_test_form" method="post">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="crm_message">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      {% for field in form %}
+        <label class="email_test_field">
+          <span class="email_test_label">{{ field.label }}</span>
+          {{ field }}
+
+          {% if field.help_text %}
+            <span class="email_test_help">{{ field.help_text }}</span>
+          {% endif %}
+
+          {% if field.errors %}
+            <span style="color:var(--crm_danger); font-weight:800;">
+              {{ field.errors }}
+            </span>
+          {% endif %}
+        </label>
+      {% endfor %}
+
+      <div class="crm_actions">
+        <button class="crm_button" type="submit">Send Test Email</button>
+        <a class="crm_button crm_button_secondary" href="{% url 'platform_email:list' %}">Back</a>
+      </div>
+    </form>
+
+    <aside class="email_test_side">
+      <div class="email_test_panel">
+        <span>Backend</span>
+        <strong>{{ platform_email_backend }}</strong>
+      </div>
+
+      <div class="email_test_panel">
+        <span>From Email</span>
+        <strong>{{ platform_from_email|default:"Not configured" }}</strong>
+      </div>
+
+      {% if is_console_backend %}
+        <div class="email_test_warning">
+          Current mode is console backend. The email will appear in Docker logs but will not arrive to the inbox.
+        </div>
+      {% endif %}
+    </aside>
+  </section>
+{% endblock %}

@@ -1,0 +1,176 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}{{ platform_user.first_name }} {{ platform_user.last_name|default:"" }}{% endblock %}
+
+{% block page_subtitle %}
+Internal CEO MARKETING platform user profile and direct permissions.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .platform_user_detail {
+    display: grid;
+    gap: 18px;
+  }
+
+  .platform_user_grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .platform_user_item {
+    display: grid;
+    gap: 8px;
+    padding: 16px;
+    border: 1px solid var(--crm_border);
+    border-radius: 14px;
+    background: #ffffff;
+  }
+
+  .platform_user_label {
+    color: var(--crm_muted);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .platform_user_value {
+    color: var(--crm_text);
+    font-size: 15px;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+  }
+
+  .platform_permission_table_wrap {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .platform_permission_table {
+    width: 100%;
+    min-width: 760px;
+    border-collapse: collapse;
+  }
+
+  .platform_permission_table th,
+  .platform_permission_table td {
+    padding: 12px;
+    border-bottom: 1px solid var(--crm_border);
+    text-align: left;
+    font-size: 14px;
+  }
+
+  .platform_permission_table th {
+    color: var(--crm_muted);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .platform_yes {
+    color: var(--crm_success);
+    font-weight: 900;
+  }
+
+  .platform_no {
+    color: var(--crm_muted);
+    font-weight: 800;
+  }
+
+  @media (max-width: 980px) {
+    .platform_user_grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 640px) {
+    .platform_user_grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="platform_user_detail">
+  <div class="crm_card">
+    <h2 class="crm_section_title">Platform User Information</h2>
+
+    <div class="platform_user_grid">
+      <div class="platform_user_item">
+        <span class="platform_user_label">Name</span>
+        <span class="platform_user_value">{{ platform_user.first_name }} {{ platform_user.last_name|default:"" }}</span>
+      </div>
+
+      <div class="platform_user_item">
+        <span class="platform_user_label">Email</span>
+        <span class="platform_user_value">{{ platform_user.email }}</span>
+      </div>
+
+      <div class="platform_user_item">
+        <span class="platform_user_label">Phone</span>
+        <span class="platform_user_value">{{ platform_user.phone|default:"No phone" }}</span>
+      </div>
+
+      <div class="platform_user_item">
+        <span class="platform_user_label">Status</span>
+        <span class="platform_user_value">{{ platform_user.get_status_display }}</span>
+      </div>
+
+      <div class="platform_user_item">
+        <span class="platform_user_label">Active Login</span>
+        <span class="platform_user_value">{% if platform_user.is_active %}Yes{% else %}No{% endif %}</span>
+      </div>
+
+      <div class="platform_user_item">
+        <span class="platform_user_label">Superuser</span>
+        <span class="platform_user_value">No</span>
+      </div>
+    </div>
+
+    <div class="crm_actions" style="margin-top:18px;">
+      <a class="crm_button" href="{% url 'platform_users:user_update' platform_user.id_user %}">Edit User</a>
+      <a class="crm_button crm_button_secondary" href="{% url 'platform_users:user_list' %}">Back</a>
+    </div>
+  </div>
+
+  <div class="crm_card">
+    <h2 class="crm_section_title">Direct Platform Permissions</h2>
+
+    <div class="platform_permission_table_wrap">
+      <table class="platform_permission_table">
+        <thead>
+          <tr>
+            <th>Module</th>
+            <th>View</th>
+            <th>Create</th>
+            <th>Edit</th>
+            <th>Delete</th>
+            <th>Approve</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for row in permission_rows %}
+          <tr>
+            <td><strong>{{ row.module_label }}</strong></td>
+
+            {% for action in row.actions %}
+            <td>
+              {% if action.checked %}
+              <span class="platform_yes">Yes</span>
+              {% else %}
+              <span class="platform_no">No</span>
+              {% endif %}
+            </td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}

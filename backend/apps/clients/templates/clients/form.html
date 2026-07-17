@@ -1,0 +1,43 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}{{ title|default:"Client Form" }}{% endblock %}
+{% block page_subtitle %}Create or update the client profile using the CRM standard design.{% endblock %}
+
+{% block extra_head %}
+  {% include "partials/_crm_design_system.html" %}
+  <style>
+    .client-form-card { overflow:hidden; }
+    .client-form-head { display:flex; align-items:center; gap:12px; padding:17px 18px; border-bottom:1px solid var(--nj-line); background:linear-gradient(135deg,#fff,var(--nj-ice)); }
+    .client-form-head h2 { margin:0; color:var(--nj-ink); font-size:18px; font-weight:950; }
+    .client-form-head p { margin:4px 0 0; color:var(--nj-muted); font-size:11px; font-weight:650; }
+    .client-form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:13px; padding:18px; }
+    .client-field-full { grid-column:1/-1; }
+    .client-form-actions { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:15px 18px; border-top:1px solid var(--nj-line); background:#fbfdff; }
+    @media(max-width:760px){ .client-form-grid{grid-template-columns:1fr;} .client-form-actions{align-items:stretch;flex-direction:column-reverse;} .client-form-actions .nj-btn{width:100%;} }
+  </style>
+{% endblock %}
+
+{% block content %}
+<div class="nj-invoice nj-page">
+  <header class="nj-page-head">
+    <div><span class="nj-page-kicker"><i class="bi bi-person-vcard" aria-hidden="true"></i> Client profile</span><h1 class="nj-page-title">{{ form_title|default:"Create Client" }}</h1><p class="nj-page-subtitle">DNI is optional and will be copied automatically into new invoices.</p></div>
+  </header>
+
+  <form method="post" class="nj-card client-form-card" novalidate>
+    {% csrf_token %}
+    <div class="client-form-head"><span class="nj-icon-box"><i class="bi bi-person-lines-fill" aria-hidden="true"></i></span><div><h2>Identity and contact data</h2><p>Required fields are marked with an asterisk.</p></div></div>
+    {% if form.non_field_errors %}<div class="nj-alert" style="margin:16px 18px 0;"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i><div>{{ form.non_field_errors }}</div></div>{% endif %}
+    <div class="client-form-grid">
+      <div class="nj-field"><label class="nj-required" for="{{ form.first_name.id_for_label }}">First name</label>{{ form.first_name }}<div class="nj-error">{{ form.first_name.errors }}</div></div>
+      <div class="nj-field"><label for="{{ form.middle_name.id_for_label }}">Middle name</label>{{ form.middle_name }}<div class="nj-error">{{ form.middle_name.errors }}</div></div>
+      <div class="nj-field"><label class="nj-required" for="{{ form.last_name.id_for_label }}">Last name</label>{{ form.last_name }}<div class="nj-error">{{ form.last_name.errors }}</div></div>
+      <div class="nj-field"><label for="{{ form.second_last_name.id_for_label }}">Second last name</label>{{ form.second_last_name }}<div class="nj-error">{{ form.second_last_name.errors }}</div></div>
+      <div class="nj-field"><label for="{{ form.dni.id_for_label }}">DNI / Tax ID <span class="nj-help">Optional</span></label>{{ form.dni }}<span class="nj-help">Used as the client's billing identity when creating an invoice.</span><div class="nj-error">{{ form.dni.errors }}</div></div>
+      <div class="nj-field"><label for="{{ form.phone.id_for_label }}">Phone</label>{{ form.phone }}<div class="nj-error">{{ form.phone.errors }}</div></div>
+      <div class="nj-field client-field-full"><label for="{{ form.email.id_for_label }}">Email</label>{{ form.email }}<div class="nj-error">{{ form.email.errors }}</div></div>
+      <div class="nj-field client-field-full"><label for="{{ form.address.id_for_label }}">Address</label>{{ form.address }}<div class="nj-error">{{ form.address.errors }}</div></div>
+    </div>
+    <div class="client-form-actions"><a class="nj-btn nj-btn-secondary" href="{{ client_urls.list }}"><i class="bi bi-arrow-left" aria-hidden="true"></i> Cancel</a><button class="nj-btn nj-btn-success" type="submit"><i class="bi bi-check2" aria-hidden="true"></i> {{ submit_label|default:"Save Client" }}</button></div>
+  </form>
+</div>
+{% endblock %}

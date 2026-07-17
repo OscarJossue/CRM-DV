@@ -1,0 +1,86 @@
+<section class="field-form-section field-photo-section" id="photos">
+  <div class="field-section-heading">
+    <div>
+      {% if editable %}<span class="field-step-number">2</span>{% else %}<span class="field-section-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m21 15-4.5-4.5L8 19"/></svg></span>{% endif %}
+      <div>
+        <h2>{{ labels.photos }}</h2>
+        {% if editable %}<p>{{ labels.photo_help }}</p>{% endif %}
+      </div>
+    </div>
+    <span data-photo-counter>{{ photo_count }}/{{ photo_limit }}</span>
+  </div>
+
+  <div class="field-photo-workspace" data-photo-workspace>
+    {% for photo in photos %}
+      <article class="field-photo-card is-existing">
+        <div class="field-photo-media">
+          {% if photo.url %}
+            <a href="{{ photo.url }}" target="_blank" rel="noopener">
+              <img src="{{ photo.url }}" alt="{{ photo.description|default:labels.photo }}" loading="lazy">
+            </a>
+          {% else %}
+            <div class="field-photo-placeholder">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m21 15-4.5-4.5L8 19"/></svg>
+            </div>
+          {% endif %}
+          {% if editable and photo.can_delete %}
+            <button
+              class="field-photo-trash"
+              type="submit"
+              formaction="{{ photo.delete_url }}"
+              formmethod="post"
+              data-existing-photo-delete
+              data-confirm="{{ labels.delete_photo_confirm }}"
+              title="{{ labels.delete_photo }}"
+              aria-label="{{ labels.delete_photo }}">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M8 10v7M12 10v7M16 10v7M6 7l1 14h10l1-14"/></svg>
+            </button>
+          {% endif %}
+        </div>
+        {% if photo.description %}<p class="field-photo-description">{{ photo.description }}</p>{% endif %}
+      </article>
+    {% endfor %}
+
+    {% if editable and photo_remaining > 0 %}
+      <div class="field-new-photo-cards" data-photo-rows data-max="{{ photo_remaining }}"></div>
+      <template data-photo-template>
+        <article class="field-photo-card is-new" data-photo-row>
+          <div class="field-photo-media">
+            <img class="field-photo-preview" data-photo-preview hidden alt="">
+            <div class="field-photo-placeholder" data-photo-placeholder>
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M14.5 5 13 3h-2L9.5 5H6a3 3 0 0 0-3 3v9a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3V8a3 3 0 0 0-3-3h-3.5Z"/><circle cx="12" cy="13" r="4"/></svg>
+              <small data-photo-name>{{ labels.no_file_selected }}</small>
+            </div>
+            <button class="field-photo-trash" type="button" data-remove-photo title="{{ labels.remove }}" aria-label="{{ labels.remove }}">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M8 10v7M12 10v7M16 10v7M6 7l1 14h10l1-14"/></svg>
+            </button>
+          </div>
+          <div class="field-photo-card-controls">
+            <input class="field-file-input" type="file" name="photo___INDEX__" accept="image/*" data-photo-input>
+            <div class="field-picker-actions">
+              <button type="button" data-open-camera>
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M14.5 5 13 3h-2L9.5 5H6a3 3 0 0 0-3 3v9a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3V8a3 3 0 0 0-3-3h-3.5Z"/><circle cx="12" cy="13" r="4"/></svg>
+                <span>{{ labels.camera }}</span>
+              </button>
+              <button type="button" data-open-gallery>
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m21 15-4.5-4.5L8 19"/></svg>
+                <span>{{ labels.gallery }}</span>
+              </button>
+            </div>
+            <textarea name="description___INDEX__" rows="2" maxlength="800" placeholder="{{ labels.description_optional }}"></textarea>
+          </div>
+        </article>
+      </template>
+      <button class="field-add-photo-card" type="button" data-add-photo>
+        <span class="field-add-photo-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span>
+        <strong>{{ labels.add_photo }}</strong>
+        <small><span data-photo-remaining>{{ photo_remaining }}</span> {{ labels.remaining }}</small>
+      </button>
+    {% elif not photos %}
+      <div class="field-empty compact">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m21 15-4.5-4.5L8 19"/></svg>
+        <p>{{ labels.no_photos }}</p>
+      </div>
+    {% endif %}
+  </div>
+</section>

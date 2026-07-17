@@ -1,0 +1,314 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Platform Notifications{% endblock %}
+
+{% block page_subtitle %}
+Email notifications for SaaS renewals, expirations and platform administration events.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .pnotif_page {
+    display: grid;
+    gap: 20px;
+  }
+
+  .pnotif_top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 18px;
+    align-items: center;
+    padding: 22px;
+    border: 1px solid var(--crm_border);
+    border-radius: 22px;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(31, 58, 138, 0.12), transparent 32%),
+      #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .pnotif_top h2 {
+    margin: 0;
+    color: var(--crm_text);
+    font-size: 24px;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+  }
+
+  .pnotif_top p {
+    margin: 6px 0 0;
+    color: var(--crm_muted);
+    font-size: 14px;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+  }
+
+  .pnotif_stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .pnotif_stat {
+    display: grid;
+    gap: 6px;
+    padding: 16px;
+    border: 1px solid var(--crm_border);
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .pnotif_stat span {
+    color: var(--crm_muted);
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  .pnotif_stat strong {
+    color: var(--crm_primary);
+    font-size: 28px;
+    font-weight: 900;
+  }
+
+  .pnotif_filters {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) minmax(160px, .35fr) minmax(180px, .35fr) auto;
+    gap: 12px;
+    align-items: end;
+    padding: 18px;
+    border: 1px solid var(--crm_border);
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .pnotif_field {
+    display: grid;
+    gap: 6px;
+  }
+
+  .pnotif_label {
+    color: var(--crm_text);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  .pnotif_table_wrap {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .pnotif_table {
+    width: 100%;
+    min-width: 1040px;
+    border-collapse: collapse;
+  }
+
+  .pnotif_table th,
+  .pnotif_table td {
+    padding: 14px 12px;
+    border-bottom: 1px solid var(--crm_border);
+    text-align: left;
+    vertical-align: top;
+    font-size: 14px;
+  }
+
+  .pnotif_table th {
+    color: var(--crm_muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  .pnotif_title {
+    font-weight: 900;
+    color: var(--crm_text);
+    overflow-wrap: anywhere;
+  }
+
+  .pnotif_muted {
+    color: var(--crm_muted);
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  .pnotif_status {
+    display: inline-flex;
+    width: fit-content;
+    min-height: 30px;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    border: 1px solid var(--crm_border);
+  }
+
+  .pnotif_status_sent {
+    color: var(--crm_success);
+    background: rgba(15, 118, 110, .08);
+  }
+
+  .pnotif_status_failed {
+    color: var(--crm_danger);
+    background: rgba(185, 28, 28, .08);
+  }
+
+  .pnotif_status_pending {
+    color: var(--crm_warning);
+    background: rgba(180, 83, 9, .08);
+  }
+
+  .pnotif_link {
+    color: var(--crm_primary);
+    font-weight: 900;
+  }
+
+  @media (max-width: 1050px) {
+    .pnotif_top,
+    .pnotif_filters,
+    .pnotif_stats {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <section class="pnotif_page">
+    <div class="pnotif_top">
+      <div>
+        <h2>Platform Notification Center</h2>
+        <p>
+          Send and review SaaS email notifications for subscription renewal and expiration workflows.
+        </p>
+      </div>
+
+      <form method="post" action="{% url 'platform_notifications:send_due' %}">
+        {% csrf_token %}
+        <button class="crm_button" type="submit">Send Due Renewal Notices</button>
+      </form>
+    </div>
+
+    <div class="pnotif_stats">
+      <article class="pnotif_stat">
+        <span>Total</span>
+        <strong>{{ total_notifications }}</strong>
+      </article>
+
+      <article class="pnotif_stat">
+        <span>Sent</span>
+        <strong>{{ sent_notifications }}</strong>
+      </article>
+
+      <article class="pnotif_stat">
+        <span>Pending</span>
+        <strong>{{ pending_notifications }}</strong>
+      </article>
+
+      <article class="pnotif_stat">
+        <span>Failed</span>
+        <strong>{{ failed_notifications }}</strong>
+      </article>
+    </div>
+
+    <form class="pnotif_filters" method="get">
+      <label class="pnotif_field">
+        <span class="pnotif_label">Search Company</span>
+        <input class="crm_input" type="search" name="q" value="{{ q }}" placeholder="Company name">
+      </label>
+
+      <label class="pnotif_field">
+        <span class="pnotif_label">Status</span>
+        <select class="crm_input" name="status">
+          <option value="">All Statuses</option>
+          <option value="pending" {% if status_filter == "pending" %}selected{% endif %}>Pending</option>
+          <option value="sent" {% if status_filter == "sent" %}selected{% endif %}>Sent</option>
+          <option value="failed" {% if status_filter == "failed" %}selected{% endif %}>Failed</option>
+          <option value="skipped" {% if status_filter == "skipped" %}selected{% endif %}>Skipped</option>
+        </select>
+      </label>
+
+      <label class="pnotif_field">
+        <span class="pnotif_label">Type</span>
+        <select class="crm_input" name="type">
+          <option value="">All Types</option>
+          <option value="renewal_reminder" {% if type_filter == "renewal_reminder" %}selected{% endif %}>Renewal Reminder</option>
+          <option value="subscription_expired" {% if type_filter == "subscription_expired" %}selected{% endif %}>Subscription Expired</option>
+          <option value="payment_registered" {% if type_filter == "payment_registered" %}selected{% endif %}>Payment Registered</option>
+          <option value="document_sent" {% if type_filter == "document_sent" %}selected{% endif %}>Document Sent</option>
+          <option value="company_suspended" {% if type_filter == "company_suspended" %}selected{% endif %}>Company Suspended</option>
+        </select>
+      </label>
+
+      <button class="crm_button" type="submit">Apply Filters</button>
+    </form>
+
+    <section class="crm_card">
+      <div class="pnotif_table_wrap">
+        <table class="pnotif_table">
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Type</th>
+              <th>Recipient</th>
+              <th>Subject</th>
+              <th>Status</th>
+              <th>Sent At</th>
+              <th>Created</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for notification in notifications %}
+              <tr>
+                <td>
+                  <div class="pnotif_title">{{ notification.id_company.name }}</div>
+                </td>
+
+                <td>{{ notification.get_notification_type_display }}</td>
+
+                <td>
+                  <div class="pnotif_muted">{{ notification.recipient_email }}</div>
+                </td>
+
+                <td>
+                  <div class="pnotif_title">{{ notification.subject }}</div>
+                  {% if notification.error_message %}
+                    <div class="pnotif_muted">{{ notification.error_message|truncatechars:90 }}</div>
+                  {% endif %}
+                </td>
+
+                <td>
+                  <span class="pnotif_status pnotif_status_{{ notification.status }}">
+                    {{ notification.get_status_display }}
+                  </span>
+                </td>
+
+                <td>{{ notification.sent_at|date:"Y-m-d H:i"|default:"Not sent" }}</td>
+                <td>{{ notification.created_at|date:"Y-m-d H:i" }}</td>
+
+                <td>
+                  <a class="pnotif_link" href="{% url 'platform_notifications:detail' notification.id_notification %}">View</a>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="8">No platform notifications found.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </section>
+{% endblock %}

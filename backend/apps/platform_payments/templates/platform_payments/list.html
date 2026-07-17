@@ -1,0 +1,345 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Platform Payments{% endblock %}
+
+{% block page_subtitle %}
+Track SaaS payments made by companies to CEO MARKETING.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .payments_page {
+    display: grid;
+    gap: 20px;
+  }
+
+  .payments_top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 18px;
+    align-items: center;
+    padding: 22px;
+    border: 1px solid var(--crm_border);
+    border-radius: 22px;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(15, 118, 110, 0.12), transparent 32%),
+      #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .payments_top h2 {
+    margin: 0;
+    color: var(--crm_text);
+    font-size: 22px;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+  }
+
+  .payments_top p {
+    margin: 6px 0 0;
+    color: var(--crm_muted);
+    font-size: 14px;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+  }
+
+  .payments_stats {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .payments_stat {
+    display: grid;
+    gap: 6px;
+    padding: 16px;
+    border: 1px solid var(--crm_border);
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .payments_stat span {
+    color: var(--crm_muted);
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .payments_stat strong {
+    color: var(--crm_primary);
+    font-size: 26px;
+    font-weight: 900;
+    line-height: 1;
+    overflow-wrap: anywhere;
+  }
+
+  .payments_filters {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) minmax(170px, .35fr) minmax(170px, .35fr) auto auto;
+    gap: 12px;
+    align-items: end;
+    padding: 18px;
+    border: 1px solid var(--crm_border);
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .payments_field {
+    display: grid;
+    gap: 6px;
+  }
+
+  .payments_label {
+    color: var(--crm_text);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .payments_table_wrap {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .payments_table {
+    width: 100%;
+    min-width: 1080px;
+    border-collapse: collapse;
+  }
+
+  .payments_table th,
+  .payments_table td {
+    padding: 14px 12px;
+    border-bottom: 1px solid var(--crm_border);
+    text-align: left;
+    vertical-align: top;
+    font-size: 14px;
+  }
+
+  .payments_table th {
+    color: var(--crm_muted);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .payments_number {
+    color: var(--crm_text);
+    font-weight: 900;
+    overflow-wrap: anywhere;
+  }
+
+  .payments_muted {
+    color: var(--crm_muted);
+    font-size: 13px;
+    overflow-wrap: anywhere;
+  }
+
+  .payments_badge {
+    display: inline-flex;
+    width: fit-content;
+    min-height: 30px;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    border: 1px solid var(--crm_border);
+    border-radius: 10px;
+    background: rgba(31, 58, 138, 0.08);
+    color: var(--crm_primary);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .payments_actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .payments_link {
+    color: var(--crm_primary);
+    font-size: 13px;
+    font-weight: 900;
+  }
+
+  .payments_empty {
+    padding: 20px;
+    color: var(--crm_muted);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 1180px) {
+    .payments_stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .payments_filters {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 700px) {
+    .payments_top,
+    .payments_stats,
+    .payments_filters {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <section class="payments_page">
+    <div class="payments_top">
+      <div>
+        <h2>SaaS Payments</h2>
+        <p>
+          Register and review payments that companies make to CEO MARKETING for CRM access, renewals and SaaS documents.
+        </p>
+      </div>
+
+      <a class="crm_button" href="{% url 'platform_payments:create' %}">Record Payment</a>
+    </div>
+
+    <div class="payments_stats">
+      <article class="payments_stat">
+        <span>Total Payments</span>
+        <strong>{{ total_payments }}</strong>
+      </article>
+
+      <article class="payments_stat">
+        <span>Paid Payments</span>
+        <strong>{{ paid_payments }}</strong>
+      </article>
+
+      <article class="payments_stat">
+        <span>Pending</span>
+        <strong>{{ pending_payments }}</strong>
+      </article>
+
+      <article class="payments_stat">
+        <span>Void</span>
+        <strong>{{ void_payments }}</strong>
+      </article>
+
+      <article class="payments_stat">
+        <span>Paid Total</span>
+        <strong>${{ paid_total }}</strong>
+      </article>
+    </div>
+
+    <form class="payments_filters" method="get">
+      <label class="payments_field">
+        <span class="payments_label">Search</span>
+        <input class="crm_input" type="search" name="q" value="{{ q }}" placeholder="Payment number, company, document or reference">
+      </label>
+
+      <label class="payments_field">
+        <span class="payments_label">Status</span>
+        <select class="crm_input" name="status">
+          <option value="">All Statuses</option>
+          {% for value, label in status_choices %}
+            <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <label class="payments_field">
+        <span class="payments_label">Method</span>
+        <select class="crm_input" name="method">
+          <option value="">All Methods</option>
+          {% for value, label in method_choices %}
+            <option value="{{ value }}" {% if method_filter == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <button class="crm_button" type="submit">Apply Filters</button>
+
+      <a
+        class="crm_button crm_button_secondary"
+        href="{% url 'platform_payments:export_csv' %}{% if active_querystring %}?{{ active_querystring }}{% endif %}"
+      >
+        Export CSV
+      </a>
+    </form>
+
+    <div class="crm_card">
+      <div class="payments_table_wrap">
+        <table class="payments_table">
+          <thead>
+            <tr>
+              <th>Payment</th>
+              <th>Company</th>
+              <th>Document</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Method</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for payment in payments %}
+              <tr>
+                <td>
+                  <div class="payments_number">{{ payment.payment_number }}</div>
+                  <div class="payments_muted">{{ payment.reference|default:"No reference" }}</div>
+                </td>
+
+                <td>
+                  <div class="payments_number">{{ payment.id_company.name }}</div>
+                  <div class="payments_muted">/{{ payment.id_company.slug }}/</div>
+                </td>
+
+                <td>
+                  {% if payment.id_document %}
+                    <div class="payments_number">{{ payment.id_document.document_number }}</div>
+                    <div class="payments_muted">{{ payment.id_document.get_document_type_display }}</div>
+                  {% else %}
+                    <div class="payments_muted">No document linked</div>
+                  {% endif %}
+                </td>
+
+                <td>
+                  <div class="payments_number">${{ payment.amount }}</div>
+                </td>
+
+                <td>
+                  <span class="payments_badge">{{ payment.get_status_display }}</span>
+                </td>
+
+                <td>
+                  <span class="payments_badge">{{ payment.get_method_display }}</span>
+                </td>
+
+                <td>{{ payment.payment_date|default:"No date" }}</td>
+
+                <td>
+                  <div class="payments_actions">
+                    <a class="payments_link" href="{% url 'platform_payments:detail' payment.id_payment %}">View</a>
+                    <a class="payments_link" href="{% url 'platform_payments:update' payment.id_payment %}">Edit</a>
+                  </div>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td class="payments_empty" colspan="8">
+                  No SaaS payments found for the current filters.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+{% endblock %}

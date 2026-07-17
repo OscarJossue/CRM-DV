@@ -1,0 +1,325 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Opportunities{% endblock %}
+{% block page_subtitle %}Manage the commercial pipeline, client follow-up and project conversion.{% endblock %}
+
+{% block extra_head %}
+  {% include "partials/_crm_design_system.html" %}
+  {% include "partials/_crm_unified_dashboard.html" %}
+  {% include "opportunities/partials/_status_track_styles.html" %}
+  <style>
+    .opportunity-summary {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      padding:15px 17px;
+      background:linear-gradient(135deg,#fff,var(--nj-ice));
+    }
+    .opportunity-summary-main { display:flex; align-items:center; gap:12px; min-width:0; }
+    .opportunity-summary-main > .nj-icon-box { width:42px; height:42px; min-width:42px; flex:0 0 42px; display:inline-grid; place-items:center; padding:0; line-height:1; }
+    .opportunity-summary-main > .nj-icon-box > i { display:block; margin:0; line-height:1; font-size:18px; transform:none; }
+    .opportunity-summary-main strong { display:block; color:var(--nj-ink); font-size:15px; font-weight:950; }
+    .opportunity-summary-main span { display:block; margin-top:3px; color:var(--nj-muted); font-size:11px; font-weight:650; }
+    .opportunity-summary-value { text-align:right; }
+    .opportunity-summary-value strong { display:block; color:var(--nj-blue); font-size:23px; font-weight:950; line-height:1; }
+    .opportunity-summary-value span { display:block; margin-top:4px; color:var(--nj-muted); font-size:9px; font-weight:900; letter-spacing:.06em; text-transform:uppercase; }
+    .opportunity-delete-modal { position:fixed; inset:0; z-index:2147482000; display:none; place-items:center; padding:20px; background:rgba(7,19,61,.46); backdrop-filter:blur(6px); }
+    .opportunity-delete-modal.is-open { display:grid; }
+    .opportunity-delete-dialog { width:min(430px,100%); padding:24px; border:1px solid rgba(239,51,64,.18); border-radius:20px; background:#fff; box-shadow:0 28px 70px rgba(7,19,61,.24); text-align:center; }
+    .opportunity-delete-dialog .nj-icon-box { margin:0 auto 13px; }
+    .opportunity-delete-dialog h2 { margin:0; color:var(--nj-ink); font-size:22px; font-weight:950; }
+    .opportunity-delete-dialog p { margin:8px 0 20px; color:var(--nj-muted); font-size:13px; font-weight:650; line-height:1.55; }
+    .opportunity-delete-actions { display:flex; justify-content:center; gap:9px; }
+    @media(max-width:620px){ .opportunity-summary{align-items:flex-start;flex-direction:column;} .opportunity-summary-value{text-align:left;} .opportunity-delete-actions{flex-direction:column-reverse;} }
+  </style>
+{% endblock %}
+
+{% block content %}
+<div class="nj-invoice nj-page crm-unified">
+  <header class="nj-page-head">
+    <div>
+      <span class="nj-page-kicker"><i class="bi bi-bullseye" aria-hidden="true"></i> Commercial pipeline</span>
+      <h1 class="nj-page-title">Opportunities</h1>
+      <p class="nj-page-subtitle">Search only by opportunity code, client name, client code or DNI. Use the status cards to move through the pipeline.</p>
+    </div>
+    {% if can_create_opportunities %}
+      <div class="nj-head-actions"><a class="nj-btn" href="{{ opportunity_urls.create }}"><i class="bi bi-plus-lg" aria-hidden="true"></i> Create opportunity</a></div>
+    {% endif %}
+  </header>
+
+  <section class="nj-card opportunity-summary">
+    <div class="opportunity-summary-main">
+      <span class="nj-icon-box"><i class="bi bi-graph-up-arrow" aria-hidden="true"></i></span>
+      <div><strong>{{ opportunity_total_count }} opportunities</strong><span>All records in the company pipeline.</span></div>
+    </div>
+    <div class="opportunity-summary-value"><strong>${{ opportunity_total_value|floatformat:2 }}</strong><span>Pipeline value</span></div>
+  </section>
+
+  <section class="crm-status-grid" aria-label="Opportunity statuses">
+    {% for item in opportunity_dashboard_items %}
+      <a class="crm-status-card {% if item.is_active %}is-active{% endif %}" style="--crm-status-color:{{ item.color }};" href="?{{ item.query_string }}">
+        <div class="crm-status-card-top"><span class="nj-icon-box"><i class="bi {{ item.icon }}" aria-hidden="true"></i></span><span class="crm-status-card-count">{{ item.count }}</span></div>
+        <div class="crm-status-card-copy"><strong>{{ item.label }}</strong><small>{{ item.caption }}</small></div>
+      </a>
+    {% endfor %}
+  </section>
+
+  <form class="nj-card crm-filter-card" method="get" action="{{ opportunity_urls.list }}">
+    {% if current_opportunity_status %}<input type="hidden" name="status" value="{{ current_opportunity_status }}">{% endif %}
+    <div class="crm-filter-row">
+      <div class="nj-field">
+        <label for="OpportunitySearch">Search opportunities</label>
+        <div class="crm-search-wrap"><i class="bi bi-search" aria-hidden="true"></i><input id="OpportunitySearch" type="search" name="q" value="{{ filters.q }}" placeholder="Opportunity code, client code, client name or DNI"></div>
+      </div>
+      <button class="nj-btn" type="submit"><i class="bi bi-search" aria-hidden="true"></i> Search</button>
+      <a class="nj-btn nj-btn-secondary" href="{{ opportunity_urls.list }}"><i class="bi bi-x-lg" aria-hidden="true"></i> Clear</a>
+    </div>
+  </form>
+
+  <section class="nj-card crm-table-card">
+    {% if leads %}
+      <div class="crm-table-wrap">
+        <table class="crm-table" style="min-width:1120px;">
+          <thead><tr><th>Code</th><th>Opportunity</th><th>Client</th><th>Source</th><th class="is-right">Value</th><th class="is-center">Status</th><th>Follow-up</th><th>Created</th><th class="is-center">Actions</th></tr></thead>
+          <tbody>
+            {% for lead in leads %}
+              <tr>
+                <td><a class="crm-code-link" href="{{ lead.ui_urls.detail }}"><i class="bi bi-hash" aria-hidden="true"></i>{{ lead.opportunity_code|default:"Pending" }}</a></td>
+                <td><div class="crm-cell-main"><a href="{{ lead.ui_urls.detail }}">{{ lead.name|default:"Unnamed opportunity" }}</a><small>{{ lead.project_description|default:"No description"|truncatechars:72 }}</small></div></td>
+                <td><div class="crm-cell-main">{% if lead.ui_urls.client_detail %}<a href="{{ lead.ui_urls.client_detail }}">{{ lead.id_client.name }}</a>{% else %}<strong>No client</strong>{% endif %}<small>{{ lead.id_client.client_code|default:"No code" }}{% if lead.id_client.dni %} · DNI {{ lead.id_client.dni }}{% endif %}</small></div></td>
+                <td>{{ lead.get_source_display|default:"—" }}</td>
+                <td class="is-right"><strong>${{ lead.approximate_value|default:"0.00"|floatformat:2 }}</strong></td>
+                <td class="is-center">{% include "opportunities/partials/_status_track.html" with lead=lead interactive=True %}</td>
+                <td>{% if lead.next_follow_up_date %}{{ lead.next_follow_up_date|date:"d/m/Y" }}{% else %}<span class="nj-help">Not scheduled</span>{% endif %}</td>
+                <td>{{ lead.created_at|date:"d/m/Y" }}</td>
+                <td class="is-center"><div class="crm-actions">
+                  <a class="nj-icon-btn" href="{{ lead.ui_urls.detail }}" data-tooltip="View" aria-label="View opportunity"><i class="bi bi-eye" aria-hidden="true"></i></a>
+                  {% if can_edit_opportunities %}<a class="nj-icon-btn is-neutral" href="{{ lead.ui_urls.update }}" data-tooltip="Edit" aria-label="Edit opportunity"><i class="bi bi-pencil" aria-hidden="true"></i></a>{% endif %}
+                  {% if lead.ui_urls.project_detail %}<a class="nj-icon-btn is-violet" href="{{ lead.ui_urls.project_detail }}" data-tooltip="View project" aria-label="View converted project"><i class="bi bi-briefcase" aria-hidden="true"></i></a>{% elif can_approve_opportunities and lead.status == "won" %}<a class="nj-icon-btn is-success" href="{{ lead.ui_urls.project_create }}" data-tooltip="Convert to project" aria-label="Convert to project"><i class="bi bi-folder-plus" aria-hidden="true"></i></a>{% endif %}
+                  {% if can_edit_opportunities and not lead.id_converted_project %}<button class="nj-icon-btn is-void" type="button" data-opportunity-delete-url="{{ lead.ui_urls.delete }}" data-tooltip="Delete" aria-label="Delete opportunity"><i class="bi bi-trash3" aria-hidden="true"></i></button>{% endif %}
+                </div></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if is_paginated %}<div class="crm-pagination"><span class="crm-pagination-label">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} · {{ page_obj.paginator.count }} opportunities</span><nav class="crm-pagination-links" aria-label="Opportunity pages">{% if page_obj.has_previous %}<a class="crm-page-link" href="?{% if opportunity_filter_query %}{{ opportunity_filter_query }}&{% endif %}page={{ page_obj.previous_page_number }}"><i class="bi bi-chevron-left" aria-hidden="true"></i></a>{% endif %}<span class="crm-page-link is-active">{{ page_obj.number }}</span>{% if page_obj.has_next %}<a class="crm-page-link" href="?{% if opportunity_filter_query %}{{ opportunity_filter_query }}&{% endif %}page={{ page_obj.next_page_number }}"><i class="bi bi-chevron-right" aria-hidden="true"></i></a>{% endif %}</nav></div>{% endif %}
+    {% else %}
+      <div class="crm-empty"><i class="bi bi-bullseye" aria-hidden="true"></i><strong>No opportunities found</strong><span>Change the status or search terms, or create the first opportunity.</span>{% if can_create_opportunities %}<a class="nj-btn" href="{{ opportunity_urls.create }}"><i class="bi bi-plus-lg" aria-hidden="true"></i> Create opportunity</a>{% endif %}</div>
+    {% endif %}
+  </section>
+</div>
+
+<div class="opportunity-delete-modal" id="opportunityDeleteModal" aria-hidden="true"><div class="opportunity-delete-dialog" role="dialog" aria-modal="true" aria-labelledby="opportunityDeleteTitle"><span class="nj-icon-box is-danger"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i></span><h2 id="opportunityDeleteTitle">Delete opportunity?</h2><p>This action permanently removes the opportunity when no converted project is linked.</p><form method="post" id="opportunityDeleteForm">{% csrf_token %}<div class="opportunity-delete-actions"><button class="nj-btn nj-btn-secondary" type="button" data-opportunity-delete-cancel>Cancel</button><button class="nj-btn nj-btn-danger" type="submit"><i class="bi bi-trash3" aria-hidden="true"></i> Delete</button></div></form></div></div>
+
+<script>
+(function () {
+  const modal = document.getElementById('opportunityDeleteModal');
+  const form = document.getElementById('opportunityDeleteForm');
+  const cancel = document.querySelector('[data-opportunity-delete-cancel]');
+  let previousFocus = null;
+
+  function closeModal() {
+    if (!modal) return;
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+    previousFocus?.focus();
+  }
+
+  document.querySelectorAll('[data-opportunity-delete-url]').forEach((button) => {
+    button.addEventListener('click', () => {
+      if (!modal || !form) return;
+      previousFocus = button;
+      form.action = button.dataset.opportunityDeleteUrl;
+      modal.classList.add('is-open');
+      modal.setAttribute('aria-hidden', 'false');
+      cancel?.focus();
+    });
+  });
+
+  cancel?.addEventListener('click', closeModal);
+  modal?.addEventListener('click', (event) => {
+    if (event.target === modal) closeModal();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && modal?.classList.contains('is-open')) closeModal();
+  });
+})();
+
+(function () {
+  const statusMeta = {
+    new: { label: 'New', captionClass: 'is-blue' },
+    qualified: { label: 'Qualified', captionClass: 'is-violet' },
+    won: { label: 'Won', captionClass: 'is-success' },
+    converted: { label: 'Converted', captionClass: 'is-success' },
+    cancelled: { label: 'Cancelled', captionClass: 'is-void' },
+  };
+
+  const captionClasses = ['is-blue', 'is-violet', 'is-success', 'is-void', 'is-saving', 'is-error'];
+  const workflows = Array.from(document.querySelectorAll('[data-opportunity-status-workflow]'));
+
+  if (!workflows.length) return;
+
+  function getCsrfToken() {
+    const input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (input?.value) return input.value;
+
+    const cookie = document.cookie
+      .split(';')
+      .map((item) => item.trim())
+      .find((item) => item.startsWith('csrftoken='));
+    return cookie ? decodeURIComponent(cookie.substring('csrftoken='.length)) : '';
+  }
+
+  function setCaption(workflow, status, label = null, extraClass = null) {
+    const caption = workflow.querySelector('[data-opportunity-status-caption]');
+    const meta = statusMeta[status];
+    if (!caption || !meta) return;
+
+    caption.classList.remove(...captionClasses);
+    caption.classList.add(extraClass || meta.captionClass);
+    caption.textContent = label || meta.label;
+  }
+
+  function clearHoverLabel(workflow) {
+    const hoverCaption = workflow.querySelector('[data-opportunity-status-hover-caption]');
+    if (!hoverCaption) return;
+    hoverCaption.textContent = '';
+    hoverCaption.classList.remove('is-visible');
+    hoverCaption.setAttribute('aria-hidden', 'true');
+  }
+
+  function showHoverLabel(workflow, status) {
+    const hoverCaption = workflow.querySelector('[data-opportunity-status-hover-caption]');
+    const meta = statusMeta[status];
+    if (!hoverCaption || !meta || workflow.classList.contains('is-saving')) return;
+
+    /* The current status is already shown below; only other states get a hover name above. */
+    if (status === workflow.dataset.currentStatus) {
+      clearHoverLabel(workflow);
+      return;
+    }
+
+    hoverCaption.textContent = meta.label;
+    hoverCaption.classList.add('is-visible');
+    hoverCaption.setAttribute('aria-hidden', 'false');
+  }
+
+  function renderCommittedState(workflow) {
+    const status = workflow.dataset.currentStatus;
+    const meta = statusMeta[status];
+    if (!meta) return;
+
+    clearHoverLabel(workflow);
+
+    workflow.querySelectorAll('[data-opportunity-status-node]').forEach((node) => {
+      const isCurrent = node.dataset.statusValue === status;
+      node.classList.toggle('is-current', isCurrent);
+      if (node.tagName === 'BUTTON') {
+        node.setAttribute('aria-pressed', isCurrent ? 'true' : 'false');
+      }
+    });
+
+    /* No progress preview: all connector lines remain gray. */
+    workflow.querySelectorAll('[data-status-line]').forEach((line) => {
+      line.classList.remove('is-active');
+    });
+
+    setCaption(workflow, status, workflow.dataset.currentLabel || meta.label);
+    workflow.setAttribute('aria-label', `Opportunity status: ${workflow.dataset.currentLabel || meta.label}`);
+  }
+
+  function showCaptionMessage(workflow, message, className) {
+    const status = workflow.dataset.currentStatus;
+    if (!statusMeta[status]) return;
+    setCaption(workflow, status, message, className);
+  }
+
+  async function saveStatus(workflow, status) {
+    const previousStatus = workflow.dataset.currentStatus;
+    const previousLabel = workflow.dataset.currentLabel || statusMeta[previousStatus]?.label;
+
+    if (!statusMeta[status] || status === previousStatus || workflow.classList.contains('is-saving')) {
+      renderCommittedState(workflow);
+      return;
+    }
+
+    /* Click changes the selected ball immediately; hover never changes it. */
+    workflow.dataset.currentStatus = status;
+    workflow.dataset.currentLabel = statusMeta[status].label;
+    renderCommittedState(workflow);
+    workflow.classList.add('is-saving');
+    workflow.setAttribute('aria-busy', 'true');
+
+    try {
+      const response = await fetch(workflow.dataset.statusUpdateUrl, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+          'X-CSRFToken': getCsrfToken(),
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: new URLSearchParams({ status }).toString(),
+      });
+
+      const contentType = response.headers.get('content-type') || '';
+      const payload = contentType.includes('application/json')
+        ? await response.json()
+        : { message: await response.text() };
+
+      if (!response.ok || !payload.ok) {
+        throw new Error(payload.message || 'The opportunity status could not be updated.');
+      }
+
+      workflow.dataset.currentStatus = payload.status;
+      workflow.dataset.currentLabel = payload.label || statusMeta[payload.status].label;
+      renderCommittedState(workflow);
+      window.setTimeout(() => window.location.reload(), 260);
+    } catch (error) {
+      workflow.dataset.currentStatus = previousStatus;
+      workflow.dataset.currentLabel = previousLabel;
+      renderCommittedState(workflow);
+      showCaptionMessage(workflow, error.message || 'Update failed', 'is-error');
+      window.setTimeout(() => renderCommittedState(workflow), 2200);
+    } finally {
+      workflow.classList.remove('is-saving');
+      workflow.removeAttribute('aria-busy');
+    }
+  }
+
+  workflows.forEach((workflow) => {
+    renderCommittedState(workflow);
+
+    workflow.querySelectorAll('[data-opportunity-status-node]').forEach((node) => {
+      const status = node.dataset.statusValue;
+      const locked = node.dataset.statusLocked === 'true';
+
+      node.addEventListener('pointerenter', () => showHoverLabel(workflow, status));
+      node.addEventListener('pointerleave', () => clearHoverLabel(workflow));
+      node.addEventListener('focus', () => showHoverLabel(workflow, status));
+      node.addEventListener('blur', () => clearHoverLabel(workflow));
+
+      if (!locked && node.tagName === 'BUTTON') {
+        node.addEventListener('click', () => saveStatus(workflow, status));
+      }
+    });
+
+    const statusTrack = workflow.querySelector('.opportunity-status-track');
+    statusTrack?.addEventListener('pointerleave', () => clearHoverLabel(workflow));
+    workflow.addEventListener('pointerleave', () => clearHoverLabel(workflow));
+    workflow.addEventListener('pointercancel', () => clearHoverLabel(workflow));
+    workflow.addEventListener('focusout', (event) => {
+      if (!workflow.contains(event.relatedTarget)) clearHoverLabel(workflow);
+    });
+  });
+
+  window.addEventListener('blur', () => workflows.forEach(clearHoverLabel));
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) workflows.forEach(clearHoverLabel);
+  });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,326 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Onboard Company{% endblock %}
+
+{% block page_subtitle %}
+Create the company, owner login and first SaaS subscription in one controlled flow.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .onboard_layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(310px, .62fr);
+    gap: 18px;
+    align-items: start;
+  }
+
+  .onboard_form {
+    display: grid;
+    gap: 22px;
+  }
+
+  .onboard_section {
+    display: grid;
+    gap: 16px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--crm_border);
+  }
+
+  .onboard_section:last-of-type {
+    border-bottom: 0;
+  }
+
+  .onboard_section_head {
+    display: grid;
+    gap: 6px;
+  }
+
+  .onboard_section_title {
+    margin: 0;
+    font-size: 19px;
+    font-weight: 900;
+    color: var(--crm_text);
+    overflow-wrap: anywhere;
+  }
+
+  .onboard_section_text {
+    margin: 0;
+    color: var(--crm_muted);
+    font-size: 14px;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+  }
+
+  .onboard_grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .onboard_field {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .onboard_field_full {
+    grid-column: 1 / -1;
+  }
+
+  .onboard_label {
+    color: var(--crm_text);
+    font-size: 13px;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+  }
+
+  .crm_input {
+    width: 100%;
+    min-height: 44px;
+    border: 1px solid var(--crm_border);
+    border-radius: 12px;
+    padding: 10px 12px;
+    color: var(--crm_text);
+    background: #ffffff;
+    font: inherit;
+  }
+
+  textarea.crm_input {
+    min-height: 110px;
+    resize: vertical;
+  }
+
+  .onboard_error {
+    color: var(--crm_danger);
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  .onboard_temp_logo {
+    width: 160px;
+    max-width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: contain;
+    border: 1px solid var(--crm_border);
+    border-radius: 12px;
+    background: #ffffff;
+    padding: 10px;
+  }
+
+  .onboard_temp_notice {
+    padding: 12px;
+    border: 1px solid rgba(31, 58, 138, .18);
+    border-radius: 12px;
+    background: rgba(31, 58, 138, .06);
+    color: var(--crm_primary);
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  .onboard_help_text {
+    color: var(--crm_muted);
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  .onboard_actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .onboard_side {
+    display: grid;
+    gap: 14px;
+  }
+
+  .onboard_panel {
+    display: grid;
+    gap: 10px;
+    padding: 20px;
+    border: 1px solid var(--crm_border);
+    border-radius: 20px;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(31, 58, 138, 0.12), transparent 34%),
+      #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .onboard_panel h2 {
+    margin: 0;
+    color: var(--crm_text);
+    font-size: 18px;
+    font-weight: 900;
+  }
+
+  .onboard_panel p,
+  .onboard_panel li {
+    margin: 0;
+    color: var(--crm_muted);
+    font-size: 14px;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+  }
+
+  .onboard_rules {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .onboard_rules li {
+    padding: 12px;
+    border: 1px solid var(--crm_border);
+    border-radius: 14px;
+    background: #ffffff;
+    color: var(--crm_text);
+    font-weight: 800;
+  }
+
+  @media (max-width: 1100px) {
+    .onboard_layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .onboard_grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <section class="onboard_layout">
+    <form class="crm_card onboard_form" method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+
+      <input type="hidden" name="logo_temp_token" value="{{ logo_temp_token|default:'' }}">
+
+      {% if form.non_field_errors %}
+        <div class="crm_message">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="onboard_section">
+        <div class="onboard_section_head">
+          <h2 class="onboard_section_title">Company Information</h2>
+          <p class="onboard_section_text">
+            This creates the company record for the CEO MARKETING SaaS administration layer.
+            The company slug is generated automatically from the company name.
+          </p>
+        </div>
+
+        <div class="onboard_grid">
+          {% for field in form.visible_fields %}
+            {% if field.name == "name" or field.name == "legal_name" or field.name == "email" or field.name == "phone" or field.name == "address" or field.name == "city" or field.name == "state" or field.name == "country" or field.name == "logo" or field.name == "description" %}
+              <label class="onboard_field {% if field.name == 'description' or field.name == 'address' %}onboard_field_full{% endif %}">
+                <span class="onboard_label">{{ field.label }}</span>
+
+                {% if field.name == "logo" and temp_logo_url %}
+                  <img class="onboard_temp_logo" src="{{ temp_logo_url }}" alt="Temporary company logo preview">
+                  <div class="onboard_temp_notice">
+                    Logo uploaded temporarily: {{ temp_logo_name }}. It will be saved when the form is completed correctly.
+                  </div>
+                {% endif %}
+
+                {{ field }}
+
+                {% if field.name == "logo" %}
+                  <span class="onboard_help_text">Recommended: horizontal logo, less than 3MB.</span>
+                {% endif %}
+
+                {% if field.errors %}
+                  <span class="onboard_error">{{ field.errors }}</span>
+                {% endif %}
+              </label>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="onboard_section">
+        <div class="onboard_section_head">
+          <h2 class="onboard_section_title">Owner Login</h2>
+          <p class="onboard_section_text">
+            This creates the main owner user for the company workspace. This user will log in with email and password.
+          </p>
+        </div>
+
+        <div class="onboard_grid">
+          {% for field in form.visible_fields %}
+            {% if field.name == "owner_first_name" or field.name == "owner_last_name" or field.name == "owner_email" or field.name == "owner_phone" or field.name == "password1" or field.name == "password2" %}
+              <label class="onboard_field">
+                <span class="onboard_label">{{ field.label }}</span>
+                {{ field }}
+
+                {% if field.errors %}
+                  <span class="onboard_error">{{ field.errors }}</span>
+                {% endif %}
+              </label>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="onboard_section">
+        <div class="onboard_section_head">
+          <h2 class="onboard_section_title">SaaS Plan & Subscription</h2>
+          <p class="onboard_section_text">
+            Select the SaaS plan and renewal date. Company access depends on the subscription renewal date.
+          </p>
+        </div>
+
+        <div class="onboard_grid">
+          {% for field in form.visible_fields %}
+            {% if field.name == "id_plan" or field.name == "start_date" or field.name == "renewal_date" or field.name == "subscription_notes" %}
+              <label class="onboard_field {% if field.name == 'subscription_notes' %}onboard_field_full{% endif %}">
+                <span class="onboard_label">{{ field.label }}</span>
+                {{ field }}
+
+                {% if field.errors %}
+                  <span class="onboard_error">{{ field.errors }}</span>
+                {% endif %}
+              </label>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="onboard_actions">
+        <button class="crm_button" type="submit">{{ submit_label }}</button>
+        <a class="crm_button crm_button_secondary" href="{% url 'companies:company_list' %}">Cancel</a>
+      </div>
+    </form>
+
+    <aside class="onboard_side">
+      <div class="onboard_panel">
+        <h2>What This Flow Creates</h2>
+
+        <ul class="onboard_rules">
+          <li>Company record with automatic slug.</li>
+          <li>Owner user with login access.</li>
+          <li>Owner role and permissions.</li>
+          <li>Enabled company modules for the mini CRM.</li>
+          <li>Initial SaaS subscription with renewal date.</li>
+        </ul>
+      </div>
+
+      <div class="onboard_panel">
+        <h2>What This Flow Does Not Create</h2>
+        <p>
+          It does not create employees, clients, leads, projects, inspections, estimates,
+          operational invoices or operational payments. Those belong to the company CRM workspace.
+        </p>
+      </div>
+    </aside>
+  </section>
+{% endblock %}

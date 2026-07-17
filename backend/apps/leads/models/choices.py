@@ -1,0 +1,33 @@
+LEAD_STATUS_NEW = "new"
+LEAD_STATUS_CONTACTED = "contacted"
+LEAD_STATUS_QUALIFIED = "qualified"
+LEAD_STATUS_PENDING = "pending"
+LEAD_STATUS_CONVERTED = "converted"
+LEAD_STATUS_LOST = "lost"
+LEAD_STATUS_CANCELLED = "cancelled"
+
+LEAD_STATUS_CHOICES = [
+    (LEAD_STATUS_NEW, "New"),
+    (LEAD_STATUS_CONTACTED, "Contacted"),
+    (LEAD_STATUS_QUALIFIED, "Qualified"),
+    (LEAD_STATUS_PENDING, "Pending"),
+    (LEAD_STATUS_CONVERTED, "Converted"),
+    (LEAD_STATUS_LOST, "Lost"),
+    (LEAD_STATUS_CANCELLED, "Cancelled"),
+]
+
+LEAD_SOURCE_WEBSITE = "website"
+LEAD_SOURCE_PHONE = "phone"
+LEAD_SOURCE_EMAIL = "email"
+LEAD_SOURCE_REFERRAL = "referral"
+LEAD_SOURCE_SOCIAL = "social"
+LEAD_SOURCE_OTHER = "other"
+
+LEAD_SOURCE_CHOICES = [
+    (LEAD_SOURCE_WEBSITE, "Website"),
+    (LEAD_SOURCE_PHONE, "Phone"),
+    (LEAD_SOURCE_EMAIL, "Email"),
+    (LEAD_SOURCE_REFERRAL, "Referral"),
+    (LEAD_SOURCE_SOCIAL, "Social Media"),
+    (LEAD_SOURCE_OTHER, "Other"),
+]

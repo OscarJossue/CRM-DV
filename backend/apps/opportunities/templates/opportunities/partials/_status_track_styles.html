@@ -1,0 +1,100 @@
+<style>
+  .opportunity-status-workflow {
+    position: relative;
+  }
+
+  .opportunity-status-workflow .nj-status-node {
+    padding: 0;
+    font: inherit;
+    line-height: 1;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  /* Only the committed status is colored. Every other ball remains gray. */
+  .opportunity-status-workflow .nj-status-node.is-current {
+    border-color: var(--stage-color) !important;
+    background: var(--stage-color) !important;
+    color: #fff !important;
+    transform: scale(1.12);
+    box-shadow:
+      0 0 0 2px #fff,
+      0 0 0 4px color-mix(in srgb, var(--stage-color) 20%, transparent),
+      0 0 12px color-mix(in srgb, var(--stage-color) 32%, transparent) !important;
+  }
+
+  .opportunity-status-workflow .nj-status-node.is-current > i,
+  .opportunity-status-workflow .nj-status-node.is-current > i::before {
+    color: #fff !important;
+    opacity: 1 !important;
+  }
+
+  /* The connectors never preview progress; they remain neutral gray. */
+  .opportunity-status-workflow .nj-status-line,
+  .opportunity-status-workflow .nj-status-line.is-active {
+    background: #d9e2ed !important;
+  }
+
+  .opportunity-status-workflow.is-interactive button.nj-status-node {
+    cursor: pointer;
+  }
+
+  /* Hover must not change color, size, shadow or the committed caption. */
+  .opportunity-status-workflow.is-interactive .nj-status-node:hover,
+  .opportunity-status-workflow.is-interactive .nj-status-node:focus,
+  .opportunity-status-workflow.is-interactive .nj-status-node:focus-visible {
+    outline: none;
+  }
+
+  .opportunity-status-workflow.is-interactive .nj-status-node:not(.is-current):hover,
+  .opportunity-status-workflow.is-interactive .nj-status-node:not(.is-current):focus,
+  .opportunity-status-workflow.is-interactive .nj-status-node:not(.is-current):focus-visible {
+    border-color: #cbd6e4 !important;
+    background: #fff !important;
+    color: #a3afc2 !important;
+    transform: none !important;
+    box-shadow: 0 0 0 2px #fff !important;
+  }
+
+  .opportunity-status-workflow .nj-status-node.is-locked {
+    cursor: not-allowed;
+    opacity: .72;
+  }
+
+  .opportunity-status-workflow.is-saving {
+    pointer-events: none;
+    opacity: .72;
+  }
+
+  /* Temporary hover name lives above the balls and never replaces the real status below. */
+  .opportunity-status-hover-caption {
+    display: block;
+    min-height: 12px;
+    margin-bottom: 3px;
+    color: var(--nj-ink);
+    font-size: 9px;
+    font-weight: 900;
+    line-height: 12px;
+    text-align: center;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(2px);
+    transition: opacity .1s ease, transform .1s ease, visibility .1s ease;
+    pointer-events: none;
+  }
+
+  .opportunity-status-hover-caption.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .opportunity-status-workflow .nj-status-caption.is-saving {
+    color: var(--nj-blue) !important;
+  }
+
+  .opportunity-status-workflow .nj-status-caption.is-error {
+    color: var(--nj-danger) !important;
+  }
+</style>

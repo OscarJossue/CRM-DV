@@ -1,0 +1,163 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}{{ lead.name }}{% endblock %}
+{% block page_subtitle %}Opportunity profile, client relationship, value and conversion status.{% endblock %}
+
+{% block extra_head %}
+  {% include "partials/_crm_design_system.html" %}
+  {% include "opportunities/partials/_status_track_styles.html" %}
+  <style>
+    .opportunity-detail-hero {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 18px;
+      background: linear-gradient(135deg, #fff 0%, var(--nj-ice) 100%);
+    }
+
+    .opportunity-detail-title { display: flex; align-items: center; gap: 13px; min-width: 0; }
+    .opportunity-detail-title h1 { margin: 0; color: var(--nj-ink); font-size: clamp(26px,3vw,38px); font-weight: 950; letter-spacing: -.035em; overflow-wrap: anywhere; }
+    .opportunity-detail-meta { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
+
+    .opportunity-status-card { padding: 17px; background: linear-gradient(135deg, #fff 0%, var(--nj-ice) 100%); }
+    .opportunity-status-card .nj-status-node { width: 38px; height: 38px; flex-basis: 38px; border-width: 1.6px; }
+    .opportunity-status-card .nj-status-node > i { font-size: 14px; }
+    .opportunity-status-card .nj-status-line { width: 42px; min-width: 42px; flex-basis: 42px; height: 2px; margin: 0 6px; }
+    .opportunity-status-card .nj-status-caption { margin-top: 12px; font-size: 13px; }
+
+    .opportunity-summary-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 11px; }
+    .opportunity-summary-card { display: flex; align-items: center; gap: 12px; min-width: 0; padding: 14px; }
+    .opportunity-summary-card > div { min-width: 0; }
+    .opportunity-summary-card > div > span { display: block; color: var(--nj-muted); font-size: 10px; font-weight: 850; letter-spacing: .05em; text-transform: uppercase; }
+    .opportunity-summary-card > div > strong { display: block; margin-top: 4px; color: var(--nj-ink); font-size: 18px; font-weight: 950; line-height: 1.15; overflow-wrap: anywhere; }
+    .opportunity-summary-card > div > small { display: block; margin-top: 5px; color: var(--nj-muted); font-size: 10px; font-weight: 650; }
+
+    .opportunity-detail-layout { display: grid; grid-template-columns: minmax(0,1.55fr) minmax(320px,.85fr); gap: 16px; align-items: start; }
+    .opportunity-detail-main,
+    .opportunity-detail-side { display: grid; gap: 14px; min-width: 0; }
+
+    .opportunity-info-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+    .opportunity-info-box { padding: 12px; border: 1px solid var(--nj-line); border-radius: 12px; background: #f8fbff; }
+    .opportunity-info-box.is-full { grid-column: 1 / -1; }
+    .opportunity-info-box span { display: block; color: var(--nj-muted); font-size: 10px; font-weight: 850; letter-spacing: .04em; text-transform: uppercase; }
+    .opportunity-info-box strong { display: block; margin-top: 5px; color: var(--nj-ink); font-size: 13.5px; font-weight: 850; line-height: 1.45; overflow-wrap: anywhere; }
+    .opportunity-info-box small { display: block; margin-top: 4px; color: var(--nj-muted); font-size: 11px; font-weight: 650; line-height: 1.45; }
+    .opportunity-info-box a { color: var(--nj-navy); text-decoration: none; }
+    .opportunity-info-box a:hover { color: var(--nj-blue); }
+
+    .opportunity-note { padding: 13px; border: 1px solid var(--nj-line); border-radius: 12px; background: #f8fbff; color: var(--nj-ink); font-size: 13px; font-weight: 650; line-height: 1.65; overflow-wrap: anywhere; }
+
+    .opportunity-timeline { position: relative; display: grid; gap: 13px; }
+    .opportunity-timeline::before { content: ""; position: absolute; left: 10px; top: 11px; bottom: 11px; width: 2px; border-radius: 999px; background: #e2eaf4; }
+    .opportunity-timeline-item { display: grid; grid-template-columns: 22px minmax(0,1fr); gap: 11px; align-items: start; }
+    .opportunity-timeline-dot { position: relative; z-index: 1; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 999px; background: var(--nj-blue); color: #fff; font-size: 9px; box-shadow: 0 0 0 4px #fff,0 5px 12px rgba(8,104,232,.17); }
+    .opportunity-timeline-dot.is-violet { background: var(--nj-violet); box-shadow: 0 0 0 4px #fff,0 5px 12px rgba(124,58,237,.17); }
+    .opportunity-timeline-dot.is-success { background: var(--nj-success); box-shadow: 0 0 0 4px #fff,0 5px 12px rgba(14,159,110,.17); }
+    .opportunity-timeline-dot.is-void { background: var(--nj-void); box-shadow: 0 0 0 4px #fff,0 5px 12px rgba(107,114,128,.17); }
+    .opportunity-timeline-copy strong { display: block; color: var(--nj-ink); font-size: 12px; font-weight: 900; }
+    .opportunity-timeline-copy span { display: block; margin-top: 3px; color: var(--nj-muted); font-size: 10px; font-weight: 650; line-height: 1.45; }
+
+    @media (max-width: 1050px) {
+      .opportunity-summary-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+      .opportunity-detail-layout { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 680px) {
+      .opportunity-detail-hero { flex-direction: column; }
+      .opportunity-detail-hero .nj-action-row,
+      .opportunity-detail-hero .nj-btn { width: 100%; }
+      .opportunity-summary-grid,
+      .opportunity-info-grid { grid-template-columns: 1fr; }
+      .opportunity-info-box.is-full { grid-column: auto; }
+      .opportunity-status-card .nj-status-node { width: 30px; height: 30px; flex-basis: 30px; }
+      .opportunity-status-card .nj-status-node > i { font-size: 11px; }
+      .opportunity-status-card .nj-status-line { width: 22px; min-width: 22px; flex-basis: 22px; margin: 0 3px; }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+<div class="nj-invoice nj-page">
+  <section class="nj-card opportunity-detail-hero">
+    <div class="opportunity-detail-title">
+      <span class="nj-icon-box is-violet"><i class="bi bi-bullseye" aria-hidden="true"></i></span>
+      <div>
+        <span class="nj-page-kicker">Opportunity profile</span>
+        <h1>{{ lead.name|default:"Unnamed opportunity" }}</h1>
+        <div class="opportunity-detail-meta">
+          <span class="nj-badge is-blue"><i class="bi bi-hash" aria-hidden="true"></i> {{ lead.opportunity_code|default:"Pending" }}</span>
+          <span class="nj-badge {% if lead.status == 'new' %}is-blue{% elif lead.status == 'qualified' %}is-violet{% elif lead.status == 'won' or lead.status == 'converted' %}is-success{% else %}is-void{% endif %}">{{ lead.get_status_display }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="nj-action-row">
+      <a class="nj-btn nj-btn-secondary" href="{{ opportunity_urls.list }}"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back</a>
+      {% if can_edit_opportunities %}<a class="nj-btn" href="{{ opportunity_urls.update }}"><i class="bi bi-pencil" aria-hidden="true"></i> Edit</a>{% endif %}
+      {% if opportunity_urls.project_detail %}<a class="nj-btn nj-btn-success" href="{{ opportunity_urls.project_detail }}"><i class="bi bi-briefcase" aria-hidden="true"></i> View project</a>{% elif can_approve_opportunities and lead.status == "won" %}<a class="nj-btn nj-btn-success" href="{{ opportunity_urls.project_create }}"><i class="bi bi-folder-plus" aria-hidden="true"></i> Convert to project</a>{% endif %}
+    </div>
+  </section>
+
+  <section class="nj-card opportunity-status-card">
+    <div class="nj-card-head"><h2 class="nj-card-title"><i class="bi bi-diagram-3" aria-hidden="true"></i> Opportunity workflow</h2></div>
+    <div class="nj-card-body">{% include "opportunities/partials/_status_track.html" with lead=lead %}</div>
+  </section>
+
+  <section class="opportunity-summary-grid">
+    <article class="nj-card opportunity-summary-card"><span class="nj-icon-box"><i class="bi bi-cash-stack" aria-hidden="true"></i></span><div><span>Approximate value</span><strong>${{ lead.approximate_value|default:"0.00"|floatformat:2 }}</strong><small>Commercial estimate</small></div></article>
+    <article class="nj-card opportunity-summary-card"><span class="nj-icon-box is-violet"><i class="bi bi-person-vcard" aria-hidden="true"></i></span><div><span>Client</span><strong>{{ lead.id_client.name|default:"No client" }}</strong><small>{{ lead.id_client.client_code|default:"No code" }}</small></div></article>
+    <article class="nj-card opportunity-summary-card"><span class="nj-icon-box is-success"><i class="bi bi-calendar-check" aria-hidden="true"></i></span><div><span>Next follow-up</span><strong>{% if lead.next_follow_up_date %}{{ lead.next_follow_up_date|date:"d M Y" }}{% else %}Not scheduled{% endif %}</strong><small>Commercial contact</small></div></article>
+    <article class="nj-card opportunity-summary-card"><span class="nj-icon-box is-warning"><i class="bi bi-megaphone" aria-hidden="true"></i></span><div><span>Source</span><strong>{{ lead.get_source_display|default:"Not provided" }}</strong><small>Lead origin</small></div></article>
+  </section>
+
+  <div class="opportunity-detail-layout">
+    <main class="opportunity-detail-main">
+      <section class="nj-card">
+        <div class="nj-card-head"><h2 class="nj-card-title"><i class="bi bi-card-checklist" aria-hidden="true"></i> Opportunity information</h2></div>
+        <div class="nj-card-body">
+          <div class="opportunity-info-grid">
+            <div class="opportunity-info-box"><span>Code</span><strong>{{ lead.opportunity_code|default:"Pending" }}</strong></div>
+            <div class="opportunity-info-box"><span>Status</span><strong>{{ lead.get_status_display }}</strong></div>
+            <div class="opportunity-info-box"><span>Assigned user</span><strong>{{ lead.id_assigned_user.email|default:"Unassigned" }}</strong></div>
+            <div class="opportunity-info-box"><span>Converted project</span><strong>{% if opportunity_urls.project_detail %}<a href="{{ opportunity_urls.project_detail }}">{{ lead.id_converted_project.project_name|default:lead.id_converted_project.id_project }}</a>{% else %}Not converted{% endif %}</strong></div>
+            <div class="opportunity-info-box is-full"><span>Description</span><strong>{{ lead.project_description|default:"No description"|linebreaksbr }}</strong></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="nj-card">
+        <div class="nj-card-head"><h2 class="nj-card-title"><i class="bi bi-person-lines-fill" aria-hidden="true"></i> Client and contact</h2></div>
+        <div class="nj-card-body">
+          <div class="opportunity-info-grid">
+            <div class="opportunity-info-box is-full"><span>Client</span><strong>{% if opportunity_urls.client_detail %}<a href="{{ opportunity_urls.client_detail }}">{{ lead.id_client.name }}</a>{% else %}No client{% endif %}</strong><small>{{ lead.id_client.client_code|default:"No client code" }}{% if lead.id_client.dni %} · DNI {{ lead.id_client.dni }}{% endif %}</small></div>
+            <div class="opportunity-info-box"><span>Phone</span><strong>{{ lead.phone|default:"Not provided" }}</strong></div>
+            <div class="opportunity-info-box"><span>Email</span><strong>{{ lead.email|default:"Not provided" }}</strong></div>
+            <div class="opportunity-info-box is-full"><span>Address</span><strong>{{ lead.address|default:"Not provided"|linebreaksbr }}</strong></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <aside class="opportunity-detail-side">
+      <section class="nj-card">
+        <div class="nj-card-head"><h2 class="nj-card-title"><i class="bi bi-clock-history" aria-hidden="true"></i> Activity timeline</h2></div>
+        <div class="nj-card-body">
+          <div class="opportunity-timeline">
+            <div class="opportunity-timeline-item"><span class="opportunity-timeline-dot"><i class="bi bi-plus" aria-hidden="true"></i></span><div class="opportunity-timeline-copy"><strong>Created</strong><span>{{ lead.created_at|date:"d M Y, H:i" }}</span></div></div>
+            {% if lead.status == 'qualified' %}<div class="opportunity-timeline-item"><span class="opportunity-timeline-dot is-violet"><i class="bi bi-stars" aria-hidden="true"></i></span><div class="opportunity-timeline-copy"><strong>Qualified</strong><span>The opportunity is currently validated.</span></div></div>{% endif %}
+            {% if lead.status == 'won' %}<div class="opportunity-timeline-item"><span class="opportunity-timeline-dot is-success"><i class="bi bi-trophy" aria-hidden="true"></i></span><div class="opportunity-timeline-copy"><strong>Won</strong><span>Ready to convert into a project.</span></div></div>{% endif %}
+            {% if lead.status == 'converted' %}<div class="opportunity-timeline-item"><span class="opportunity-timeline-dot is-success"><i class="bi bi-briefcase" aria-hidden="true"></i></span><div class="opportunity-timeline-copy"><strong>Converted</strong><span>The linked project has been created.</span></div></div>{% endif %}
+            {% if lead.status == 'cancelled' %}<div class="opportunity-timeline-item"><span class="opportunity-timeline-dot is-void"><i class="bi bi-x" aria-hidden="true"></i></span><div class="opportunity-timeline-copy"><strong>Cancelled</strong><span>The opportunity was closed without conversion.</span></div></div>{% endif %}
+            <div class="opportunity-timeline-item"><span class="opportunity-timeline-dot"><i class="bi bi-pencil" aria-hidden="true"></i></span><div class="opportunity-timeline-copy"><strong>Last update</strong><span>{{ lead.updated_at|date:"d M Y, H:i" }}</span></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="nj-card">
+        <div class="nj-card-head"><h2 class="nj-card-title"><i class="bi bi-calendar3" aria-hidden="true"></i> Follow-up</h2></div>
+        <div class="nj-card-body"><div class="opportunity-note">{% if lead.next_follow_up_date %}Next contact scheduled for <strong>{{ lead.next_follow_up_date|date:"d M Y" }}</strong>.{% else %}No next follow-up date has been scheduled.{% endif %}</div></div>
+      </section>
+    </aside>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,140 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Send invoice {{ invoice.invoice_number|default:invoice.id_invoice }}{% endblock %}
+{% block page_subtitle %}Send this invoice through the active email configuration for the company.{% endblock %}
+
+{% block extra_head %}
+  {% include "invoices/partials/_design_system.html" %}
+  <style>
+    .invoice-send-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(290px, 360px);
+      gap: 15px;
+      align-items: start;
+    }
+
+    .invoice-send-form { display: grid; gap: 13px; }
+    .invoice-send-summary { position: sticky; top: 18px; overflow: hidden; }
+
+    .invoice-send-hero {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      padding: 15px;
+      border: 1px solid rgba(8,104,232,.16);
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--nj-ice), #fff);
+    }
+
+    .invoice-send-hero strong { display: block; color: var(--nj-ink); font-size: 14px; font-weight: 900; }
+    .invoice-send-hero span { display: block; margin-top: 4px; color: var(--nj-muted); font-size: 11px; font-weight: 600; line-height: 1.45; }
+
+    .invoice-send-summary-list { display: grid; gap: 0; }
+    .invoice-send-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 11px 0;
+      border-bottom: 1px solid #edf2f8;
+      font-size: 12px;
+    }
+    .invoice-send-row:last-child { border-bottom: 0; }
+    .invoice-send-row span { color: var(--nj-muted); font-weight: 700; }
+    .invoice-send-row strong { color: var(--nj-ink); font-weight: 900; text-align: right; overflow-wrap: anywhere; }
+
+    .invoice-send-total {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      margin-top: 13px;
+      padding: 14px;
+      border-radius: 13px;
+      background: linear-gradient(135deg, var(--nj-navy), var(--nj-blue));
+      color: #fff;
+      box-shadow: 0 14px 28px rgba(7,27,120,.17);
+    }
+    .invoice-send-total span { font-size: 12px; font-weight: 750; }
+    .invoice-send-total strong { font-size: 22px; font-weight: 950; font-variant-numeric: tabular-nums; }
+
+    @media (max-width: 980px) {
+      .invoice-send-layout { grid-template-columns: 1fr; }
+      .invoice-send-summary { position: static; }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+<div class="nj-invoice nj-page">
+  <header class="nj-page-head">
+    <div>
+      <span class="nj-page-kicker"><i class="bi bi-send" aria-hidden="true"></i> Email delivery</span>
+      <h1 class="nj-page-title">Send invoice</h1>
+      <p class="nj-page-subtitle">Review the recipient and message. The document is marked as sent only after the email is delivered successfully.</p>
+    </div>
+    <div class="nj-head-actions">
+      <a class="nj-btn nj-btn-secondary" href="{{ invoice_urls.detail }}"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to invoice</a>
+    </div>
+  </header>
+
+  <div class="invoice-send-layout">
+    <section class="nj-card">
+      <div class="nj-card-head"><h2 class="nj-card-title"><i class="bi bi-envelope-paper" aria-hidden="true"></i> Email information</h2></div>
+      <div class="nj-card-body">
+        <div class="invoice-send-hero">
+          <span class="nj-icon-box"><i class="bi bi-shield-check" aria-hidden="true"></i></span>
+          <div><strong>Company email configuration</strong><span>The message will use the active SMTP settings assigned to {{ invoice.id_company.name }}.</span></div>
+        </div>
+
+        <form class="invoice-send-form" action="{{ form_action_url }}" method="post" style="margin-top:15px;">
+          {% csrf_token %}
+          {% if form.non_field_errors %}<div class="nj-alert"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i><div>{{ form.non_field_errors }}</div></div>{% endif %}
+
+          <div class="nj-field">
+            <label class="nj-required" for="{{ form.recipient_email.id_for_label }}">Recipient email</label>
+            {{ form.recipient_email }}
+            <span class="nj-help">The client billing email is loaded automatically when available.</span>
+            <div class="nj-error">{{ form.recipient_email.errors }}</div>
+          </div>
+
+          <div class="nj-field">
+            <label for="{{ form.subject.id_for_label }}">Subject</label>
+            {{ form.subject }}
+            <div class="nj-error">{{ form.subject.errors }}</div>
+          </div>
+
+          <div class="nj-field">
+            <label for="{{ form.message.id_for_label }}">Message</label>
+            {{ form.message }}
+            <div class="nj-error">{{ form.message.errors }}</div>
+          </div>
+
+          <div class="nj-alert">
+            <i class="bi bi-info-circle" aria-hidden="true"></i>
+            <div>Once sent, the invoice remains locked for editing. You can re-send it, register payments, download the PDF or void it according to your permissions.</div>
+          </div>
+
+          <div class="nj-action-row">
+            <button class="nj-btn nj-btn-success" type="submit"><i class="bi bi-send-check" aria-hidden="true"></i> Send invoice</button>
+            <a class="nj-btn nj-btn-secondary" href="{{ invoice_urls.detail }}"><i class="bi bi-x-lg" aria-hidden="true"></i> Cancel</a>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <aside class="nj-card invoice-send-summary">
+      <div class="nj-card-head"><h2 class="nj-card-title"><i class="bi bi-receipt" aria-hidden="true"></i> Invoice summary</h2><span class="nj-badge {% if invoice.status == 'draft' %}is-neutral{% elif invoice.status == 'pending_send' %}is-blue{% elif invoice.status == 'sent' %}is-success{% else %}is-void{% endif %}">{{ invoice.get_status_display }}</span></div>
+      <div class="nj-card-body">
+        <div class="invoice-send-summary-list">
+          <div class="invoice-send-row"><span>Invoice</span><strong>{{ invoice.invoice_number|default:invoice.id_invoice }}</strong></div>
+          <div class="invoice-send-row"><span>Client</span><strong>{{ invoice.client_billing_name|default:invoice.id_client.name }}</strong></div>
+          <div class="invoice-send-row"><span>Project</span><strong>{{ invoice.project_name|default:invoice.id_project.name }}</strong></div>
+          <div class="invoice-send-row"><span>Issue date</span><strong>{{ invoice.issue_date|date:"d M Y" }}</strong></div>
+          <div class="invoice-send-row"><span>Due date</span><strong>{{ invoice.due_date|date:"d M Y"|default:"No due date" }}</strong></div>
+          <div class="invoice-send-row"><span>Balance due</span><strong>${{ invoice.balance_due|floatformat:2 }}</strong></div>
+        </div>
+        <div class="invoice-send-total"><span>Invoice total</span><strong>${{ invoice.total|floatformat:2 }}</strong></div>
+      </div>
+    </aside>
+  </div>
+</div>
+{% endblock %}

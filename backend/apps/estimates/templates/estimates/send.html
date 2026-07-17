@@ -1,0 +1,293 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}
+{% if is_resend %}
+Re-send Estimate {{ estimate.estimate_number|default:estimate.id_estimate }}
+{% else %}
+Send Estimate {{ estimate.estimate_number|default:estimate.id_estimate }}
+{% endif %}
+{% endblock %}
+
+{% block page_subtitle %}
+Send this proforma using the active Email Settings configured for this company. The PDF is attached and the customer review link is included automatically.
+{% endblock %}
+
+{% block extra_head %}
+{% include "estimates/partials/_design_system.html" %}
+<style>
+  .estimate_send_page {
+    display: grid;
+    gap: 18px;
+  }
+
+  .estimate_send_grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: 18px;
+    align-items: start;
+  }
+
+  .estimate_send_form {
+    display: grid;
+    gap: 16px;
+  }
+
+  .estimate_send_field {
+    display: grid;
+    gap: 8px;
+  }
+
+  .estimate_send_field label {
+    font-size: 12px;
+    font-weight: 900;
+    color: var(--estimate-ink);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .crm_input {
+    width: 100%;
+    min-height: 46px;
+    padding: 11px 14px;
+    font: inherit;
+  }
+
+  textarea.crm_input {
+    min-height: 150px;
+    resize: vertical;
+  }
+
+  .estimate_send_summary {
+    display: grid;
+    gap: 12px;
+  }
+
+  .estimate_send_row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--estimate-line);
+    font-size: 14px;
+  }
+
+  .estimate_send_row span:first-child {
+    font-weight: 700;
+  }
+
+  .estimate_send_row span:last-child {
+    color: var(--estimate-ink);
+    font-weight: 800;
+    text-align: right;
+  }
+
+  .estimate_send_actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .estimate_notice {
+    padding: 16px 18px;
+    font-size: 14px;
+    line-height: 1.65;
+    font-weight: 600;
+  }
+
+  .estimate_send_intro {
+    display: grid;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+
+  .estimate_send_summary_title {
+    margin: 0;
+    font-size: 24px;
+    color: var(--estimate-ink);
+    font-weight: 800;
+  }
+
+  .estimate_send_summary_copy {
+    margin: 0;
+    color: var(--estimate-muted);
+    font-size: 14px;
+    line-height: 1.65;
+    font-weight: 600;
+  }
+
+  @media (max-width: 900px) {
+    .estimate_send_grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% include "estimates/partials/_finance_standard.html" %}
+{% endblock %}
+
+{% block content %}
+  <div class="estimate_theme estimate_send_page nj-invoice nj-page finance-standard">
+    <div class="estimate_send_grid">
+    <section class="crm_card">
+      <div class="estimate_send_intro">
+        <h2 class="estimate_send_summary_title">
+        {% if is_resend %}
+          Re-send Estimate
+        {% else %}
+          Send Estimate
+        {% endif %}
+      </h2>
+
+      <p class="estimate_send_summary_copy">
+        This email will use the SMTP settings assigned to {{ estimate.id_company.name }}.
+      </p>
+      </div>
+
+      {% if is_resend %}
+        <div class="estimate_notice estimate_notice_warning">
+          This estimate was already sent. You can re-send it to the client, and it can still be edited until it is approved.
+        </div>
+      {% else %}
+        <div class="estimate_notice">
+          The estimate will only be marked as sent if the email is sent successfully. A PDF copy will be attached automatically.
+        </div>
+      {% endif %}
+
+      {% if public_estimate_url %}
+        <div class="estimate_notice" style="margin-top:12px;">
+          <strong>Customer review link included:</strong><br>
+          {{ public_estimate_url }}
+          <br>
+          The client will only see two actions: <strong>Approve</strong> or <strong>Reject with reason</strong>. No signature is requested.
+        </div>
+      {% endif %}
+
+      <form class="estimate_send_form" method="post" action="{{ send_form_action_url }}" style="margin-top:16px;">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="estimate_error">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="estimate_send_field">
+          <label for="{{ form.recipient_email.id_for_label }}">Recipient Email</label>
+          {{ form.recipient_email }}
+          {% if form.recipient_email.errors %}
+            <div class="estimate_error">{{ form.recipient_email.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="estimate_send_field">
+          <label for="{{ form.subject.id_for_label }}">Subject</label>
+          {{ form.subject }}
+          {% if form.subject.errors %}
+            <div class="estimate_error">{{ form.subject.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="estimate_send_field">
+          <label for="{{ form.message.id_for_label }}">Message</label>
+          {{ form.message }}
+          {% if form.message.errors %}
+            <div class="estimate_error">{{ form.message.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="estimate_send_actions">
+          <button class="crm_button" type="submit">
+            {% if is_resend %}
+              Re-send Estimate
+            {% else %}
+              Send Estimate
+            {% endif %}
+          </button>
+
+          <a class="crm_button crm_button_secondary" href="{{ estimate_detail_url }}">
+            Cancel
+          </a>
+        </div>
+      </form>
+    </section>
+
+    <aside class="crm_card">
+      <div class="estimate_send_intro">
+        <h2 class="estimate_send_summary_title">Estimate Summary</h2>
+        <p class="estimate_send_summary_copy">Quick review before sending the estimate email and PDF attachment.</p>
+      </div>
+
+      <div class="estimate_send_summary">
+        <div class="estimate_send_row">
+          <span>Number</span>
+          <span>{{ estimate.estimate_number|default:estimate.id_estimate }}</span>
+        </div>
+
+        <div class="estimate_send_row">
+          <span>Status</span>
+          <span>
+            <span class="estimate_status estimate_status_{{ estimate.status }}">
+              {{ estimate.get_status_display }}
+            </span>
+          </span>
+        </div>
+
+        <div class="estimate_send_row">
+          <span>Client</span>
+          <span>{{ estimate.client_billing_name|default:estimate.id_client.name }}</span>
+        </div>
+
+        <div class="estimate_send_row">
+          <span>Email</span>
+          <span>{{ estimate.client_billing_email|default:"-" }}</span>
+        </div>
+
+        <div class="estimate_send_row">
+          <span>Project</span>
+          <span>
+            {% if estimate.id_project %}
+              {{ estimate.project_name|default:estimate.id_project.name }}
+            {% elif estimate.project_name %}
+              {{ estimate.project_name }}
+            {% else %}
+              -
+            {% endif %}
+          </span>
+        </div>
+
+        <div class="estimate_send_row">
+          <span>Subtotal</span>
+          <span>${{ estimate.subtotal }}</span>
+        </div>
+
+        <div class="estimate_send_row">
+          <span>Discount</span>
+          <span>${{ estimate.discount_amount }}</span>
+        </div>
+
+        <div class="estimate_send_row">
+          <span>Tax</span>
+          <span>${{ estimate.tax }}</span>
+        </div>
+
+        <div class="estimate_send_row">
+          <span>Total</span>
+          <span>${{ estimate.total }}</span>
+        </div>
+
+        <div class="estimate_send_row">
+          <span>Issue Date</span>
+          <span>{{ estimate.issue_date|date:"Y-m-d"|default:"-" }}</span>
+        </div>
+
+        <div class="estimate_send_row">
+          <span>Expiration</span>
+          <span>{{ estimate.expiration_date|date:"Y-m-d"|default:"-" }}</span>
+        </div>
+
+        <div class="estimate_send_row">
+          <span>Last Sent</span>
+          <span>{{ estimate.sent_at|date:"Y-m-d H:i"|default:"Not sent yet" }}</span>
+        </div>
+      </div>
+    </aside>
+    </div>
+  </div>
+{% endblock %}

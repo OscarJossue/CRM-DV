@@ -1,0 +1,491 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block page_title %}{{ form_title }}{% endblock %}
+{% block page_subtitle %}Create or update an opportunity using the CRM standard interface.{% endblock %}
+
+{% block extra_head %}
+  {% include "partials/_crm_design_system.html" %}
+  <link rel="stylesheet" href="{% static 'vendor/tom-select/2.4.3/tom-select.css' %}">
+  <style>
+    .opportunity-form-card { overflow: visible; }
+
+    .opportunity-form-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 17px 18px;
+      border-bottom: 1px solid var(--nj-line);
+      background: linear-gradient(135deg, #fff 0%, var(--nj-ice) 100%);
+    }
+
+    .opportunity-form-head h2 {
+      margin: 0;
+      color: var(--nj-ink);
+      font-size: 18px;
+      font-weight: 950;
+    }
+
+    .opportunity-form-head p {
+      margin: 4px 0 0;
+      color: var(--nj-muted);
+      font-size: 11px;
+      font-weight: 650;
+    }
+
+    .opportunity-form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 13px;
+      padding: 18px;
+    }
+
+    .opportunity-field-full { grid-column: 1 / -1; }
+
+    .opportunity-form-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 15px 18px;
+      border-top: 1px solid var(--nj-line);
+      background: #fbfdff;
+    }
+
+    .client-preview {
+      grid-column: 1 / -1;
+      display: none;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .client-preview.is-visible { display: grid; }
+
+    .client-preview-item {
+      min-width: 0;
+      padding: 12px;
+      border: 1px solid var(--nj-line);
+      border-radius: 12px;
+      background: #f8fbff;
+    }
+
+    .client-preview-item span {
+      display: block;
+      color: var(--nj-muted);
+      font-size: 10px;
+      font-weight: 850;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .client-preview-item strong {
+      display: block;
+      margin-top: 5px;
+      color: var(--nj-ink);
+      font-size: 12px;
+      font-weight: 850;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+
+    select.opportunity_client_select {
+      display: block;
+      width: 100%;
+    }
+
+    .opportunity-client-field { position: relative; z-index: 30; }
+    .opportunity-client-field:focus-within { z-index: 80; }
+    .opportunity-client-field .ts-wrapper { width: 100%; min-width: 0; }
+
+    .opportunity-client-field .ts-control {
+      position: relative;
+      min-height: 44px !important;
+      display: flex !important;
+      align-items: center;
+      padding: 8px 42px 8px 12px !important;
+      border: 1px solid #c8d6e8 !important;
+      border-radius: 11px !important;
+      background: linear-gradient(180deg, #fff 0%, #fbfdff 100%) !important;
+      color: var(--nj-ink) !important;
+      font-size: 13px !important;
+      font-weight: 750 !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.95), 0 5px 14px rgba(7,27,120,.055) !important;
+      cursor: text;
+    }
+
+    .opportunity-client-field .ts-wrapper.single .ts-control::after {
+      content: "";
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      width: 8px;
+      height: 8px;
+      border-right: 2px solid var(--nj-blue);
+      border-bottom: 2px solid var(--nj-blue);
+      transform: translateY(-65%) rotate(45deg);
+      pointer-events: none;
+    }
+
+    .opportunity-client-field .ts-wrapper.dropdown-active.single .ts-control::after {
+      transform: translateY(-30%) rotate(225deg);
+    }
+
+    .opportunity-client-field .ts-wrapper.focus .ts-control {
+      border-color: var(--nj-blue) !important;
+      box-shadow: 0 0 0 4px rgba(8,104,232,.10), 0 7px 18px rgba(7,27,120,.08) !important;
+    }
+
+    .opportunity-client-field .ts-control input {
+      min-width: 80px !important;
+      min-height: 24px !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      border: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      color: var(--nj-ink) !important;
+      font-size: 13px !important;
+      font-weight: 700 !important;
+    }
+
+    .opportunity-client-field .ts-control .item {
+      width: 100%;
+      min-width: 0;
+      margin: 0 !important;
+      padding: 0 !important;
+      background: transparent !important;
+      color: var(--nj-ink) !important;
+      font-weight: 800 !important;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .opportunity-client-field .ts-dropdown {
+      position: absolute !important;
+      z-index: 2147481000 !important;
+      margin-top: 7px !important;
+      overflow: hidden !important;
+      border: 1px solid var(--nj-line) !important;
+      border-radius: 13px !important;
+      background: #fff !important;
+      box-shadow: 0 18px 40px rgba(7,27,120,.18) !important;
+    }
+
+    .opportunity-client-field .ts-dropdown-content {
+      max-height: 290px !important;
+      padding: 6px !important;
+    }
+
+    .opportunity-client-field .ts-dropdown .option {
+      display: block !important;
+      width: 100% !important;
+      margin: 0 0 4px !important;
+      padding: 0 !important;
+      border-radius: 10px !important;
+      background: #fff !important;
+      color: var(--nj-ink) !important;
+    }
+
+    .opportunity-client-field .ts-dropdown .option:last-child { margin-bottom: 0 !important; }
+    .opportunity-client-field .ts-dropdown .option.active,
+    .opportunity-client-field .ts-dropdown .option:hover { background: var(--nj-ice) !important; }
+
+    .opportunity-client-option {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      min-height: 54px;
+      padding: 8px 10px;
+    }
+
+    .opportunity-client-option-icon {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      background: linear-gradient(145deg, var(--nj-ice), #fff);
+      color: var(--nj-blue);
+      font-size: 15px;
+      box-shadow: inset 0 0 0 1px rgba(8,104,232,.12);
+    }
+
+    .opportunity-client-option-copy { min-width: 0; }
+    .opportunity-client-option-copy strong {
+      display: block;
+      color: var(--nj-ink);
+      font-size: 12px;
+      font-weight: 900;
+      line-height: 1.35;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .opportunity-client-option-copy small {
+      display: block;
+      margin-top: 3px;
+      color: var(--nj-muted);
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 1.35;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .opportunity-client-no-results {
+      padding: 18px 12px;
+      color: var(--nj-muted);
+      font-size: 12px;
+      font-weight: 750;
+      text-align: center;
+    }
+
+    .opportunity-client-field .ts-wrapper.disabled .ts-control {
+      background: #f5f8fc !important;
+      color: #6f7e99 !important;
+      cursor: not-allowed;
+      opacity: 1;
+    }
+
+    .opportunity-date-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+
+    .opportunity_date_input {
+      min-height: 44px !important;
+      padding-right: 52px !important;
+      color-scheme: light;
+      cursor: pointer;
+    }
+
+    .opportunity_date_input::-webkit-calendar-picker-indicator {
+      position: absolute;
+      right: 12px;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      opacity: 0;
+    }
+
+    .opportunity-calendar-button {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      width: 34px;
+      height: 34px;
+      display: inline-grid;
+      place-items: center;
+      padding: 0;
+      border: 1px solid rgba(8,104,232,.18);
+      border-radius: 9px;
+      background: var(--nj-ice);
+      color: var(--nj-blue);
+      cursor: pointer;
+      transform: translateY(-50%);
+      transition: background .15s ease, border-color .15s ease, transform .15s ease;
+    }
+
+    .opportunity-calendar-button:hover {
+      border-color: var(--nj-blue);
+      background: #fff;
+      transform: translateY(-50%) scale(1.03);
+    }
+
+    @media (max-width: 760px) {
+      .opportunity-form-grid,
+      .client-preview { grid-template-columns: 1fr; }
+      .opportunity-field-full { grid-column: auto; }
+      .opportunity-form-actions { align-items: stretch; flex-direction: column-reverse; }
+      .opportunity-form-actions .nj-btn { width: 100%; }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+<div class="nj-invoice nj-page">
+  <header class="nj-page-head">
+    <div>
+      <span class="nj-page-kicker"><i class="bi bi-bullseye" aria-hidden="true"></i> Sales pipeline</span>
+      <h1 class="nj-page-title">{{ form_title }}</h1>
+      <p class="nj-page-subtitle">Select a client, define the value and schedule the next commercial follow-up.</p>
+    </div>
+  </header>
+
+  <form method="post" class="nj-card opportunity-form-card" novalidate>
+    {% csrf_token %}
+    <div class="opportunity-form-head">
+      <span class="nj-icon-box is-violet"><i class="bi bi-graph-up-arrow" aria-hidden="true"></i></span>
+      <div><h2>Opportunity information</h2><p>Required fields are marked with an asterisk.</p></div>
+    </div>
+
+    {% if form.non_field_errors %}
+      <div class="nj-alert" style="margin:16px 18px 0;"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i><div>{{ form.non_field_errors }}</div></div>
+    {% endif %}
+
+    <div class="opportunity-form-grid">
+      <div class="nj-field opportunity-field-full opportunity-client-field">
+        <label class="nj-required" for="{{ form.id_client.id_for_label }}">Client</label>
+        {{ form.id_client }}
+        <span class="nj-help">Search only by client code, client name or DNI.</span>
+        <div class="nj-error">{{ form.id_client.errors }}</div>
+      </div>
+
+      <div class="client-preview" id="clientPreview">
+        <div class="client-preview-item"><span>Phone</span><strong id="clientPreviewPhone">Not provided</strong></div>
+        <div class="client-preview-item"><span>Email</span><strong id="clientPreviewEmail">Not provided</strong></div>
+        <div class="client-preview-item"><span>Address</span><strong id="clientPreviewAddress">Not provided</strong></div>
+      </div>
+
+      <div class="nj-field">
+        <label class="nj-required" for="{{ form.approximate_value.id_for_label }}">Approximate value</label>
+        {{ form.approximate_value }}
+        <div class="nj-error">{{ form.approximate_value.errors }}</div>
+      </div>
+
+      <div class="nj-field">
+        <label class="nj-required" for="{{ form.status.id_for_label }}">Status</label>
+        {{ form.status }}
+        <div class="nj-error">{{ form.status.errors }}</div>
+      </div>
+
+      <div class="nj-field">
+        <label for="{{ form.source.id_for_label }}">Source</label>
+        {{ form.source }}
+        <div class="nj-error">{{ form.source.errors }}</div>
+      </div>
+
+      <div class="nj-field">
+        <label for="{{ form.next_follow_up_date.id_for_label }}">Next follow-up date</label>
+        <div class="opportunity-date-wrap">
+          {{ form.next_follow_up_date }}
+          <button class="opportunity-calendar-button" type="button" data-open-date-picker aria-label="Open calendar" title="Open calendar"><i class="bi bi-calendar3" aria-hidden="true"></i></button>
+        </div>
+        <span class="nj-help">Click the field or calendar button to choose the next contact date.</span>
+        <div class="nj-error">{{ form.next_follow_up_date.errors }}</div>
+      </div>
+
+      <div class="nj-field opportunity-field-full">
+        <label for="{{ form.project_description.id_for_label }}">Opportunity description</label>
+        {{ form.project_description }}
+        <div class="nj-error">{{ form.project_description.errors }}</div>
+      </div>
+    </div>
+
+    <div class="opportunity-form-actions">
+      <a class="nj-btn nj-btn-secondary" href="{{ opportunity_urls.list }}"><i class="bi bi-arrow-left" aria-hidden="true"></i> Cancel</a>
+      <button class="nj-btn nj-btn-success" type="submit"><i class="bi bi-check2" aria-hidden="true"></i> {{ submit_label }}</button>
+    </div>
+  </form>
+</div>
+
+<script src="{% static 'vendor/tom-select/2.4.3/tom-select.complete.min.js' %}"></script>
+<script>
+(function () {
+  function initOpportunityClientSearch() {
+    const select = document.querySelector('.opportunity_client_select');
+    const preview = document.getElementById('clientPreview');
+    const phone = document.getElementById('clientPreviewPhone');
+    const email = document.getElementById('clientPreviewEmail');
+    const address = document.getElementById('clientPreviewAddress');
+    if (!select) return;
+
+    const clients = {};
+    Array.from(select.options).forEach((option) => {
+      if (!option.value) return;
+      let data = {};
+      try { data = JSON.parse(option.dataset.data || '{}'); } catch (error) { data = {}; }
+      clients[String(option.value)] = {
+        phone: data.phone || 'Not provided',
+        email: data.email || 'Not provided',
+        address: data.address || 'Not provided'
+      };
+    });
+
+    function updatePreview(value) {
+      const client = clients[String(value || '')];
+      preview?.classList.toggle('is-visible', Boolean(client));
+      if (phone) phone.textContent = client?.phone || 'Not provided';
+      if (email) email.textContent = client?.email || 'Not provided';
+      if (address) address.textContent = client?.address || 'Not provided';
+    }
+
+    if (window.TomSelect && !select.tomselect) {
+      const control = new TomSelect(select, {
+        create: false,
+        allowEmptyOption: false,
+        placeholder: 'Search by client code, client name or DNI',
+        openOnFocus: true,
+        closeAfterSelect: true,
+        maxOptions: 250,
+        searchConjunction: 'and',
+        searchField: ['client_code', 'name', 'dni'],
+        sortField: [{ field: 'client_code', direction: 'asc' }, { field: 'name', direction: 'asc' }],
+        render: {
+          option: function (data, escape) {
+            const meta = [data.client_code, data.dni ? 'DNI ' + data.dni : '']
+              .filter(Boolean)
+              .join(' · ');
+            return '<div class="opportunity-client-option">' +
+              '<span class="opportunity-client-option-icon"><i class="bi bi-person-vcard" aria-hidden="true"></i></span>' +
+              '<span class="opportunity-client-option-copy"><strong>' + escape(data.name || data.text || '') + '</strong>' +
+              '<small>' + escape(meta || 'Client record') + '</small></span></div>';
+          },
+          item: function (data, escape) {
+            const code = data.client_code ? data.client_code + ' · ' : '';
+            return '<div class="item">' + escape(code + (data.name || data.text || '')) + '</div>';
+          },
+          no_results: function () {
+            return '<div class="opportunity-client-no-results">No clients match this search.</div>';
+          }
+        },
+        onChange: updatePreview
+      });
+      if (select.disabled) control.disable();
+    } else {
+      select.addEventListener('change', function () { updatePreview(select.value); });
+    }
+
+    updatePreview(select.value);
+  }
+
+  function initOpportunityDatePicker() {
+    const input = document.querySelector('.opportunity_date_input');
+    const button = document.querySelector('[data-open-date-picker]');
+    if (!input) return;
+
+    function openPicker() {
+      input.focus({ preventScroll: true });
+      if (typeof input.showPicker === 'function') {
+        try { input.showPicker(); return; } catch (error) { /* Browser fallback below. */ }
+      }
+      input.click();
+    }
+
+    button?.addEventListener('click', openPicker);
+    input.addEventListener('click', function () {
+      if (typeof input.showPicker === 'function') {
+        try { input.showPicker(); } catch (error) { /* Native click still works. */ }
+      }
+    });
+  }
+
+  function initOpportunityFormControls() {
+    initOpportunityClientSearch();
+    initOpportunityDatePicker();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initOpportunityFormControls, { once: true });
+  } else {
+    initOpportunityFormControls();
+  }
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,782 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Invoice {{ invoice.invoice_number|default:invoice.id_invoice }}{% endblock %}
+{% block page_subtitle %}Unified invoice detail view with workflow, client, project, items, payments and accounting status.{% endblock %}
+
+{% block extra_head %}
+  {% include "invoices/partials/_design_system.html" %}
+  <style>
+    .invoice-detail-hero {
+      position: relative;
+      display: grid;
+      gap: 14px;
+      padding: 18px;
+      overflow: hidden;
+      background: linear-gradient(135deg, #fff 0%, var(--nj-ice) 100%);
+    }
+
+    .invoice-detail-hero::after {
+      content: "";
+      position: absolute;
+      top: -60px;
+      right: -50px;
+      width: 180px;
+      height: 180px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(22,133,243,.18), rgba(7,27,120,.04));
+      pointer-events: none;
+    }
+
+    .invoice-detail-title-row {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .invoice-detail-sidehead {
+      display: grid;
+      justify-items: end;
+      gap: 10px;
+    }
+
+    .invoice-detail-code {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--nj-blue);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .11em;
+      text-transform: uppercase;
+    }
+
+    .invoice-detail-title {
+      margin: 0;
+      color: var(--nj-ink);
+      font-size: clamp(27px, 3.5vw, 42px);
+      font-weight: 950;
+      line-height: 1.05;
+      letter-spacing: -.045em;
+    }
+
+    .invoice-detail-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 9px;
+    }
+
+    .invoice-detail-primary-actions {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .invoice-pdf-tools {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px;
+      border: 1px solid rgba(7,27,120,.11);
+      border-radius: 15px;
+      background: rgba(255,255,255,.94);
+      box-shadow: 0 10px 24px rgba(7,27,120,.07);
+    }
+
+    .invoice-pdf-download {
+      min-height: 40px;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 6px 12px 6px 7px;
+      border: 1px solid rgba(214,40,57,.20);
+      border-radius: 11px;
+      background: linear-gradient(180deg, #fff, #fff8f9);
+      color: #b91c2c;
+      font-size: 12.5px;
+      font-weight: 900;
+      text-decoration: none;
+      box-shadow: 0 7px 16px rgba(214,40,57,.07);
+      transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease, background .15s ease;
+    }
+
+    .invoice-pdf-download:hover {
+      transform: translateY(-1px);
+      border-color: rgba(214,40,57,.42);
+      background: #fff;
+      box-shadow: 0 11px 22px rgba(214,40,57,.12);
+    }
+
+    .invoice-pdf-download > span:first-child {
+      width: 29px;
+      height: 29px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      background: #ffecef;
+      color: #d62839;
+      font-size: 15px;
+    }
+
+    .invoice-detail-workflows {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .invoice-workflow-card {
+      --workflow-color: var(--nj-neutral);
+      position: relative;
+      min-width: 0;
+      padding: 20px 18px 18px;
+      border: 1px solid color-mix(in srgb, var(--workflow-color) 24%, var(--nj-line));
+      border-radius: 16px;
+      background: linear-gradient(180deg, color-mix(in srgb, var(--workflow-color) 4%, #fff), rgba(255,255,255,.92));
+      box-shadow: inset 0 3px 0 color-mix(in srgb, var(--workflow-color) 72%, transparent);
+      backdrop-filter: blur(8px);
+    }
+
+    .invoice-workflow-card.is-neutral,
+    .invoice-workflow-card.is-void { --workflow-color: var(--nj-void); }
+    .invoice-workflow-card.is-blue { --workflow-color: var(--nj-blue); }
+    .invoice-workflow-card.is-success { --workflow-color: var(--nj-success); }
+    .invoice-workflow-card.is-danger { --workflow-color: var(--nj-danger); }
+    .invoice-workflow-card.is-warning { --workflow-color: var(--nj-warning); }
+    .invoice-workflow-card.is-violet { --workflow-color: var(--nj-violet); }
+
+    .invoice-workflow-card .nj-status-track { min-height: 42px; }
+    .invoice-workflow-card .nj-status-node {
+      width: 40px;
+      height: 40px;
+      flex: 0 0 40px;
+      border-width: 1.6px;
+      font-size: 15px;
+      box-shadow: 0 0 0 3px #fff;
+    }
+    .invoice-workflow-card .nj-status-node > i { font-size: 15px; }
+    .invoice-workflow-card .nj-status-node.is-current {
+      background: color-mix(in srgb, var(--stage-color) 12%, #fff);
+      color: var(--stage-color);
+      transform: scale(1.1);
+      box-shadow: 0 0 0 3px #fff, 0 0 0 7px color-mix(in srgb, var(--stage-color) 15%, transparent), 0 10px 24px color-mix(in srgb, var(--stage-color) 22%, transparent);
+    }
+
+    .invoice-workflow-card .nj-status-node.is-current > i {
+      color: var(--stage-color);
+      transform: scale(1.08);
+    }
+    .invoice-workflow-card .nj-status-line {
+      width: 54px;
+      min-width: 54px;
+      flex-basis: 54px;
+      height: 2px;
+      margin: 0 6px;
+    }
+    .invoice-workflow-card .nj-status-caption {
+      margin-top: 13px;
+      font-size: 15px;
+      font-weight: 950;
+      letter-spacing: -.01em;
+    }
+
+    .invoice-workflow-card > span {
+      display: block;
+      margin-bottom: 17px;
+      color: var(--workflow-color);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .075em;
+      text-transform: uppercase;
+    }
+
+    .invoice-detail-actions {
+      display: grid;
+      gap: 10px;
+      justify-items: end;
+      width: 100%;
+    }
+
+    .invoice-detail-actions form { margin: 0; }
+
+    .invoice-action-label { color: var(--nj-muted); font-size: 11.5px; font-weight: 800; }
+
+    .invoice-detail-icon-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .invoice-detail-actions .nj-icon-btn {
+      width: 34px;
+      height: 34px;
+      flex-basis: 34px;
+      border-radius: 11px;
+      border-color: rgba(8,104,232,.14);
+      box-shadow: 0 8px 18px rgba(7,27,120,.08);
+    }
+
+    .invoice-detail-actions .nj-icon-btn > i { font-size: 14px; }
+
+    .invoice-pdf-switch {
+      min-height: 40px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 8px 6px 11px;
+      border: 1px solid rgba(8,104,232,.14);
+      border-radius: 11px;
+      background: linear-gradient(180deg, #fbfdff, #f4f8fd);
+      cursor: pointer;
+      box-shadow: 0 7px 16px rgba(7,27,120,.055);
+      user-select: none;
+      transition: border-color .15s ease, background .15s ease, box-shadow .15s ease, transform .15s ease;
+    }
+
+    .invoice-pdf-switch:hover {
+      transform: translateY(-1px);
+      border-color: rgba(8,104,232,.28);
+      background: #fff;
+      box-shadow: 0 10px 20px rgba(7,27,120,.09);
+    }
+
+    .invoice-pdf-switch-copy {
+      display: grid;
+      gap: 1px;
+      min-width: 84px;
+    }
+
+    .invoice-pdf-switch strong {
+      color: var(--nj-ink);
+      font-size: 11.5px;
+      font-weight: 900;
+      line-height: 1.1;
+    }
+
+    .invoice-pdf-switch small {
+      color: var(--nj-muted);
+      font-size: 9.5px;
+      font-weight: 750;
+      line-height: 1.1;
+    }
+
+    .invoice-pdf-switch .nj-switch {
+      width: 38px;
+      height: 22px;
+    }
+
+    .invoice-pdf-switch .nj-switch > span {
+      width: 38px;
+      height: 22px;
+      background: #cbd6e6;
+    }
+
+    .invoice-pdf-switch .nj-switch > span::after {
+      top: 3px;
+      left: 3px;
+      width: 16px;
+      height: 16px;
+    }
+
+    .invoice-pdf-switch .nj-switch input:checked + span::after { transform: translateX(16px); }
+    .invoice-pdf-switch.is-saving { opacity: .62; pointer-events: none; }
+    .invoice-pdf-switch.is-active {
+      border-color: rgba(8,104,232,.28);
+      background: linear-gradient(180deg, #f4f9ff, #eef6ff);
+    }
+
+    .invoice-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 11px;
+    }
+
+    .invoice-summary-card {
+      --summary-color: var(--nj-blue);
+      --summary-soft: #eef6ff;
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      min-height: 108px;
+      padding: 15px 16px;
+      overflow: hidden;
+      border-color: color-mix(in srgb, var(--summary-color) 22%, var(--nj-line)) !important;
+      background: linear-gradient(145deg, #ffffff 0%, color-mix(in srgb, var(--summary-soft) 72%, #ffffff) 100%) !important;
+      box-shadow: 0 12px 28px color-mix(in srgb, var(--summary-color) 10%, transparent) !important;
+    }
+    .invoice-summary-card::before { content:""; position:absolute; inset:0 auto 0 0; width:4px; background:var(--summary-color); }
+    .invoice-summary-card::after { content:""; position:absolute; right:-30px; bottom:-48px; width:112px; height:112px; border-radius:999px; background:var(--summary-color); opacity:.065; pointer-events:none; }
+    .invoice-summary-card.is-blue { --summary-color:#0868e8; --summary-soft:#eef6ff; }
+    .invoice-summary-card.is-success { --summary-color:#0e9f6e; --summary-soft:#ecfdf5; }
+    .invoice-summary-card.is-danger { --summary-color:#dc3545; --summary-soft:#fff1f2; }
+    .invoice-summary-card.is-violet { --summary-color:#7c3aed; --summary-soft:#f5f0ff; }
+    .invoice-summary-card .nj-icon-box { position:relative; z-index:1; color:var(--summary-color) !important; background:color-mix(in srgb, var(--summary-color) 10%, #fff) !important; border-color:color-mix(in srgb, var(--summary-color) 20%, transparent) !important; }
+    .invoice-summary-card > div { position:relative; z-index:1; min-width:0; }
+    .invoice-summary-card > div > span { display:block; color:var(--nj-muted); font-size:10px; font-weight:900; letter-spacing:.05em; text-transform:uppercase; }
+    .invoice-summary-card > div > strong { display:block; margin-top:4px; color:var(--summary-color); font-size:clamp(20px,2vw,25px); font-weight:950; line-height:1; font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .invoice-summary-card > div > small { display:block; margin-top:6px; color:var(--nj-muted); font-size:10px; font-weight:650; line-height:1.35; }
+
+    .invoice-detail-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.58fr) minmax(330px, .92fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .invoice-detail-main,
+    .invoice-detail-side { display: grid; gap: 14px; min-width: 0; }
+
+    .invoice-info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .invoice-info-box {
+      padding: 12px;
+      border: 1px solid var(--nj-line);
+      border-radius: 12px;
+      background: #f8fbff;
+    }
+
+    .invoice-info-box span { display: block; color: var(--nj-muted); font-size: 10px; font-weight: 850; letter-spacing: .04em; text-transform: uppercase; }
+    .invoice-info-box strong { display: block; margin-top: 5px; color: var(--nj-ink); font-size: 13.5px; font-weight: 850; line-height: 1.45; overflow-wrap: anywhere; }
+    .invoice-info-box small { display: block; margin-top: 4px; color: var(--nj-muted); font-size: 11.25px; font-weight: 650; line-height: 1.45; overflow-wrap: anywhere; }
+
+    .invoice-items-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .invoice-items-table th {
+      padding: 10px 11px;
+      border-bottom: 1px solid var(--nj-line);
+      background: #f8fbff;
+      color: var(--nj-muted);
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .06em;
+      text-align: left;
+      text-transform: uppercase;
+    }
+
+    .invoice-items-table td {
+      padding: 12px 11px;
+      border-bottom: 1px solid #edf2f8;
+      color: var(--nj-ink);
+      font-size: 12px;
+      font-weight: 650;
+      vertical-align: top;
+    }
+
+    .invoice-items-table tr:last-child td { border-bottom: 0; }
+    .invoice-items-table .is-number { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+    .invoice-totals {
+      width: min(100%, 410px);
+      display: grid;
+      gap: 8px;
+      margin: 14px 0 0 auto;
+      padding: 14px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--nj-navy), var(--nj-deep) 68%, var(--nj-blue));
+      color: #fff;
+      box-shadow: 0 15px 30px rgba(7,27,120,.17);
+    }
+
+    .invoice-total-line { display: flex; justify-content: space-between; gap: 12px; color: rgba(255,255,255,.76); font-size: 11px; font-weight: 700; }
+    .invoice-total-line strong { color: #fff; font-weight: 900; font-variant-numeric: tabular-nums; }
+    .invoice-total-line.is-total { margin-top: 2px; padding-top: 9px; border-top: 1px solid rgba(255,255,255,.18); color: #fff; font-size: 14px; }
+    .invoice-total-line.is-total strong { font-size: 20px; }
+
+    .invoice-payment-list { display: grid; gap: 8px; }
+
+    .invoice-payment-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(100px, .65fr) minmax(90px, .45fr) minmax(100px, .55fr);
+      gap: 10px;
+      align-items: center;
+      padding: 11px 12px;
+      border: 1px solid var(--nj-line);
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    .invoice-payment-row strong { display: block; color: var(--nj-ink); font-size: 12px; font-weight: 850; }
+    .invoice-payment-row small { display: block; margin-top: 3px; color: var(--nj-muted); font-size: 10px; font-weight: 600; }
+    .invoice-payment-row a { color: var(--nj-blue); text-decoration: none; }
+    .invoice-payment-row a:hover { text-decoration: underline; }
+
+    .invoice-timeline { position: relative; display: grid; gap: 12px; }
+    .invoice-timeline::before { content: ""; position: absolute; top: 10px; bottom: 10px; left: 10px; width: 2px; background: linear-gradient(180deg, rgba(8,104,232,.28), var(--nj-line)); }
+    .invoice-timeline-item {
+      position: relative;
+      display: grid;
+      grid-template-columns: 22px minmax(0, 1fr);
+      gap: 11px;
+      align-items: start;
+      padding: 7px 8px 7px 0;
+      border-radius: 10px;
+    }
+    .invoice-timeline-item:hover { background: #f8fbff; }
+    .invoice-timeline-dot { position: relative; z-index: 1; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 999px; background: var(--nj-blue); color: #fff; font-size: 9px; box-shadow: 0 0 0 4px #fff, 0 5px 12px rgba(8,104,232,.17); }
+    .invoice-timeline-dot.is-success { background: var(--nj-success); box-shadow: 0 0 0 4px #fff, 0 5px 12px rgba(14,159,110,.17); }
+    .invoice-timeline-dot.is-danger { background: var(--nj-danger); box-shadow: 0 0 0 4px #fff, 0 5px 12px rgba(239,51,64,.17); }
+    .invoice-timeline-copy strong { display: block; color: var(--nj-ink); font-size: 12.5px; font-weight: 900; line-height: 1.25; }
+    .invoice-timeline-copy span { display: block; margin-top: 3px; color: var(--nj-muted); font-size: 10.5px; font-weight: 650; line-height: 1.35; }
+
+    .invoice-note {
+      padding: 12px;
+      border: 1px solid var(--nj-line);
+      border-radius: 12px;
+      background: #f8fbff;
+      color: var(--nj-ink);
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.55;
+      white-space: pre-wrap;
+    }
+
+    .invoice-void-note {
+      border-color: rgba(239,51,64,.18);
+      background: var(--nj-danger-soft);
+      color: #8d1c26;
+    }
+
+    @media (max-width: 1120px) {
+      .invoice-detail-layout { grid-template-columns: 1fr; }
+      .invoice-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 760px) {
+      .invoice-detail-title-row { align-items: stretch; flex-direction: column; }
+      .invoice-detail-sidehead,
+      .invoice-detail-actions { justify-items: stretch; }
+      .invoice-detail-icon-row { justify-content: flex-start; }
+      .invoice-detail-workflows,
+      .invoice-summary-grid,
+      .invoice-info-grid { grid-template-columns: 1fr; }
+      .invoice-detail-actions form { width: 100%; }
+      .invoice-pdf-tools { width: 100%; justify-content: space-between; }
+      .invoice-pdf-download { flex: 1 1 auto; }
+      .invoice-pdf-switch { justify-content: space-between; }
+      .invoice-workflow-card .nj-status-node { width: 30px; height: 30px; flex-basis: 30px; }
+      .invoice-workflow-card .nj-status-node > i { font-size: 11px; }
+      .invoice-workflow-card .nj-status-line { width: 22px; min-width: 22px; flex-basis: 22px; margin: 0 3px; }
+      .invoice-payment-row { grid-template-columns: 1fr 1fr; }
+    }
+    html[data-bs-theme="dark"] .invoice-summary-card { background: linear-gradient(145deg, color-mix(in srgb, var(--bs-body-bg, #121826) 95%, #fff), color-mix(in srgb, var(--summary-color) 10%, var(--bs-body-bg, #121826))) !important; }
+
+  </style>
+{% endblock %}
+
+{% block content %}
+<div class="nj-invoice nj-page">
+  {% if invoice_configuration_error %}
+    <div class="alert alert-warning" role="alert">
+      <strong>Invoice setup incomplete.</strong> {{ invoice_configuration_error }}
+      {% if can_edit_invoices %}Open Edit and select the missing client or project before generating the invoice or PDF.{% endif %}
+    </div>
+  {% endif %}
+  <section class="nj-card invoice-detail-hero">
+    <div class="invoice-detail-title-row">
+      <div>
+        <span class="invoice-detail-code">Invoice detail</span>
+        <h1 class="invoice-detail-title">{{ invoice.invoice_number|default:"Draft invoice" }}</h1>
+        <div class="invoice-detail-meta">
+          <span class="nj-badge"><i class="bi bi-calendar3" aria-hidden="true"></i> {{ invoice.issue_date|date:"d M Y" }}</span>
+          {% if invoice.due_date %}<span class="nj-badge"><i class="bi bi-calendar-check" aria-hidden="true"></i> Due {{ invoice.due_date|date:"d M Y" }}</span>{% endif %}
+        </div>
+        {% if invoice.status != "draft" %}
+          <div class="invoice-detail-primary-actions">
+            <div class="invoice-pdf-tools">
+              <a class="invoice-pdf-download" href="{{ invoice_urls.pdf }}" data-tooltip="Download invoice PDF" aria-label="Download invoice PDF">
+                <span><i class="bi bi-file-earmark-pdf" aria-hidden="true"></i></span>
+                <span>Download PDF</span>
+              </a>
+
+              {% if invoice_can_toggle_pdf_style %}
+                <form method="post" action="{{ invoice_urls.pdf_style }}" data-pdf-style-form>
+                  {% csrf_token %}
+                  <input type="hidden" name="pdf_header_dark" value="{% if invoice.pdf_header_dark %}1{% else %}0{% endif %}" data-pdf-style-hidden>
+                  <label class="invoice-pdf-switch {% if invoice.pdf_header_dark %}is-active{% endif %}" data-pdf-style-shell>
+                    <span class="invoice-pdf-switch-copy">
+                      <strong>Dark PDF logo</strong>
+                      <small data-pdf-style-status>{% if invoice.pdf_header_dark %}Active{% else %}Light{% endif %}</small>
+                    </span>
+                    <span class="nj-switch">
+                      <input type="checkbox" {% if invoice.pdf_header_dark %}checked{% endif %} data-pdf-style-toggle aria-label="Toggle dark PDF logo background">
+                      <span></span>
+                    </span>
+                  </label>
+                </form>
+              {% endif %}
+            </div>
+          </div>
+        {% endif %}
+      </div>
+      <div class="invoice-detail-sidehead">
+        <a class="nj-btn nj-btn-secondary" href="{{ invoice_urls.list }}"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to invoices</a>
+        <div class="invoice-detail-actions">
+          <span class="invoice-action-label">Invoice actions</span>
+          <div class="invoice-detail-icon-row">
+            {% if can_edit_invoices and invoice.status == "draft" %}
+              <a class="nj-icon-btn is-neutral" href="{{ invoice_urls.edit }}" data-tooltip="Edit invoice" aria-label="Edit invoice"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+              <form method="post" action="{{ invoice_urls.generate }}">
+                {% csrf_token %}
+                <button class="nj-icon-btn is-success" type="submit" data-tooltip="Generate invoice" aria-label="Generate invoice"><i class="bi bi-check2-circle" aria-hidden="true"></i></button>
+              </form>
+            {% endif %}
+
+
+            {% if can_edit_invoices and invoice.status == "pending_send" %}
+              <a class="nj-icon-btn is-success" href="{{ invoice_urls.send }}" data-tooltip="Send invoice" aria-label="Send invoice"><i class="bi bi-send" aria-hidden="true"></i></a>
+            {% elif can_edit_invoices and invoice.status == "sent" %}
+              <a class="nj-icon-btn is-success" href="{{ invoice_urls.send }}" data-tooltip="Re-send invoice" aria-label="Re-send invoice"><i class="bi bi-arrow-repeat" aria-hidden="true"></i></a>
+            {% endif %}
+
+            {% if can_create_payments and invoice.balance_due > 0 and invoice.status != "draft" and invoice.status != "void" %}
+              <a class="nj-icon-btn is-success" href="{{ invoice_urls.payment_create }}" data-tooltip="Register payment" aria-label="Register payment"><i class="bi bi-cash-stack" aria-hidden="true"></i></a>
+            {% endif %}
+
+            {% if can_approve_invoices and invoice_can_void %}
+              <button
+                class="nj-icon-btn is-void"
+                type="button"
+                data-tooltip="Void invoice"
+                aria-label="Void invoice"
+                data-crm-void-modal
+                data-void-action="{{ invoice_urls.void }}"
+                data-void-title="Void invoice"
+                data-void-object="Invoice {{ invoice.invoice_number|default:invoice.id_invoice }}"
+                data-void-message="Enter the reason for voiding this invoice."
+                data-void-placeholder="Reason for voiding this invoice">
+                <i class="bi bi-x-octagon" aria-hidden="true"></i>
+              </button>
+            {% elif can_approve_invoices and invoice.status != "draft" and invoice.status != "void" %}
+              <span class="finance-action-disabled" data-tooltip="{{ invoice_void_block_reason|default:'Invoice cannot be voided in its current financial state.' }}" aria-label="Void unavailable"><i class="bi bi-lock-fill" aria-hidden="true"></i></span>
+            {% endif %}
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="invoice-detail-workflows">
+      <div class="invoice-workflow-card {{ invoice.document_caption_class|default:'is-neutral' }}">
+        <span>Document workflow</span>
+        {% include "invoices/partials/_document_status_track.html" with invoice=invoice detail=True %}
+      </div>
+      <div class="invoice-workflow-card {{ invoice.payment_caption_class|default:'is-danger' }}">
+        <span>Payment workflow</span>
+        {% include "invoices/partials/_payment_status_track.html" with invoice=invoice detail=True %}
+      </div>
+    </div>
+  </section>
+
+  <section class="invoice-summary-grid" aria-label="Invoice financial summary">
+    <article class="nj-card invoice-summary-card is-blue"><span class="nj-icon-box"><i class="bi bi-cash-stack" aria-hidden="true"></i></span><div><span>Total</span><strong>${{ invoice.total|floatformat:2 }}</strong><small>Complete invoice value</small></div></article>
+    <article class="nj-card invoice-summary-card is-success"><span class="nj-icon-box"><i class="bi bi-wallet2" aria-hidden="true"></i></span><div><span>Paid</span><strong>${{ invoice.paid_amount|floatformat:2 }}</strong><small>Confirmed payments and credit</small></div></article>
+    <article class="nj-card invoice-summary-card is-danger"><span class="nj-icon-box"><i class="bi bi-exclamation-circle" aria-hidden="true"></i></span><div><span>Balance due</span><strong>${{ invoice.balance_due|floatformat:2 }}</strong><small>Amount still outstanding</small></div></article>
+    <article class="nj-card invoice-summary-card is-violet"><span class="nj-icon-box"><i class="bi bi-piggy-bank" aria-hidden="true"></i></span><div><span>Client credit</span><strong>${{ client_credit_balance|floatformat:2 }}</strong><small>Available unapplied credit</small></div></article>
+  </section>
+
+  <div class="invoice-detail-layout">
+    <main class="invoice-detail-main">
+      <section class="nj-card">
+        <div class="nj-card-head"><h2 class="nj-card-title"><i class="bi bi-list-check" aria-hidden="true"></i> Invoice items</h2><span class="nj-badge is-blue">{{ invoice_items|length }} items</span></div>
+        <div class="nj-card-body" style="padding:0;">
+          <div class="nj-table-wrap">
+            <table class="invoice-items-table">
+              <thead><tr><th>Description</th><th class="is-number">Quantity</th><th class="is-number">Unit price</th><th class="is-number">Total</th></tr></thead>
+              <tbody>
+                {% if invoice_items %}
+                  {% for item in invoice_items %}
+                    <tr>
+                      <td>{{ item.description }}</td>
+                      <td class="is-number">{{ item.quantity|floatformat:2 }}</td>
+                      <td class="is-number">${{ item.unit_price|floatformat:2 }}</td>
+                      <td class="is-number"><strong>${{ item.total|floatformat:2 }}</strong></td>
+                    </tr>
+                  {% endfor %}
+                {% elif invoice.detail_items %}
+                  {% for item in invoice.detail_items %}
+                    <tr>
+                      <td>{{ item.description|default:"Invoice item" }}</td>
+                      <td class="is-number">{{ item.quantity|default:0|floatformat:2 }}</td>
+                      <td class="is-number">${{ item.unit_price|default:0|floatformat:2 }}</td>
+                      <td class="is-number"><strong>${{ item.total|default:0|floatformat:2 }}</strong></td>
+                    </tr>
+                  {% endfor %}
+                {% else %}
+                  <tr><td colspan="4"><div class="nj-empty"><i class="bi bi-list" aria-hidden="true"></i><strong>No invoice items</strong><span>This invoice does not contain line items.</span></div></td></tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+          <div class="invoice-totals" style="margin-right:17px; margin-bottom:17px;">
+            <div class="invoice-total-line"><span>Subtotal</span><strong>${{ invoice.subtotal|floatformat:2 }}</strong></div>
+            <div class="invoice-total-line"><span>Discount</span><strong>${{ invoice.discount_amount|floatformat:2 }}</strong></div>
+            <div class="invoice-total-line"><span>Tax {% if invoice.tax_enabled %}({{ invoice.tax_rate|floatformat:2 }}%){% endif %}</span><strong>${{ invoice.tax|floatformat:2 }}</strong></div>
+            <div class="invoice-total-line is-total"><span>Total</span><strong>${{ invoice.total|floatformat:2 }}</strong></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="nj-card">
+        <div class="nj-card-head"><h2 class="nj-card-title"><i class="bi bi-credit-card" aria-hidden="true"></i> Payments and allocations</h2><span class="nj-badge {% if invoice.payment_status == 'unpaid' %}is-danger{% elif invoice.payment_status == 'partial' %}is-warning{% elif invoice.payment_status == 'paid' %}is-success{% elif invoice.payment_status == 'overpaid' %}is-violet{% else %}is-void{% endif %}">{{ invoice.get_payment_status_display }}</span></div>
+        <div class="nj-card-body">
+          <div class="invoice-payment-list">
+            {% for allocation in payment_allocations %}
+              <div class="invoice-payment-row">
+                <div><strong>{% if allocation.ui_detail_url %}<a href="{{ allocation.ui_detail_url }}">{{ allocation.id_payment.payment_number|default:allocation.id_payment.id_payment }}</a>{% else %}{{ allocation.id_payment.payment_number|default:allocation.id_payment.id_payment }}{% endif %}</strong><small>{{ allocation.id_payment.get_payment_method_display|default:"Payment allocation" }}</small></div>
+                <div><strong>{{ allocation.allocated_at|date:"d M Y" }}</strong><small>Allocated date</small></div>
+                <div><span class="nj-badge is-success">Allocated</span></div>
+                <div class="nj-money is-paid"><strong>${{ allocation.amount|floatformat:2 }}</strong></div>
+              </div>
+            {% endfor %}
+
+            {% for credit_application in credit_applications %}
+              <div class="invoice-payment-row">
+                <div><strong>{% if credit_application.ui_detail_url %}<a href="{{ credit_application.ui_detail_url }}">{{ credit_application.id_payment.payment_number|default:"Client credit" }}</a>{% else %}Client credit{% endif %}</strong><small>{{ credit_application.description|default:"Credit applied to invoice" }}</small></div>
+                <div><strong>{{ credit_application.movement_date|date:"d M Y" }}</strong><small>Applied date</small></div>
+                <div><span class="nj-badge is-violet">Credit</span></div>
+                <div class="nj-money is-paid"><strong>${{ credit_application.amount|floatformat:2 }}</strong></div>
+              </div>
+            {% endfor %}
+
+            {% for legacy_payment in legacy_payments %}
+              <div class="invoice-payment-row">
+                <div><strong>{% if legacy_payment.ui_detail_url %}<a href="{{ legacy_payment.ui_detail_url }}">{{ legacy_payment.payment_number|default:legacy_payment.id_payment }}</a>{% else %}{{ legacy_payment.payment_number|default:legacy_payment.id_payment }}{% endif %}</strong><small>{{ legacy_payment.get_payment_method_display }}</small></div>
+                <div><strong>{{ legacy_payment.payment_date|date:"d M Y" }}</strong><small>Payment date</small></div>
+                <div><span class="nj-badge is-success">Confirmed</span></div>
+                <div class="nj-money is-paid"><strong>${{ legacy_payment.amount|floatformat:2 }}</strong></div>
+              </div>
+            {% endfor %}
+
+            {% if not payment_allocations and not credit_applications and not legacy_payments %}
+              <div class="nj-empty"><i class="bi bi-wallet2" aria-hidden="true"></i><strong>No payments registered</strong><span>Confirmed allocations and credit applications will appear here.</span>{% if can_create_payments and invoice.balance_due > 0 and invoice.status != "draft" and invoice.status != "void" %}<a class="nj-btn nj-btn-success" href="{{ invoice_urls.payment_create }}"><i class="bi bi-cash-stack" aria-hidden="true"></i> Register payment</a>{% endif %}</div>
+            {% endif %}
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <aside class="invoice-detail-side">
+      <section class="nj-card">
+        <div class="nj-card-head"><h2 class="nj-card-title"><i class="bi bi-person-vcard" aria-hidden="true"></i> Client and project</h2></div>
+        <div class="nj-card-body">
+          <div class="invoice-info-grid">
+            <div class="invoice-info-box invoice-field-full"><span>Client</span><strong>{{ invoice.client_billing_name|default:invoice.id_client.name }}</strong><small>{% if invoice.client_billing_dni %}DNI / Tax ID: {{ invoice.client_billing_dni }} · {% endif %}{{ invoice.client_billing_email|default:"No billing email" }}{% if invoice.client_billing_phone %} · {{ invoice.client_billing_phone }}{% endif %}</small></div>
+            <div class="invoice-info-box invoice-field-full"><span>Billing address</span><strong>{{ invoice.client_billing_address|default:"No billing address"|linebreaksbr }}</strong></div>
+            <div class="invoice-info-box invoice-field-full"><span>Project</span><strong>{% if invoice_urls.project_detail %}<a href="{{ invoice_urls.project_detail }}">{{ invoice.project_name|default:invoice.id_project.name }}</a>{% else %}{{ invoice.project_name|default:"No project" }}{% endif %}</strong><small>{{ invoice.project_address|default:"No project address"|linebreaksbr }}</small></div>
+            {% if invoice.id_estimate %}<div class="invoice-info-box invoice-field-full"><span>Source estimate</span><strong>{{ invoice.id_estimate }}</strong><small>This invoice was created from an approved estimate.</small></div>{% endif %}
+          </div>
+        </div>
+      </section>
+
+      <section class="nj-card">
+        <div class="nj-card-head"><h2 class="nj-card-title"><i class="bi bi-clock-history" aria-hidden="true"></i> Activity timeline</h2></div>
+        <div class="nj-card-body">
+          <div class="invoice-timeline">
+            <div class="invoice-timeline-item"><span class="invoice-timeline-dot"><i class="bi bi-plus" aria-hidden="true"></i></span><div class="invoice-timeline-copy"><strong>Created</strong><span>{{ invoice.created_at|date:"d M Y, H:i" }}</span></div></div>
+            {% if invoice.generated_at %}<div class="invoice-timeline-item"><span class="invoice-timeline-dot"><i class="bi bi-check" aria-hidden="true"></i></span><div class="invoice-timeline-copy"><strong>Generated</strong><span>{{ invoice.generated_at|date:"d M Y, H:i" }}{% if invoice.generated_by %} · {{ invoice.generated_by }}{% endif %}</span></div></div>{% endif %}
+            {% if invoice.sent_at %}<div class="invoice-timeline-item"><span class="invoice-timeline-dot is-success"><i class="bi bi-send" aria-hidden="true"></i></span><div class="invoice-timeline-copy"><strong>Sent</strong><span>{{ invoice.sent_at|date:"d M Y, H:i" }}{% if invoice.sent_by %} · {{ invoice.sent_by }}{% endif %}</span></div></div>{% endif %}
+            {% if invoice.last_payment_at %}<div class="invoice-timeline-item"><span class="invoice-timeline-dot is-success"><i class="bi bi-cash" aria-hidden="true"></i></span><div class="invoice-timeline-copy"><strong>Last payment</strong><span>{{ invoice.last_payment_at|date:"d M Y, H:i" }}</span></div></div>{% endif %}
+            {% if invoice.voided_at %}<div class="invoice-timeline-item"><span class="invoice-timeline-dot is-danger"><i class="bi bi-x" aria-hidden="true"></i></span><div class="invoice-timeline-copy"><strong>Voided</strong><span>{{ invoice.voided_at|date:"d M Y, H:i" }}{% if invoice.voided_by %} · {{ invoice.voided_by }}{% endif %}</span></div></div>{% endif %}
+          </div>
+        </div>
+      </section>
+
+      <section class="nj-card">
+        <div class="nj-card-head"><h2 class="nj-card-title"><i class="bi bi-calendar3" aria-hidden="true"></i> Dates and references</h2></div>
+        <div class="nj-card-body">
+          <div class="invoice-info-grid">
+            <div class="invoice-info-box"><span>Issue date</span><strong>{{ invoice.issue_date|date:"d M Y" }}</strong></div>
+            <div class="invoice-info-box"><span>Due date</span><strong>{{ invoice.due_date|date:"d M Y"|default:"No due date" }}</strong></div>
+            <div class="invoice-info-box invoice-field-full"><span>Company</span><strong>{{ invoice.id_company.name }}</strong></div>
+          </div>
+        </div>
+      </section>
+
+      {% if invoice.description %}
+        <section class="nj-card"><div class="nj-card-head"><h2 class="nj-card-title"><i class="bi bi-card-text" aria-hidden="true"></i> Description</h2></div><div class="nj-card-body"><div class="invoice-note">{{ invoice.description }}</div></div></section>
+      {% endif %}
+
+      {% if invoice.notes %}
+        <section class="nj-card"><div class="nj-card-head"><h2 class="nj-card-title"><i class="bi bi-journal-text" aria-hidden="true"></i> Notes</h2></div><div class="nj-card-body"><div class="invoice-note">{{ invoice.notes }}</div></div></section>
+      {% endif %}
+
+      {% if invoice.status == "void" %}
+        <section class="nj-card"><div class="nj-card-head"><h2 class="nj-card-title"><i class="bi bi-x-octagon" aria-hidden="true"></i> Void reason</h2></div><div class="nj-card-body"><div class="invoice-note invoice-void-note">{{ invoice.void_reason|default:"No void reason recorded." }}</div></div></section>
+      {% endif %}
+    </aside>
+  </div>
+</div>
+
+<script>
+  (function () {
+    function initPdfStyleSwitch() {
+      var form = document.querySelector("[data-pdf-style-form]");
+      if (!form) return;
+
+      var toggle = form.querySelector("[data-pdf-style-toggle]");
+      var hidden = form.querySelector("[data-pdf-style-hidden]");
+      var shell = form.querySelector("[data-pdf-style-shell]");
+      var status = form.querySelector("[data-pdf-style-status]");
+      if (!toggle || !hidden || !shell) return;
+
+      toggle.addEventListener("change", async function () {
+        var previousValue = hidden.value;
+        hidden.value = toggle.checked ? "1" : "0";
+        shell.classList.add("is-saving");
+        toggle.disabled = true;
+
+        try {
+          var response = await fetch(form.action, {
+            method: "POST",
+            body: new FormData(form),
+            credentials: "same-origin",
+            headers: {
+              "X-Requested-With": "XMLHttpRequest",
+              "Accept": "application/json"
+            }
+          });
+
+          if (!response.ok) throw new Error("PDF style update failed");
+          var payload = await response.json();
+          var active = Boolean(payload.pdf_header_dark);
+          toggle.checked = active;
+          hidden.value = active ? "1" : "0";
+          shell.classList.toggle("is-active", active);
+          if (status) status.textContent = active ? "Active" : "Light";
+        } catch (error) {
+          hidden.value = previousValue;
+          toggle.checked = previousValue === "1";
+          shell.classList.toggle("is-active", previousValue === "1");
+          if (status) status.textContent = previousValue === "1" ? "Active" : "Light";
+        } finally {
+          toggle.disabled = false;
+          shell.classList.remove("is-saving");
+        }
+      });
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initPdfStyleSwitch, { once: true });
+    } else {
+      initPdfStyleSwitch();
+    }
+  })();
+</script>
+
+{% endblock %}

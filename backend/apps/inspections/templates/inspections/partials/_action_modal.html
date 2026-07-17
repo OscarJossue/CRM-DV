@@ -1,0 +1,108 @@
+<div class="ops-modal-backdrop" id="InspectionActionModal" aria-hidden="true">
+  <form class="ops-modal inspection-action-modal" id="InspectionActionForm" method="post" novalidate>
+    {% csrf_token %}
+    <button class="inspection-modal-close" type="button" data-inspection-modal-close aria-label="Close action window"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+    <i class="bi bi-exclamation-triangle" id="InspectionActionIcon" aria-hidden="true"></i>
+    <h2 id="InspectionActionTitle">Confirm action</h2>
+    <p id="InspectionActionMessage">Review the information before continuing.</p>
+    <div class="inspection-modal-record" id="InspectionActionRecord"></div>
+    <div class="ops-field inspection-modal-reason" id="InspectionActionReasonWrap" hidden>
+      <label for="InspectionActionReason" id="InspectionActionReasonLabel">Reason</label>
+      <textarea id="InspectionActionReason" placeholder="Write the reason"></textarea>
+      <span class="inspection-modal-error" id="InspectionActionError" role="alert"></span>
+    </div>
+    <div class="ops-modal-actions">
+      <button class="ops-btn is-secondary" type="button" data-inspection-modal-close>Go back</button>
+      <a class="ops-btn is-violet" id="InspectionCreateProjectLink" href="#" hidden><i class="bi bi-kanban"></i> Create project</a>
+      <button class="ops-btn is-violet" id="InspectionCloseAndProjectSubmit" type="submit" name="next" value="project" hidden><i class="bi bi-kanban"></i> Close and create project</button>
+      <button class="ops-btn is-danger" id="InspectionActionSubmit" type="submit">Confirm</button>
+    </div>
+  </form>
+</div>
+<script>
+(function(){
+  const modal=document.getElementById("InspectionActionModal");
+  const form=document.getElementById("InspectionActionForm");
+  if(!modal||!form)return;
+  const icon=document.getElementById("InspectionActionIcon");
+  const title=document.getElementById("InspectionActionTitle");
+  const message=document.getElementById("InspectionActionMessage");
+  const record=document.getElementById("InspectionActionRecord");
+  const reasonWrap=document.getElementById("InspectionActionReasonWrap");
+  const reason=document.getElementById("InspectionActionReason");
+  const reasonLabel=document.getElementById("InspectionActionReasonLabel");
+  const error=document.getElementById("InspectionActionError");
+  const submit=document.getElementById("InspectionActionSubmit");
+  const createProjectLink=document.getElementById("InspectionCreateProjectLink");
+  const closeAndProjectSubmit=document.getElementById("InspectionCloseAndProjectSubmit");
+  let currentAction="";
+  const config={
+    delete:{title:"Delete inspection?",message:"This inspection has not received contractor evidence. Permanent deletion cannot be undone.",icon:"bi-trash3",button:"Delete inspection",buttonClass:"is-danger",reason:false},
+    cancel:{title:"Cancel and freeze inspection?",message:"The inspection and submitted evidence will remain available in read-only mode. A cancellation reason is mandatory.",icon:"bi-slash-circle",button:"Cancel inspection",buttonClass:"is-danger",reason:true,label:"Cancellation reason",name:"cancel_reason",placeholder:"Explain why this inspection is being cancelled"},
+    approve:{title:"Approve inspection?",message:"Confirm that you reviewed all submitted evidence. The inspection will be approved and locked.",icon:"bi-check2-circle",button:"Approve inspection",buttonClass:"is-success",reason:false},
+    corrections:{title:"Request corrections?",message:"The inspection will return to In Progress so the contractor can correct and resubmit the evidence.",icon:"bi-arrow-counterclockwise",button:"Request corrections",buttonClass:"is-warning",reason:true,label:"Correction reason",name:"correction_reason",placeholder:"Explain exactly what must be corrected"},
+    complete:{title:"Close inspection?",message:"The inspection will be closed and frozen. You may also convert it into a project without copying inspection photographs.",icon:"bi-check2-circle",button:"Close inspection",buttonClass:"is-success",reason:false}
+  };
+  function setButtonClass(value){submit.className="ops-btn "+value;}
+  function resetCompletionActions(){
+    createProjectLink.hidden=true;
+    createProjectLink.removeAttribute("href");
+    closeAndProjectSubmit.hidden=true;
+    submit.hidden=false;
+  }
+  function openModal(button){
+    currentAction=button.dataset.inspectionAction;
+    const item=config[currentAction];
+    if(!item)return;
+    form.action=button.dataset.actionUrl||"";
+    title.textContent=item.title;
+    message.textContent=item.message;
+    record.textContent=button.dataset.recordLabel||"";
+    icon.className="bi "+item.icon;
+    submit.textContent=item.button;
+    setButtonClass(item.buttonClass);
+    reasonWrap.hidden=!item.reason;
+    reason.value="";
+    reason.removeAttribute("name");
+    error.textContent="";
+    resetCompletionActions();
+    if(item.reason){reason.name=item.name;reasonLabel.textContent=item.label;reason.placeholder=item.placeholder;}
+
+    if(currentAction==="complete"){
+      const isCompleted=button.dataset.isCompleted==="true";
+      const canCreateProject=button.dataset.canCreateProject==="true";
+      const projectUrl=button.dataset.createProjectUrl||"";
+      if(isCompleted){
+        title.textContent="Inspection closed";
+        message.textContent=canCreateProject?"This inspection is already closed. You can now create its project; only client and textual information will be transferred.":"This inspection is already closed and frozen.";
+        submit.hidden=true;
+        form.action="";
+        if(canCreateProject&&projectUrl){
+          createProjectLink.href=projectUrl;
+          createProjectLink.hidden=false;
+        }
+      }else if(canCreateProject){
+        closeAndProjectSubmit.hidden=false;
+      }
+    }
+
+    modal.classList.add("is-open");
+    modal.setAttribute("aria-hidden","false");
+    document.body.classList.add("ops-modal-open");
+    setTimeout(()=>item.reason?reason.focus():(submit.hidden?(createProjectLink.hidden?document.querySelector("[data-inspection-modal-close]"):createProjectLink):submit).focus(),30);
+  }
+  function closeModal(){modal.classList.remove("is-open");modal.setAttribute("aria-hidden","true");document.body.classList.remove("ops-modal-open");error.textContent="";}
+  document.querySelectorAll("[data-inspection-action]").forEach(button=>button.addEventListener("click",()=>openModal(button)));
+  modal.querySelectorAll("[data-inspection-modal-close]").forEach(button=>button.addEventListener("click",closeModal));
+  modal.addEventListener("click",event=>{if(event.target===modal)closeModal();});
+  document.addEventListener("keydown",event=>{if(event.key==="Escape"&&modal.classList.contains("is-open"))closeModal();});
+  form.addEventListener("submit",event=>{
+    const item=config[currentAction];
+    if(item&&item.reason&&!reason.value.trim()){
+      event.preventDefault();
+      error.textContent="Write the reason before continuing.";
+      reason.focus();
+    }
+  });
+})();
+</script>

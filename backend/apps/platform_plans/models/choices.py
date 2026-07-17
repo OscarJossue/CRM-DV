@@ -1,0 +1,29 @@
+BILLING_MONTHLY = "monthly"
+BILLING_YEARLY = "yearly"
+BILLING_CUSTOM = "custom"
+
+BILLING_CYCLE_CHOICES = [
+    (BILLING_MONTHLY, "Monthly"),
+    (BILLING_YEARLY, "Yearly"),
+    (BILLING_CUSTOM, "Custom"),
+]
+
+CUSTOM_CYCLE_DAYS = "days"
+CUSTOM_CYCLE_WEEKS = "weeks"
+CUSTOM_CYCLE_MONTHS = "months"
+CUSTOM_CYCLE_YEARS = "years"
+
+CUSTOM_CYCLE_UNIT_CHOICES = [
+    (CUSTOM_CYCLE_DAYS, "Days"),
+    (CUSTOM_CYCLE_WEEKS, "Weeks"),
+    (CUSTOM_CYCLE_MONTHS, "Months"),
+    (CUSTOM_CYCLE_YEARS, "Years"),
+]
+
+PLAN_STATUS_ACTIVE = "active"
+PLAN_STATUS_INACTIVE = "inactive"
+
+PLAN_STATUS_CHOICES = [
+    (PLAN_STATUS_ACTIVE, "Active"),
+    (PLAN_STATUS_INACTIVE, "Inactive"),
+]

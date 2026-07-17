@@ -1,0 +1,166 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Notification Details{% endblock %}
+
+{% block page_subtitle %}
+Review the full notification message assigned to your user.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .notification_detail {
+    display: grid;
+    gap: 18px;
+  }
+
+  .notification_detail_hero {
+    display: grid;
+    gap: 12px;
+    padding: 22px;
+    border: 1px solid var(--crm_border);
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .notification_detail_title {
+    margin: 0;
+    color: var(--crm_text);
+    font-size: clamp(24px, 3vw, 34px);
+    line-height: 1.15;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+  }
+
+  .notification_detail_meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .notification_badge {
+    display: inline-flex;
+    width: fit-content;
+    min-height: 30px;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    border: 1px solid var(--crm_border);
+    border-radius: 10px;
+    background: rgba(31, 58, 138, 0.08);
+    color: var(--crm_primary);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .notification_badge_unread {
+    color: var(--crm_warning);
+    background: rgba(180, 83, 9, 0.08);
+  }
+
+  .notification_badge_read {
+    color: var(--crm_success);
+    background: rgba(15, 118, 110, 0.08);
+  }
+
+  .notification_badge_archived {
+    color: var(--crm_muted);
+    background: rgba(107, 114, 128, 0.08);
+  }
+
+  .notification_message_box {
+    padding: 20px;
+    border: 1px solid var(--crm_border);
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .notification_message_box h2 {
+    margin: 0 0 10px;
+    color: var(--crm_text);
+    font-size: 20px;
+    font-weight: 900;
+  }
+
+  .notification_message_box p {
+    margin: 0;
+    color: var(--crm_muted);
+    font-size: 15px;
+    line-height: 1.75;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+  }
+
+  .notification_detail_actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .notification_inline_form {
+    margin: 0;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="notification_detail">
+  <div class="notification_detail_hero">
+    <div class="notification_detail_meta">
+      <span class="notification_badge notification_badge_{{ notification.status }}">
+        {{ notification.status }}
+      </span>
+
+      <span class="notification_badge">
+        {{ notification.type|default:"system" }}
+      </span>
+
+      <span class="notification_badge">
+        {{ notification.created_at|date:"Y-m-d H:i" }}
+      </span>
+    </div>
+
+    <h2 class="notification_detail_title">
+      {{ notification.title|default:"No title" }}
+    </h2>
+
+    <p class="crm_page_text">
+      Assigned to {{ notification.id_user.email }}.
+    </p>
+  </div>
+
+  <div class="notification_message_box">
+    <h2>Message</h2>
+    <p>{{ notification.message|default:"No message available." }}</p>
+  </div>
+
+  <div class="notification_detail_actions">
+    <a class="crm_button crm_button_secondary" href="../">
+      Back to Notifications
+    </a>
+
+    {% if notification.status != "read" %}
+      <form class="notification_inline_form" method="post" action="mark-read/">
+        {% csrf_token %}
+        <button class="crm_button" type="submit">Mark as Read</button>
+      </form>
+    {% endif %}
+
+    {% if notification.status == "read" %}
+      <form class="notification_inline_form" method="post" action="mark-unread/">
+        {% csrf_token %}
+        <button class="crm_button crm_button_secondary" type="submit">Mark as Unread</button>
+      </form>
+    {% endif %}
+
+    {% if notification.status != "archived" %}
+      <form class="notification_inline_form" method="post" action="archive/">
+        {% csrf_token %}
+        <button class="crm_button crm_button_secondary" type="submit">Archive</button>
+      </form>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

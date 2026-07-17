@@ -1,0 +1,387 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="{{ request.LANGUAGE_CODE|default:'en' }}">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>404 Not Found | CRM SaaS</title>
+
+  <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'css/crm.css' %}">
+
+  <style>
+    :root {
+      --crm_404_primary: #1f3a8a;
+      --crm_404_dark: #0f172a;
+      --crm_404_soft: #f4f6fb;
+      --crm_404_muted: #64748b;
+      --crm_404_border: #e5e7eb;
+      --crm_404_shadow: 0 28px 90px rgba(15, 23, 42, .16);
+    }
+
+    * {
+      box-sizing: border-box;
+      min-width: 0;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at 12% 18%, rgba(31, 58, 138, .12), transparent 32%),
+        radial-gradient(circle at 88% 78%, rgba(15, 118, 110, .11), transparent 34%),
+        linear-gradient(135deg, #f8fafc, #eef2f7);
+      color: var(--crm_404_dark);
+      overflow-x: hidden;
+    }
+
+    .crm_404_page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: clamp(24px, 4vw, 56px) 0;
+    }
+
+    .crm_404_card {
+      width: 100%;
+      overflow: hidden;
+      border: 1px solid rgba(15, 23, 42, .08);
+      border-radius: clamp(24px, 4vw, 38px);
+      background: rgba(255, 255, 255, .94);
+      box-shadow: var(--crm_404_shadow);
+      backdrop-filter: blur(20px);
+    }
+
+    .crm_404_content {
+      padding: clamp(28px, 5vw, 64px);
+    }
+
+    .crm_404_badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      width: fit-content;
+      padding: 10px 15px;
+      border-radius: 999px;
+      background: rgba(31, 58, 138, .1);
+      color: var(--crm_404_primary);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .crm_404_badge::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--crm_404_primary);
+      box-shadow: 0 0 0 6px rgba(31, 58, 138, .14);
+    }
+
+    .crm_404_title {
+      margin: 22px 0 14px;
+      color: var(--crm_404_dark);
+      font-size: clamp(50px, 8vw, 96px);
+      line-height: .88;
+      font-weight: 900;
+      letter-spacing: -.07em;
+    }
+
+    .crm_404_subtitle {
+      margin: 0 0 18px;
+      color: var(--crm_404_dark);
+      font-size: clamp(22px, 3vw, 34px);
+      line-height: 1.12;
+      font-weight: 900;
+      letter-spacing: -.04em;
+    }
+
+    .crm_404_text {
+      max-width: 590px;
+      margin: 0;
+      color: var(--crm_404_muted);
+      font-size: 16px;
+      line-height: 1.75;
+    }
+
+    .crm_404_note {
+      margin-top: 24px;
+      padding: 16px 18px;
+      border: 1px solid var(--crm_404_border);
+      border-radius: 18px;
+      background: #f8fafc;
+      color: var(--crm_404_muted);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .crm_404_actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .crm_404_btn {
+      min-height: 48px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 22px;
+      border-radius: 14px;
+      font-weight: 900;
+      text-decoration: none;
+      transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+
+    .crm_404_btn_primary {
+      border: 1px solid var(--crm_404_primary);
+      background: var(--crm_404_primary);
+      color: #ffffff;
+      box-shadow: 0 16px 36px rgba(31, 58, 138, .22);
+    }
+
+    .crm_404_btn_primary:hover {
+      background: #14275e;
+      color: #ffffff;
+      transform: translateY(-2px);
+      box-shadow: 0 20px 42px rgba(31, 58, 138, .28);
+    }
+
+    .crm_404_btn_outline {
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: var(--crm_404_dark);
+    }
+
+    .crm_404_btn_outline:hover {
+      background: #f8fafc;
+      color: var(--crm_404_dark);
+      transform: translateY(-2px);
+    }
+
+    .crm_404_visual {
+      min-height: 100%;
+      display: grid;
+      place-items: center;
+      padding: clamp(38px, 5vw, 70px) 24px;
+      background:
+        radial-gradient(circle at 70% 20%, rgba(147, 197, 253, .32), transparent 28%),
+        radial-gradient(circle at 15% 85%, rgba(15, 118, 110, .24), transparent 34%),
+        linear-gradient(135deg, #111827, #1e3a8a);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .crm_404_visual::before {
+      content: "";
+      position: absolute;
+      width: 360px;
+      height: 360px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, .12);
+      top: -100px;
+      right: -120px;
+    }
+
+    .crm_404_visual::after {
+      content: "";
+      position: absolute;
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, .1);
+      left: -80px;
+      bottom: -80px;
+    }
+
+    .crm_404_orbit {
+      position: relative;
+      z-index: 1;
+      width: min(82%, 340px);
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      border-radius: 46px;
+      background: rgba(255, 255, 255, .09);
+      border: 1px solid rgba(255, 255, 255, .18);
+      box-shadow: 0 34px 80px rgba(0, 0, 0, .34);
+      backdrop-filter: blur(18px);
+    }
+
+    .crm_404_orbit::before,
+    .crm_404_orbit::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, .2);
+    }
+
+    .crm_404_orbit::before {
+      width: 78%;
+      height: 78%;
+    }
+
+    .crm_404_orbit::after {
+      width: 55%;
+      height: 55%;
+    }
+
+    .crm_404_number {
+      position: relative;
+      z-index: 2;
+      color: #ffffff;
+      font-size: clamp(70px, 11vw, 124px);
+      font-weight: 900;
+      letter-spacing: -.09em;
+      line-height: 1;
+    }
+
+    .crm_404_number span {
+      color: #93c5fd;
+    }
+
+    .crm_404_float {
+      position: absolute;
+      z-index: 3;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #93c5fd;
+      box-shadow: 0 0 0 10px rgba(147, 197, 253, .14);
+      animation: crm404Float 3s ease-in-out infinite;
+    }
+
+    .crm_404_float_one {
+      top: 19%;
+      right: 22%;
+    }
+
+    .crm_404_float_two {
+      width: 12px;
+      height: 12px;
+      left: 22%;
+      bottom: 24%;
+      background: #5eead4;
+      animation-delay: .6s;
+    }
+
+    @keyframes crm404Float {
+      0%, 100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-14px);
+      }
+    }
+
+    @media (max-width: 991px) {
+      .crm_404_visual {
+        min-height: 320px;
+      }
+
+      .crm_404_orbit {
+        width: 240px;
+        border-radius: 36px;
+      }
+    }
+
+    @media (max-width: 575px) {
+      .crm_404_page {
+        padding: 18px 0;
+      }
+
+      .crm_404_content {
+        padding: 30px 22px;
+        text-align: center;
+      }
+
+      .crm_404_badge {
+        margin: 0 auto;
+      }
+
+      .crm_404_actions {
+        display: grid;
+      }
+
+      .crm_404_btn {
+        width: 100%;
+      }
+    }
+  </style>
+  {% include "components/_invoice_action_system.html" %}
+</head>
+
+<body>
+  <main class="crm_404_page">
+    <div class="container">
+      <section class="crm_404_card">
+        <div class="row g-0 align-items-stretch">
+
+          <div class="col-lg-6 order-lg-2">
+            <div class="crm_404_visual">
+              <div class="crm_404_orbit" aria-hidden="true">
+                <div class="crm_404_number">4<span>0</span>4</div>
+                <span class="crm_404_float crm_404_float_one"></span>
+                <span class="crm_404_float crm_404_float_two"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-6 order-lg-1">
+            <div class="crm_404_content">
+              <span class="crm_404_badge">404 Not Found</span>
+
+              <h1 class="crm_404_title">Error 404</h1>
+
+              <h2 class="crm_404_subtitle">
+                Page Missing
+              </h2>
+
+              <p class="crm_404_text">
+                The page you are looking for was moved, removed, or may never have existed inside this CRM workspace.
+              </p>
+
+              <div class="crm_404_note">
+                Review the URL or return to your dashboard to continue working safely.
+              </div>
+
+              <div class="crm_404_actions">
+                {% if request.user.is_authenticated and request.user.is_superuser %}
+                  <a class="crm_404_btn crm_404_btn_primary" href="{% url 'platform_core:dashboard' %}">
+                    Back to Admin Dashboard
+                  </a>
+                {% elif request.user.is_authenticated and request.user.id_company %}
+                  <a class="crm_404_btn crm_404_btn_primary" href="/{{ request.user.id_company.slug }}/dashboard/">
+                    Back to Dashboard
+                  </a>
+                {% else %}
+                  <a class="crm_404_btn crm_404_btn_primary" href="/login/">
+                    Back to Login
+                  </a>
+                {% endif %}
+
+                <a class="crm_404_btn crm_404_btn_outline" href="javascript:history.back()">
+                  Go Back
+                </a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+    </div>
+  </main>
+</body>
+
+</html>

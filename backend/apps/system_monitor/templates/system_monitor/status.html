@@ -1,0 +1,355 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}
+{% if monitor.is_global %}System Monitor{% else %}Workspace Monitor{% endif %}
+{% endblock %}
+
+{% block page_subtitle %}
+{% if monitor.is_global %}
+Technical SaaS resources, database status, endpoints and platform health.
+{% else %}
+Company workspace resources filtered by enabled modules and user permissions.
+{% endif %}
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .sysmon_header {
+    display: grid;
+    gap: 6px;
+    margin-bottom: 18px;
+  }
+
+  .sysmon_scope {
+    margin: 0;
+    color: var(--crm_muted);
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+
+  .sysmon_sections {
+    display: grid;
+    gap: 22px;
+  }
+
+  .sysmon_section {
+    display: grid;
+    gap: 16px;
+  }
+
+  .sysmon_section_head {
+    display: grid;
+    gap: 5px;
+  }
+
+  .sysmon_section_title {
+    margin: 0;
+    color: var(--crm_text);
+    font-size: 20px;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+  }
+
+  .sysmon_section_text {
+    margin: 0;
+    color: var(--crm_muted);
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+
+  .sysmon_grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .sysmon_card {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+    min-height: 112px;
+    padding: 18px;
+    border: 1px solid var(--crm_border);
+    border-radius: var(--crm_radius);
+    background: var(--crm_surface);
+    box-shadow: var(--crm_shadow);
+  }
+
+  .sysmon_label {
+    color: var(--crm_muted);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    overflow-wrap: anywhere;
+  }
+
+  .sysmon_value {
+    color: var(--crm_primary);
+    font-size: 28px;
+    font-weight: 900;
+    line-height: 1.1;
+    overflow-wrap: anywhere;
+  }
+
+  .sysmon_module {
+    color: var(--crm_muted);
+    font-size: 12px;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+  }
+
+  .sysmon_layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 18px;
+    margin-top: 22px;
+  }
+
+  .sysmon_table_wrap {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .sysmon_table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 520px;
+  }
+
+  .sysmon_table th,
+  .sysmon_table td {
+    padding: 13px 12px;
+    border-bottom: 1px solid var(--crm_border);
+    text-align: left;
+    vertical-align: top;
+    font-size: 14px;
+  }
+
+  .sysmon_table th {
+    color: var(--crm_muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .sysmon_status {
+    display: inline-flex;
+    width: fit-content;
+    min-height: 28px;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--crm_border);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .sysmon_status_success {
+    color: var(--crm_success);
+    background: rgba(15, 118, 110, 0.08);
+  }
+
+  .sysmon_status_danger {
+    color: var(--crm_danger);
+    background: rgba(185, 28, 28, 0.08);
+  }
+
+  .sysmon_code {
+    font-family: Consolas, Monaco, monospace;
+    color: var(--crm_text);
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .sysmon_apps {
+    display: grid;
+    gap: 8px;
+    max-height: 420px;
+    overflow: auto;
+  }
+
+  .sysmon_app_item {
+    padding: 10px 12px;
+    border: 1px solid var(--crm_border);
+    border-radius: 12px;
+    background: #ffffff;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--crm_text);
+    overflow-wrap: anywhere;
+  }
+
+  .sysmon_empty {
+    padding: 20px;
+    border: 1px solid var(--crm_border);
+    border-radius: var(--crm_radius);
+    background: var(--crm_surface);
+    color: var(--crm_muted);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 1180px) {
+    .sysmon_grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 920px) {
+    .sysmon_grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .sysmon_layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 620px) {
+    .sysmon_grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <div class="sysmon_header">
+    <h2 class="crm_section_title">
+      {% if monitor.is_global %}SaaS Global Monitor{% else %}Company Workspace Monitor{% endif %}
+    </h2>
+
+    <p class="sysmon_scope">
+      Current scope: {{ monitor.scope_name }}
+    </p>
+  </div>
+
+  {% if monitor.sections %}
+    <div class="sysmon_sections">
+      {% for section in monitor.sections %}
+        <section class="sysmon_section">
+          <div class="sysmon_section_head">
+            <h2 class="sysmon_section_title">{{ section.title }}</h2>
+            <p class="sysmon_section_text">{{ section.description }}</p>
+          </div>
+
+          <div class="sysmon_grid">
+            {% for card in section.cards %}
+              <article class="sysmon_card">
+                <span class="sysmon_label">{{ card.label }}</span>
+                <strong class="sysmon_value">{{ card.value }}</strong>
+
+                {% if card.module %}
+                  <span class="sysmon_module">Module: {{ card.module }}</span>
+                {% endif %}
+              </article>
+            {% endfor %}
+          </div>
+        </section>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="sysmon_empty">
+      No workspace data is available for this user. Check company assignment, enabled modules and role permissions.
+    </div>
+  {% endif %}
+
+  {% if monitor.is_global %}
+    <section class="sysmon_layout">
+      <article class="crm_card">
+        <h2 class="crm_section_title">Database Status</h2>
+
+        <div class="sysmon_table_wrap">
+          <table class="sysmon_table">
+            <tbody>
+              <tr>
+                <th>Status</th>
+                <td>
+                  {% if monitor.database.connected %}
+                    <span class="sysmon_status sysmon_status_success">Connected</span>
+                  {% else %}
+                    <span class="sysmon_status sysmon_status_danger">Disconnected</span>
+                  {% endif %}
+                </td>
+              </tr>
+
+              <tr>
+                <th>Engine</th>
+                <td class="sysmon_code">{{ monitor.database.engine }}</td>
+              </tr>
+
+              <tr>
+                <th>Database</th>
+                <td class="sysmon_code">{{ monitor.database.database_name|default:"Unavailable" }}</td>
+              </tr>
+
+              <tr>
+                <th>Tables</th>
+                <td>{{ monitor.database.table_count }}</td>
+              </tr>
+
+              <tr>
+                <th>Response Time</th>
+                <td>{{ monitor.database.response_ms }} ms</td>
+              </tr>
+
+              {% if monitor.database.error %}
+                <tr>
+                  <th>Error</th>
+                  <td class="sysmon_code">{{ monitor.database.error }}</td>
+                </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="crm_card">
+        <h2 class="crm_section_title">Technical Endpoints</h2>
+
+        <div class="sysmon_table_wrap">
+          <table class="sysmon_table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>URL</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for endpoint in monitor.endpoints %}
+                <tr>
+                  <td class="sysmon_code">{{ endpoint.name }}</td>
+                  <td class="sysmon_code">{{ endpoint.url|default:"Not configured" }}</td>
+                  <td>
+                    {% if endpoint.available %}
+                      <span class="sysmon_status sysmon_status_success">Available</span>
+                    {% else %}
+                      <span class="sysmon_status sysmon_status_danger">Missing</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="crm_card">
+        <h2 class="crm_section_title">Installed Apps</h2>
+
+        <div class="sysmon_apps">
+          {% for app_name in monitor.installed_apps %}
+            <div class="sysmon_app_item">{{ app_name }}</div>
+          {% endfor %}
+        </div>
+      </article>
+    </section>
+  {% endif %}
+{% endblock %}

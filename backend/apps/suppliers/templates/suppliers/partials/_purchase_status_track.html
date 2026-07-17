@@ -1,0 +1,12 @@
+<div class="supplier-status-workflow{% if detail %} is-detail{% endif %}" aria-label="Purchase status: {{ current_label }}">
+  <div class="supplier-status-track">
+    <span class="supplier-status-node{% if current_status == 'draft' %} is-current{% endif %}" style="--stage-color:#64748b" data-tooltip="Draft" aria-label="Draft"><i class="bi bi-pencil" aria-hidden="true"></i></span>
+    <span class="supplier-status-line" aria-hidden="true"></span>
+    <span class="supplier-status-node{% if current_status == 'pending' %} is-current{% endif %}" style="--stage-color:#f59e0b" data-tooltip="Pending" aria-label="Pending"><i class="bi bi-hourglass-split" aria-hidden="true"></i></span>
+    <span class="supplier-status-line" aria-hidden="true"></span>
+    <span class="supplier-status-node{% if current_status == 'completed' %} is-current{% endif %}" style="--stage-color:#0e9f6e" data-tooltip="Completed" aria-label="Completed"><i class="bi bi-check2-circle" aria-hidden="true"></i></span>
+    <span class="supplier-status-line" aria-hidden="true"></span>
+    <span class="supplier-status-node{% if current_status == 'cancelled' %} is-current{% endif %}" style="--stage-color:#ef3340" data-tooltip="Cancelled" aria-label="Cancelled"><i class="bi bi-x-circle" aria-hidden="true"></i></span>
+  </div>
+  <span class="supplier-status-caption is-{{ current_status }}">{{ current_label }}</span>
+</div>

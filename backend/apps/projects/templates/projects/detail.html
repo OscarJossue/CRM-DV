@@ -1,0 +1,83 @@
+{% extends "layouts/base.html" %}
+{% block page_title %}{{ project.project_name }}{% endblock %}
+{% block page_subtitle %}Project information, contractor evidence and controlled audit workflow.{% endblock %}
+
+{% block extra_head %}
+  {% include "projects/partials/_design_system.html" %}
+  {% include "projects/partials/_status_track_styles.html" %}
+  <style>
+    .project-compact-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:7px}.project-audit-actions{display:grid;gap:10px}.project-review-copy{margin:0;color:var(--nj-ink);font-size:11.5px;font-weight:650;line-height:1.55;white-space:pre-line}.project-note-form textarea{width:100%;min-height:82px}.project-evidence-count{display:inline-flex;align-items:center;gap:6px;padding:7px 9px;border:1px solid var(--nj-line);border-radius:999px;background:#fff;color:var(--nj-navy);font-size:10px;font-weight:850}
+    @media(max-width:760px){.project-compact-actions{justify-content:flex-start}}
+  </style>
+{% endblock %}
+
+{% block content %}
+<div class="nj-invoice operations-standard{% if project.status == 'cancelled' %} is-record-cancelled{% endif %}">
+  <section class="ops-detail-hero">
+    <div class="ops-hero-main"><span class="ops-hero-icon"><i class="bi bi-kanban" aria-hidden="true"></i></span><div><span class="ops-hero-code">{{ project.project_code|default:project.id_project }}</span><h1 class="ops-hero-title">{{ project.project_name }}</h1><p class="ops-hero-subtitle">{{ project.id_client.name|default:"No client" }}{% if project.project_address %} · {{ project.project_address }}{% endif %}</p></div></div>
+    <div class="ops-stack"><div class="ops-hero-status">{% include "projects/partials/_status_track.html" with project=project interactive=False interactive_close=True detail=True %}</div><div class="project-compact-actions">
+      <a class="ops-btn is-secondary is-compact" href="{{ project_list_url }}"><i class="bi bi-arrow-left"></i> Back</a>
+      {% if can_edit_projects and not is_project_locked %}<a class="ops-btn is-compact" href="{{ project_update_url }}"><i class="bi bi-pencil"></i> Edit</a>{% endif %}
+      {% if project.invoice_status == "no_invoice" and project.status != "cancelled" %}<a class="ops-btn is-success is-compact" href="{{ project_invoice_create_url }}"><i class="bi bi-receipt"></i> Create invoice</a>{% endif %}
+      {% if can_view_project_pdf %}<a class="ops-btn is-danger is-compact" href="{{ project_pdf_url }}"><i class="bi bi-file-earmark-pdf"></i> PDF</a>{% endif %}
+      {% if can_close_project %}<button class="ops-btn is-success is-compact" type="button" data-project-action="close" data-action-url="{{ project_close_url }}" data-record-label="{{ project.project_code }} · {{ project.project_name }}"><i class="bi bi-check2-circle"></i> Close project</button>{% endif %}
+      {% if can_delete_project %}<button class="ops-btn is-danger is-compact" type="button" data-project-action="delete" data-action-url="{{ project_delete_url }}" data-record-label="{{ project.project_code }} · {{ project.project_name }}"><i class="bi bi-trash3"></i> Delete</button>{% elif can_cancel_project %}<button class="ops-btn is-danger is-compact" type="button" data-project-action="cancel" data-action-url="{{ project_cancel_url }}" data-record-label="{{ project.project_code }} · {{ project.project_name }}"><i class="bi bi-slash-circle"></i> Cancel project</button>{% endif %}
+    </div></div>
+  </section>
+
+  {% if project.status == "cancelled" %}<div class="ops-review-note is-danger"><i class="bi bi-lock"></i><span>This project is cancelled and frozen. {% if project.cancellation_reason %}Reason: {{ project.cancellation_reason }}{% endif %}</span></div>{% endif %}
+
+  <div class="ops-layout">
+    <main class="ops-stack">
+      <section class="ops-card">
+        <header class="ops-card-head"><div class="ops-card-heading"><i class="bi bi-info-circle"></i><div><h2 class="ops-card-title">Project information</h2><p class="ops-card-copy">Core operational data. Status and finalization date are automatic.</p></div></div></header>
+        <div class="ops-card-body"><div class="ops-info-grid">
+          <div class="ops-info"><i class="bi bi-person"></i><div><span class="ops-info-label">Client</span><span class="ops-info-value">{{ project.id_client.name|default:"No client" }}{% if project.id_client.client_code %}<br>{{ project.id_client.client_code }}{% endif %}</span></div></div>
+          <div class="ops-info"><i class="bi bi-person-badge"></i><div><span class="ops-info-label">Supervisor / Inspector</span><span class="ops-info-value">{% if project.id_inspector %}{{ project.id_inspector.first_name }} {{ project.id_inspector.last_name }}{% if not project.id_inspector.first_name and not project.id_inspector.last_name %}{{ project.id_inspector.email }}{% endif %}{% else %}Not assigned{% endif %}</span></div></div>
+          <div class="ops-info"><i class="bi bi-cash-stack"></i><div><span class="ops-info-label">Contract amount</span><span class="ops-info-value">${{ project.contract_amount|default:"0.00"|floatformat:2 }}</span></div></div>
+          <div class="ops-info"><i class="bi bi-calendar-event"></i><div><span class="ops-info-label">Start date</span><span class="ops-info-value">{{ project.start_date|date:"d/m/Y"|default:"Not defined" }}</span></div></div>
+          <div class="ops-info"><i class="bi bi-calendar-check"></i><div><span class="ops-info-label">Finalization date</span><span class="ops-info-value">{{ project.end_date|date:"d/m/Y"|default:"Set automatically on closure" }}</span></div></div>
+          <div class="ops-info"><i class="bi bi-bar-chart"></i><div><span class="ops-info-label">Progress</span><span class="ops-info-value">{{ project.progress|default:0 }}%</span></div></div>
+          <div class="ops-info is-wide"><i class="bi bi-geo-alt"></i><div><span class="ops-info-label">Address and Maps</span><span class="ops-info-value">{{ project.project_address|default:project.id_client.address|default:"No address" }}{% if project.maps_url %}<br><a href="{{ project.maps_url }}" target="_blank" rel="noopener">Open Google Maps</a>{% endif %}</span></div></div>
+          <div class="ops-info"><i class="bi bi-receipt"></i><div><span class="ops-info-label">Invoice status</span><span class="ops-info-value">{{ project.get_invoice_status_display|default:project.invoice_status }}</span></div></div>
+          <div class="ops-info is-full"><i class="bi bi-card-text"></i><div><span class="ops-info-label">Description</span><span class="ops-info-value">{{ project.description|default:"No description" }}</span></div></div>
+          {% if project.project_notes %}<div class="ops-info is-full"><i class="bi bi-journal-text"></i><div><span class="ops-info-label">Project notes</span><span class="ops-info-value">{{ project.project_notes }}</span></div></div>{% endif %}
+        </div></div>
+      </section>
+
+      <section class="ops-card" id="project-evidence">
+        <header class="ops-card-head"><div class="ops-card-heading"><i class="bi bi-images"></i><div><h2 class="ops-card-title">Project evidence received</h2><p class="ops-card-copy">Read-only photographs submitted for this project after the work, with their original descriptions. Inspection photos are never copied here.</p></div></div><span class="project-evidence-count"><i class="bi bi-camera"></i> {{ project_evidence|length }} files</span></header>
+        <div class="ops-card-body">
+          {% if project_evidence %}<div class="ops-evidence-grid">{% for evidence in project_evidence %}<article class="ops-evidence"><a class="ops-evidence-media" href="{{ evidence.file.url }}" target="_blank" rel="noopener"><img src="{{ evidence.file.url }}" alt="{{ evidence.title|default:'Project evidence' }}" loading="lazy"><span class="ops-evidence-badge"><i class="bi bi-camera"></i> Project evidence</span></a><div class="ops-evidence-body"><h3 class="ops-evidence-title">{{ evidence.title|default:"Project photo" }}</h3><p class="ops-evidence-description">{{ evidence.description|default:"No description was submitted." }}</p><div class="ops-evidence-meta"><span>{% if evidence.uploaded_by %}{{ evidence.uploaded_by.email }}{% else %}Field user{% endif %}</span><span>{{ evidence.uploaded_at|date:"d/m/Y H:i" }}</span></div></div></article>{% endfor %}</div>{% else %}<div class="ops-empty"><i class="bi bi-image"></i><strong>No project evidence received</strong><span>Only photographs submitted from the contractor project workspace will appear here. The administrator module has no manual gallery.</span></div>{% endif %}
+        </div>
+      </section>
+    </main>
+
+    <aside class="ops-stack">
+      <section class="ops-card">
+        <header class="ops-card-head"><div class="ops-card-heading"><i class="bi bi-shield-check"></i><div><h2 class="ops-card-title">Audit control</h2><p class="ops-card-copy">Review, correction, approval and closure actions.</p></div></div></header>
+        <div class="ops-card-body project-audit-actions">
+          <div class="ops-info"><i class="bi bi-send"></i><div><span class="ops-info-label">Last sent for audit</span><span class="ops-info-value">{{ project.submitted_for_audit_at|date:"d/m/Y H:i"|default:"Not submitted" }}</span></div></div>
+          <div class="ops-info"><i class="bi bi-check2-circle"></i><div><span class="ops-info-label">Audit completed</span><span class="ops-info-value">{{ project.audit_completed_at|date:"d/m/Y H:i"|default:"Pending" }}</span></div></div>
+          {% if project.review_notes %}<div class="ops-review-note {% if project.status == 'in_progress' %}is-danger{% endif %}"><i class="bi bi-chat-left-text"></i><span>{{ project.review_notes }}</span></div>{% endif %}
+          {% if project.contractor_observations %}<div><span class="ops-info-label">Contractor observations</span><p class="project-review-copy">{{ project.contractor_observations }}</p></div>{% endif %}
+          {% if project.contractor_recommendations %}<div><span class="ops-info-label">Contractor recommendations</span><p class="project-review-copy">{{ project.contractor_recommendations }}</p></div>{% endif %}
+          {% if can_review_project %}<button class="ops-btn is-success" type="button" data-project-action="approve" data-action-url="{{ project_approve_url }}" data-record-label="{{ project.project_code }} · {{ project.project_name }}"><i class="bi bi-check2-circle"></i> Review and close</button><button class="ops-btn is-warning" type="button" data-project-action="corrections" data-action-url="{{ project_corrections_url }}" data-record-label="{{ project.project_code }} · {{ project.project_name }}"><i class="bi bi-arrow-counterclockwise"></i> Request corrections</button>{% endif %}
+          {% if project.cancellation_reason %}<div class="ops-review-note is-danger"><i class="bi bi-slash-circle"></i><span>{{ project.cancellation_reason }}</span></div>{% endif %}
+        </div>
+      </section>
+
+      <section class="ops-card">
+        <header class="ops-card-head"><div class="ops-card-heading"><i class="bi bi-journal-text"></i><div><h2 class="ops-card-title">Internal notes</h2><p class="ops-card-copy">Administrative notes are not shown in the contractor portal.</p></div></div></header>
+        <div class="ops-card-body ops-stack">
+          {% if can_edit_projects and project.status != "cancelled" %}<form class="project-note-form ops-stack" method="post" action="{{ project_note_create_url }}">{% csrf_token %}<div class="ops-field"><label for="{{ note_form.note.id_for_label }}">New note</label>{{ note_form.note }}</div><button class="ops-btn is-compact" type="submit"><i class="bi bi-plus-lg"></i> Add note</button></form>{% endif %}
+          {% if project_notes %}<div class="ops-timeline">{% for note in project_notes %}<article class="ops-timeline-item"><i class="bi bi-chat-left-text"></i><div class="ops-timeline-top"><strong>{% if note.created_by %}{{ note.created_by.email }}{% else %}System{% endif %}</strong><span>{{ note.created_at|date:"d/m/Y H:i" }}</span></div><p>{{ note.note }}</p></article>{% endfor %}</div>{% else %}<div class="ops-empty"><i class="bi bi-journal"></i><strong>No internal notes</strong><span>Administrative notes will appear here.</span></div>{% endif %}
+        </div>
+      </section>
+    </aside>
+  </div>
+
+  {% if show_invoice_popup %}<div class="ops-modal-backdrop is-open" id="ProjectInvoiceModal"><div class="ops-modal"><i class="bi bi-check2-circle"></i><h2>Project created</h2><p>The project was saved successfully. You can create its invoice now or continue working.</p><div class="ops-modal-actions"><button class="ops-btn is-secondary" type="button" onclick="document.getElementById('ProjectInvoiceModal').classList.remove('is-open')">Continue</button><a class="ops-btn" href="{{ project_invoice_create_url }}"><i class="bi bi-receipt"></i> Create invoice</a></div></div></div>{% endif %}
+  {% include "projects/partials/_action_modal.html" %}
+</div>
+{% endblock %}

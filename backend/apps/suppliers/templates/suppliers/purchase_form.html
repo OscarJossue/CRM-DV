@@ -1,0 +1,237 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}{{ form_title }}{% endblock %}
+{% block page_subtitle %}Register or update supplier purchases with the unified internal invoice standard.{% endblock %}
+{% block extra_head %}{% include "suppliers/partials/_design_system.html" %}{% endblock %}
+
+{% block content %}
+<div class="nj-invoice nj-page supplier_theme">
+  <header class="nj-page-head">
+    <div>
+      <span class="nj-page-kicker"><i class="bi bi-cart-check" aria-hidden="true"></i> Purchase workflow</span>
+      <h1 class="nj-page-title">{{ form_title }}</h1>
+      <p class="nj-page-subtitle">Select the supplier, add products and verify the complete financial summary before saving.</p>
+    </div>
+    <div class="nj-head-actions">
+      <a class="nj-btn nj-btn-secondary" href="{{ cancel_url }}"><i class="bi bi-x-lg"></i> Cancel</a>
+      <button class="nj-btn" type="submit" form="supplierPurchaseForm"><i class="bi bi-check2-square"></i> {{ submit_label }}</button>
+    </div>
+  </header>
+
+  {% if form.non_field_errors or item_formset.non_form_errors %}
+    <div class="nj-alert" role="alert"><i class="bi bi-exclamation-triangle"></i><div>{{ form.non_field_errors }}{{ item_formset.non_form_errors }}</div></div>
+  {% endif %}
+
+  <form method="post" id="supplierPurchaseForm" novalidate>
+    {% csrf_token %}
+    <div class="supplier-internal-layout">
+      <main class="supplier-internal-main">
+        {% if supplier %}
+          <div class="supplier-source-banner"><i class="bi bi-truck"></i><div><strong>Supplier-linked purchase</strong><span>The purchase is connected to {{ supplier.company_name }} and only its active products are available.</span></div></div>
+        {% elif purchase %}
+          <div class="supplier-source-banner"><i class="bi bi-receipt"></i><div><strong>{{ purchase.purchase_number }}</strong><span>{{ purchase.id_supplier.company_name }} · Existing purchase being updated.</span></div></div>
+        {% endif %}
+
+        <section class="nj-card">
+          <div class="supplier-section-head"><div class="supplier-section-title"><span class="nj-icon-box"><i class="bi bi-building-check"></i></span><div><h2>Supplier and purchase data</h2><p>General data, document reference, status and category.</p></div></div></div>
+          <div class="supplier-section-body">
+            <div class="supplier_form_grid">
+              {% if form.id_supplier.is_hidden %}{{ form.id_supplier }}{% else %}<div class="supplier_form_field"><label class="nj-required" for="{{ form.id_supplier.id_for_label }}">Supplier</label>{{ form.id_supplier }}{% for error in form.id_supplier.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</div>{% endif %}
+              <div class="supplier_form_field"><label for="{{ form.purchase_date.id_for_label }}">Purchase Date</label>{{ form.purchase_date }}{% for error in form.purchase_date.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</div>
+              <div class="supplier_form_field"><label for="{{ form.external_document_number.id_for_label }}">Receipt / Reference</label>{{ form.external_document_number }}{% for error in form.external_document_number.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</div>
+              <div class="supplier_form_field"><label for="{{ form.category.id_for_label }}">Category</label>{{ form.category }}{% for error in form.category.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</div>
+              <div class="supplier_form_field"><label for="{{ form.status.id_for_label }}">Status</label>{{ form.status }}{% for error in form.status.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</div>
+              <div class="supplier_form_field"><label for="{{ form.discount_amount.id_for_label }}">Discount</label>{{ form.discount_amount }}{% for error in form.discount_amount.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</div>
+              <div class="supplier_form_field"><label for="{{ form.paid_amount.id_for_label }}">Paid Amount</label>{{ form.paid_amount }}{% for error in form.paid_amount.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</div>
+              <div class="supplier_form_field span_3"><label for="{{ form.description.id_for_label }}">Description</label>{{ form.description }}{% for error in form.description.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</div>
+              <div class="supplier_form_field span_3"><label for="{{ form.notes.id_for_label }}">Internal Notes</label>{{ form.notes }}{% for error in form.notes.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="nj-card">
+          <div class="supplier-section-head">
+            <div class="supplier-section-title"><span class="nj-icon-box is-violet"><i class="bi bi-list-check"></i></span><div><h2>Purchase products</h2><p>Add products one line at a time. Options are filtered by the selected supplier.</p></div></div>
+            <button class="supplier_btn supplier_btn_secondary" type="button" id="supplierAddItem"><i class="bi bi-plus-lg"></i> Add Product</button>
+          </div>
+          <div class="supplier_table_wrap">
+            {{ item_formset.management_form }}
+            <table class="supplier_items_table supplier_items_table_compact">
+              <thead><tr><th>Product</th><th>Qty</th><th>Unit Cost</th><th>Tax</th><th>Total</th><th>Remove</th></tr></thead>
+              <tbody id="supplierItemsBody">
+                {% for item_form in item_formset %}
+                  <tr class="supplier_item_row">
+                    <td data-label="Product">{{ item_form.id }}{{ item_form.id_offer }}{{ item_form.item_name }}{{ item_form.description }}{{ item_form.unit }}{% for error in item_form.id_offer.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}{% for error in item_form.item_name.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</td>
+                    <td data-label="Qty">{{ item_form.quantity }}{% for error in item_form.quantity.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</td>
+                    <td data-label="Unit Cost">{{ item_form.unit_price }}{% for error in item_form.unit_price.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</td>
+                    <td data-label="Tax">{{ item_form.tax_amount }}{% for error in item_form.tax_amount.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</td>
+                    <td data-label="Total"><span class="supplier_item_total_preview">$0.00</span></td>
+                    <td data-label="Remove">{% if item_form.DELETE %}<span class="supplier_delete_holder">{{ item_form.DELETE }}</span><button class="supplier_icon_action supplier_icon_danger supplier_remove_row" type="button" data-tooltip="Remove" aria-label="Remove"><i class="bi bi-trash3"></i><span>Remove</span></button>{% else %}—{% endif %}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <template id="supplierEmptyItemTemplate">
+          <tr class="supplier_item_row">
+            <td data-label="Product">{{ item_formset.empty_form.id }}{{ item_formset.empty_form.id_offer }}{{ item_formset.empty_form.item_name }}{{ item_formset.empty_form.description }}{{ item_formset.empty_form.unit }}</td>
+            <td data-label="Qty">{{ item_formset.empty_form.quantity }}</td>
+            <td data-label="Unit Cost">{{ item_formset.empty_form.unit_price }}</td>
+            <td data-label="Tax">{{ item_formset.empty_form.tax_amount }}</td>
+            <td data-label="Total"><span class="supplier_item_total_preview">$0.00</span></td>
+            <td data-label="Remove">{% if item_formset.empty_form.DELETE %}<span class="supplier_delete_holder">{{ item_formset.empty_form.DELETE }}</span><button class="supplier_icon_action supplier_icon_danger supplier_remove_row" type="button" data-tooltip="Remove" aria-label="Remove"><i class="bi bi-trash3"></i><span>Remove</span></button>{% else %}—{% endif %}</td>
+          </tr>
+        </template>
+      </main>
+
+      <aside class="supplier-internal-side">
+        <section class="nj-card">
+          <div class="nj-card-head"><h2 class="nj-card-title"><i class="bi bi-calculator"></i> Live financial summary</h2></div>
+          <div class="nj-card-body">
+            <section class="supplier_summary">
+              <div class="supplier_summary_box"><span>Subtotal</span><strong id="supplierSubtotalPreview">$0.00</strong></div>
+              <div class="supplier_summary_box"><span>Tax</span><strong id="supplierTaxPreview">$0.00</strong></div>
+              <div class="supplier_summary_box"><span>Discount</span><strong id="supplierDiscountPreview">$0.00</strong></div>
+              <div class="supplier_summary_box"><span>Total</span><strong id="supplierGrandTotalPreview">$0.00</strong></div>
+              <div class="supplier_summary_box"><span>Paid</span><strong id="supplierPaidPreview">$0.00</strong></div>
+              <div class="supplier_summary_box"><span>Balance</span><strong id="supplierBalancePreview">$0.00</strong></div>
+            </section>
+          </div>
+        </section>
+        <section class="nj-card">
+          <div class="nj-card-head"><h2 class="nj-card-title"><i class="bi bi-shield-check"></i> Purchase control</h2></div>
+          <div class="nj-card-body supplier-side-list">
+            <div class="supplier-side-row"><i class="bi bi-box-seam"></i><div><span>Required</span><strong>At least one product</strong></div></div>
+            <div class="supplier-side-row"><i class="bi bi-arrow-repeat"></i><div><span>Automatic</span><strong>Totals and payment status</strong></div></div>
+          </div>
+        </section>
+        <button class="nj-btn" type="submit"><i class="bi bi-check2-square"></i> {{ submit_label }}</button>
+      </aside>
+    </div>
+  </form>
+</div>
+
+<script>
+(function(){
+  function toNumber(value){
+    const number = parseFloat(String(value || '0').replace(',', '.'));
+    return Number.isFinite(number) ? number : 0;
+  }
+  function money(value){ return '$' + Number(value || 0).toFixed(2); }
+  function selectedSupplier(){
+    const supplierInput = document.getElementById('id_supplier_select') || document.querySelector('[name="id_supplier"]');
+    return supplierInput ? String(supplierInput.value || '') : '';
+  }
+  function currentOption(select){ return select && select.options ? select.options[select.selectedIndex] : null; }
+  function fillFromProduct(row){
+    const select = row.querySelector('.supplier_product_select');
+    const option = currentOption(select);
+    if(!option || !option.value){ return; }
+    const name = row.querySelector('.supplier_item_name');
+    const desc = row.querySelector('.supplier_item_description');
+    const unit = row.querySelector('.supplier_item_unit');
+    const price = row.querySelector('.supplier_item_price');
+    if(name){ name.value = option.dataset.name || option.textContent.trim(); }
+    if(desc && !desc.value){ desc.value = option.dataset.description || ''; }
+    if(unit && !unit.value){ unit.value = option.dataset.unit || ''; }
+    if(price && (!price.value || toNumber(price.value) === 0)){ price.value = option.dataset.price || '0.00'; }
+  }
+  function refreshRow(row){
+    const qty = toNumber(row.querySelector('.supplier_item_quantity')?.value || 1);
+    const price = toNumber(row.querySelector('.supplier_item_price')?.value);
+    const tax = toNumber(row.querySelector('.supplier_item_tax')?.value);
+    const total = (qty * price) + tax;
+    const target = row.querySelector('.supplier_item_total_preview');
+    if(target){ target.textContent = money(total); }
+    return { subtotal: qty * price, tax: tax, total: total };
+  }
+  function refreshSummary(){
+    let subtotal = 0, tax = 0, grand = 0;
+    document.querySelectorAll('.supplier_item_row').forEach(function(row){
+      if(row.style.display === 'none'){ return; }
+      const del = row.querySelector('input[name$="-DELETE"]');
+      if(del && del.checked){ return; }
+      const values = refreshRow(row);
+      subtotal += values.subtotal;
+      tax += values.tax;
+      grand += values.total;
+    });
+    const discount = toNumber(document.querySelector('.supplier_discount_input')?.value);
+    const paid = toNumber(document.querySelector('.supplier_paid_input')?.value);
+    const finalTotal = Math.max(grand - discount, 0);
+    const balance = Math.max(finalTotal - paid, 0);
+    const map = {
+      supplierSubtotalPreview: subtotal,
+      supplierTaxPreview: tax,
+      supplierDiscountPreview: discount,
+      supplierGrandTotalPreview: finalTotal,
+      supplierPaidPreview: paid,
+      supplierBalancePreview: balance
+    };
+    Object.keys(map).forEach(function(id){ const el = document.getElementById(id); if(el){ el.textContent = money(map[id]); } });
+  }
+  function filterProducts(row){
+    const supplierId = selectedSupplier();
+    const select = row.querySelector('.supplier_product_select');
+    if(!select){ return; }
+    Array.from(select.options).forEach(function(option){
+      if(!option.value){ option.hidden = false; return; }
+      option.hidden = supplierId && option.dataset.supplier !== supplierId;
+    });
+    const option = currentOption(select);
+    if(option && option.value && supplierId && option.dataset.supplier !== supplierId){
+      select.value = '';
+    }
+  }
+  function bindRow(row){
+    filterProducts(row);
+    fillFromProduct(row);
+    refreshRow(row);
+    row.addEventListener('input', function(){ refreshRow(row); refreshSummary(); });
+    row.addEventListener('change', function(event){
+      if(event.target && event.target.classList.contains('supplier_product_select')){ fillFromProduct(row); }
+      refreshRow(row); refreshSummary();
+    });
+    const remove = row.querySelector('.supplier_remove_row');
+    if(remove){
+      remove.addEventListener('click', function(){
+        const del = row.querySelector('input[name$="-DELETE"]');
+        if(del){ del.checked = true; row.style.display = 'none'; }
+        else { row.remove(); }
+        refreshSummary();
+      });
+    }
+  }
+  function refreshAllProductFilters(){ document.querySelectorAll('.supplier_item_row').forEach(filterProducts); }
+
+  document.querySelectorAll('.supplier_item_row').forEach(bindRow);
+  document.addEventListener('input', refreshSummary);
+  document.addEventListener('change', refreshSummary);
+
+  const supplierInput = document.getElementById('id_supplier_select') || document.querySelector('[name="id_supplier"]');
+  if(supplierInput){ supplierInput.addEventListener('change', function(){ refreshAllProductFilters(); refreshSummary(); }); }
+
+  const addButton = document.getElementById('supplierAddItem');
+  const body = document.getElementById('supplierItemsBody');
+  const template = document.getElementById('supplierEmptyItemTemplate');
+  const totalForms = document.querySelector('input[name$="-TOTAL_FORMS"]');
+
+  if(addButton && body && template && totalForms){
+    addButton.addEventListener('click', function(){
+      const index = parseInt(totalForms.value, 10) || 0;
+      const html = template.innerHTML.replace(/__prefix__/g, index);
+      const holder = document.createElement('tbody');
+      holder.innerHTML = html.trim();
+      const row = holder.firstElementChild;
+      body.appendChild(row);
+      totalForms.value = index + 1;
+      bindRow(row);
+      refreshSummary();
+    });
+  }
+  refreshSummary();
+})();
+</script>
+{% endblock %}

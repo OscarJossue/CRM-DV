@@ -1,0 +1,57 @@
+{% extends "layouts/base.html" %}
+{% load core_i18n %}
+
+{% block page_title %}History details{% endblock %}
+{% block page_subtitle %}Detailed immutable record of a CRM action.{% endblock %}
+
+{% block extra_head %}
+<style>
+  .history_detail{display:grid;gap:18px}.history_detail_head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding:20px;border:1px solid var(--crm_border);border-radius:20px;background:var(--crm_surface);box-shadow:var(--crm_shadow_soft)}
+  .history_detail_title{display:grid;gap:8px;min-width:0}.history_detail_title h2{margin:0;color:var(--crm_text);overflow-wrap:anywhere}.history_detail_title p{margin:0;color:var(--crm_muted)}
+  .history_detail_badges{display:flex;flex-wrap:wrap;gap:8px}.history_detail_badge{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;background:rgba(31,58,138,.1);color:var(--crm_primary);font-size:11px;font-weight:900;text-transform:uppercase}.history_detail_badge.critical{background:rgba(220,38,38,.1);color:var(--crm_danger)}.history_detail_badge.security{background:rgba(124,58,237,.1);color:#7c3aed}
+  .history_detail_grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}.history_detail_item{display:grid;gap:7px;padding:16px;border:1px solid var(--crm_border);border-radius:16px;background:var(--crm_surface)}
+  .history_detail_label{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.04em;color:var(--crm_muted)}.history_detail_value{font-weight:800;color:var(--crm_text);overflow-wrap:anywhere}.history_detail_full{grid-column:1/-1}
+  .history_changes{display:grid;gap:10px}.history_change{display:grid;grid-template-columns:minmax(140px,.7fr) 1fr auto 1fr;gap:10px;align-items:center;padding:13px;border:1px solid var(--crm_border);border-radius:14px;background:var(--crm_surface)}
+  .history_change_field{font-weight:900;color:var(--crm_text)}.history_change_value{padding:9px 10px;border-radius:10px;background:var(--crm_bg);color:var(--crm_muted);overflow-wrap:anywhere;word-break:break-word}.history_change_arrow{color:var(--crm_primary)}
+  .history_back{display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:10px 15px;border:1px solid var(--crm_border);border-radius:13px;background:var(--crm_surface);color:var(--crm_text);font-weight:900;text-decoration:none}
+  @media(max-width:950px){.history_detail_grid{grid-template-columns:repeat(2,minmax(0,1fr))}.history_change{grid-template-columns:1fr}.history_change_arrow{transform:rotate(90deg)}}
+  @media(max-width:620px){.history_detail_grid{grid-template-columns:1fr}.history_detail_head{flex-direction:column}.history_detail_full{grid-column:auto}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="history_detail">
+  <section class="history_detail_head">
+    <div class="history_detail_title"><div class="history_detail_badges"><span class="history_detail_badge {{ system_log.severity }}">{{ system_log.get_action_type_display }}</span><span class="history_detail_badge">{{ system_log.module|default:'General'|title|ui_trans }}</span><span class="history_detail_badge {{ system_log.severity }}">{{ system_log.get_severity_display }}</span></div><h2>{{ system_log.object_type|default:system_log.module|title|ui_trans }}{% if system_log.object_label %} · {{ system_log.object_label }}{% endif %}</h2><p>Record #{{ system_log.id_log }} · {{ system_log.created_at|date:"M d, Y H:i:s" }}</p></div>
+    <a class="history_back" href="{{ history_list_url }}"><i class="bi bi-arrow-left"></i> Back to history</a>
+  </section>
+
+  <section class="history_detail_grid">
+    <div class="history_detail_item"><span class="history_detail_label">Company</span><span class="history_detail_value">{{ system_log.id_company.name }}</span></div>
+    <div class="history_detail_item"><span class="history_detail_label">User</span><span class="history_detail_value">{{ system_log.actor_display }}</span></div>
+    <div class="history_detail_item"><span class="history_detail_label">Result</span><span class="history_detail_value">{{ system_log.get_result_display }}</span></div>
+    <div class="history_detail_item"><span class="history_detail_label">Record type</span><span class="history_detail_value">{{ system_log.object_type|default:'CRM'|ui_trans }}</span></div>
+    <div class="history_detail_item"><span class="history_detail_label">Record ID</span><span class="history_detail_value">{{ system_log.object_id|default:'Not available' }}</span></div>
+    <div class="history_detail_item"><span class="history_detail_label">IP address</span><span class="history_detail_value">{{ system_log.ip|default:'Not available' }}</span></div>
+    <div class="history_detail_item"><span class="history_detail_label">Request ID</span><span class="history_detail_value">{{ system_log.request_id|default:'Not available' }}</span></div>
+    <div class="history_detail_item"><span class="history_detail_label">Retention expiration</span><span class="history_detail_value">{{ system_log.expires_at|date:"M d, Y H:i"|default:'Legacy retention policy' }}</span></div>
+    <div class="history_detail_item"><span class="history_detail_label">Technical event</span><span class="history_detail_value">{{ system_log.action|default:'Not available' }}</span></div>
+    <div class="history_detail_item history_detail_full"><span class="history_detail_label">Browser / device</span><span class="history_detail_value">{{ system_log.user_agent|default:'Not available' }}</span></div>
+  </section>
+
+  <section class="crm_card">
+    <h2 class="crm_section_title">Changed fields</h2>
+    <div class="history_changes">
+      {% for field,values in system_log.changes.items %}
+        {% if field == 'deleted_record' %}
+          <div class="history_detail_item"><span class="history_detail_label">Deleted record snapshot</span><span class="history_detail_value">{{ values }}</span></div>
+        {% else %}
+          <div class="history_change"><span class="history_change_field">{{ field|title }}</span><span class="history_change_value">{{ values.old|default:'Empty' }}</span><i class="bi bi-arrow-right history_change_arrow"></i><span class="history_change_value">{{ values.new|default:'Empty' }}</span></div>
+        {% endif %}
+      {% empty %}
+        <div class="history_detail_item"><span class="history_detail_label">No field comparison</span><span class="history_detail_value">This event records an access or system action that does not modify a CRM field.</span></div>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

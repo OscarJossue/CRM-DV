@@ -1,0 +1,161 @@
+/* CRM UI action standard — client workspace. Scope: buttons, action icons,
+   page headers and form controls only. It deliberately does not recolor cards,
+   dashboards, status badges, navigation or business-state colors. */
+:root {
+  --crm-ui-font-body: "Poppins", "Segoe UI", Arial, sans-serif;
+  --crm-ui-font-title: "Montserrat", "Segoe UI", Arial, sans-serif;
+  --crm-ui-ink: #172554;
+  --crm-ui-border: #d7deea;
+  --crm-ui-hover: #f6f8fc;
+  --crm-ui-positive: #15803d;
+  --crm-ui-negative: #dc2626;
+  --crm-ui-warning: #b45309;
+  --crm-ui-info: #2563eb;
+  --crm-ui-violet: #6d28d9;
+  --crm-ui-muted: #64748b;
+}
+
+/* Typography, without changing module colors or layout surfaces. */
+.crm_main_content,
+.crm_content,
+main {
+  font-family: var(--crm-ui-font-body);
+}
+.crm_main_content h1, .crm_main_content h2, .crm_main_content h3,
+.crm_content h1, .crm_content h2, .crm_content h3,
+main h1, main h2, main h3,
+.page-title, .page_title, .crm_page_title, .nj-page-title {
+  font-family: var(--crm-ui-font-title);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+/* Every action control is normalized directly in templates with crm-uia. */
+.crm-uia {
+  --crm-uia-color: var(--crm-ui-ink);
+  box-sizing: border-box;
+  min-height: 40px;
+  padding: 9px 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--crm-ui-border) !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  color: var(--crm-uia-color) !important;
+  box-shadow: none !important;
+  font-family: var(--crm-ui-font-body) !important;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none !important;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color .16s ease, background-color .16s ease, color .16s ease, transform .16s ease;
+}
+.crm-uia:hover {
+  background: var(--crm-ui-hover) !important;
+  border-color: color-mix(in srgb, var(--crm-uia-color) 40%, #d7deea) !important;
+  color: var(--crm-uia-color) !important;
+  transform: translateY(-1px);
+}
+.crm-uia:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--crm-uia-color) 20%, transparent);
+  outline-offset: 2px;
+}
+.crm-uia:disabled, .crm-uia[aria-disabled="true"] {
+  opacity: .5;
+  pointer-events: none;
+  transform: none;
+}
+
+/* Icon-only actions: transparent, exactly the requested line-icon treatment. */
+.crm-uia.crm-uia--icon {
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  min-height: 36px;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.crm-uia.crm-uia--icon:hover {
+  background: transparent !important;
+  transform: translateY(-1px) scale(1.06);
+}
+.crm-uia > i.bi,
+.crm-uia > span > i.bi,
+.crm-uia i.bi {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin: 0 !important;
+  color: var(--crm-uia-color) !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  font-size: 18px;
+  line-height: 1;
+  -webkit-text-stroke: .2px currentColor;
+}
+
+/* Semantic colors are limited to the icon/text, never the background. */
+.crm-uia--view, .crm-uia--search, .crm-uia--download, .crm-uia--print { --crm-uia-color: var(--crm-ui-info); }
+.crm-uia--edit, .crm-uia--copy { --crm-uia-color: var(--crm-ui-violet); }
+.crm-uia--create, .crm-uia--save, .crm-uia--approve, .crm-uia--pay { --crm-uia-color: var(--crm-ui-positive); }
+.crm-uia--send { --crm-uia-color: #0f766e; }
+.crm-uia--delete, .crm-uia--reject, .crm-uia--pdf { --crm-uia-color: var(--crm-ui-negative); }
+.crm-uia--void, .crm-uia--lock, .crm-uia--back { --crm-uia-color: var(--crm-ui-muted); }
+
+/* Top action bars share one layout and one button language. */
+.page-header, .page_header, .crm_page_header, .crm-page-header,
+.nj-page-header, .module-header, .module_header,
+.list-header, .list_header, .detail-header, .detail_header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.page-actions, .page_actions, .crm_page_actions, .crm-page-actions,
+.header-actions, .header_actions, .top-actions, .top_actions,
+.nj-page-actions, .module-actions, .module_actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+/* Form controls only; no business-state or card overrides. */
+.crm_main_content input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+.crm_main_content select, .crm_main_content textarea,
+.crm_content input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+.crm_content select, .crm_content textarea {
+  min-height: 42px;
+  border-radius: 10px;
+  border-color: var(--crm-ui-border);
+  font-family: var(--crm-ui-font-body);
+}
+.crm_main_content select, .crm_content select { cursor: pointer; }
+.crm_main_content input:focus, .crm_main_content select:focus, .crm_main_content textarea:focus,
+.crm_content input:focus, .crm_content select:focus, .crm_content textarea:focus {
+  border-color: #94a3b8;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .10);
+  outline: 0;
+}
+
+@media (max-width: 768px) {
+  .page-actions, .page_actions, .crm_page_actions, .crm-page-actions,
+  .header-actions, .header_actions, .top-actions, .top_actions,
+  .nj-page-actions, .module-actions, .module_actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .crm-uia:not(.crm-uia--icon) { min-height: 38px; padding: 8px 11px; }
+}

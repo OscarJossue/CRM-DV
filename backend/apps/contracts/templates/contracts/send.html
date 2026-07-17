@@ -1,0 +1,181 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}{{ page_title|default:"Send Contract" }}{% endblock %}
+
+{% block page_subtitle %}
+{% if contract.status == "sent" or contract.status == "viewed" or contract.status == "approved" %}
+Resend the contract PDF to the customer by company SMTP.
+{% else %}
+Send the generated contract PDF to the customer by company SMTP.
+{% endif %}
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .contract_send_summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .contract_send_box {
+    padding: 18px;
+    border-radius: 16px;
+    background: var(--crm_text);
+    color: #ffffff;
+    min-width: 0;
+  }
+
+  .contract_send_box span {
+    display: block;
+    color: rgba(255,255,255,0.68);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+  }
+
+  .contract_send_box strong {
+    display: block;
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+  }
+
+  .contract_send_form {
+    display: grid;
+    gap: 16px;
+  }
+
+  .contract_send_field {
+    display: grid;
+    gap: 8px;
+  }
+
+  .contract_send_field label {
+    color: var(--crm_text);
+    font-size: 13px;
+    font-weight: 900;
+  }
+
+  .crm_input {
+    width: 100%;
+    min-height: 44px;
+    border: 1px solid var(--crm_border);
+    border-radius: 12px;
+    padding: 10px 12px;
+    color: var(--crm_text);
+    background: #ffffff;
+    font: inherit;
+  }
+
+  textarea.crm_input {
+    min-height: 140px;
+    resize: vertical;
+  }
+
+  .contract_error {
+    color: var(--crm_danger);
+    font-size: 13px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+
+  .contract_send_actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  @media (max-width: 980px) {
+    .contract_send_summary {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% include "contracts/partials/_finance_standard.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="nj-invoice nj-page finance-standard">
+  <section class="contract_send_summary">
+    <div class="contract_send_box">
+      <span>Contract</span>
+      <strong>{{ contract.contract_number|default:contract.id_contract }}</strong>
+    </div>
+
+    <div class="contract_send_box">
+      <span>Customer</span>
+      <strong>{% if contract.client_name %}{{ contract.client_name }}{% elif contract.id_client %}{{ contract.id_client.name }}{% else %}No client{% endif %}</strong>
+    </div>
+
+    <div class="contract_send_box">
+      <span>Project</span>
+      <strong>{% if contract.project_name %}{{ contract.project_name }}{% elif contract.id_project %}{{ contract.id_project.name }}{% else %}No project{% endif %}</strong>
+    </div>
+
+    <div class="contract_send_box">
+      <span>Status</span>
+      <strong>{{ contract.get_status_display }}</strong>
+    </div>
+  </section>
+
+  <section class="crm_card">
+    <h2 class="crm_section_title">
+  {% if contract.status == "sent" or contract.status == "viewed" or contract.status == "approved" %}
+    Resend Contract Email
+  {% else %}
+    Email Contract
+  {% endif %}
+</h2>
+
+    <p class="crm_page_text">
+      {% if contract.status == "sent" or contract.status == "viewed" or contract.status == "approved" %}
+        This contract was already sent before. The system will generate a fresh PDF and resend it to the customer with the current evidence photos and contract information.
+      {% else %}
+        The system will generate the PDF in memory and attach it to this email. No PDF file will be stored.
+      {% endif %}
+    </p>
+
+    <form class="contract_send_form" method="post" novalidate>
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="contract_error">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="contract_send_field">
+        <label for="{{ form.recipient_email.id_for_label }}">Recipient Email</label>
+        {{ form.recipient_email }}
+        {% if form.recipient_email.errors %}
+          <div class="contract_error">{{ form.recipient_email.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="contract_send_field">
+        <label for="{{ form.subject.id_for_label }}">Subject</label>
+        {{ form.subject }}
+        {% if form.subject.errors %}
+          <div class="contract_error">{{ form.subject.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="contract_send_field">
+        <label for="{{ form.message.id_for_label }}">Message</label>
+        {{ form.message }}
+        {% if form.message.errors %}
+          <div class="contract_error">{{ form.message.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="contract_send_actions">
+        <button class="crm_button" type="submit">{{ submit_label }}</button>
+        <a class="crm_button crm_button_secondary" href="{% url 'contracts:contract_detail' contract.id_contract %}">Cancel</a>
+      </div>
+    </form>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ result_title|default:"Estimate Result" }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+  <style>
+    * { box-sizing:border-box; }
+    body { margin:0;min-height:100vh;background:#eef3f8;color:#212227;font-family:Arial,sans-serif; }
+    .result_shell { min-height:100vh;display:flex;align-items:center;justify-content:center;padding:5%; }
+    .result_card { width:100%;max-width:720px;background:#fff;border:1px solid #d6dde8;border-radius:28px;box-shadow:0 24px 70px rgba(33,34,39,.13);padding:42px;text-align:center; }
+    .result_icon { width:78px;height:78px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:22px;font-size:36px;font-weight:900; }
+    .result_success { background:#dcfce7;color:#166534; }
+    .result_danger { background:#fee2e2;color:#991b1b; }
+    h1 { margin:0 0 14px;font-size:clamp(30px,5vw,46px);font-weight:900;letter-spacing:-.04em; }
+    p { margin:0 auto;max-width:580px;color:#637074;font-size:17px;line-height:1.7;font-weight:700; }
+    .meta { margin-top:24px;padding:18px;border-radius:18px;background:#f8fafc;border:1px solid #d6dde8;color:#374151;line-height:1.7; }
+    .meta strong { color:#212227; }
+    .actions { margin-top:30px; }
+    .btn_main { border-radius:999px;padding:12px 24px;font-weight:900;background:#212227;color:#fff;text-decoration:none;display:inline-flex; }
+    @media (max-width:640px) { .result_card { padding:30px 22px; } }
+  </style>
+  {% include "components/_invoice_action_system.html" %}
+</head>
+<body>
+<div class="result_shell">
+  <div class="result_card">
+    {% if result_type == "danger" %}
+      <div class="result_icon result_danger">!</div>
+    {% else %}
+      <div class="result_icon result_success">✓</div>
+    {% endif %}
+
+    <h1>{{ result_title|default:"Estimate Result" }}</h1>
+    <p>{{ result_message|default:"Your estimate response has been submitted." }}</p>
+
+    <div class="meta">
+      Estimate: <strong>{{ estimate.estimate_number|default:estimate.id_estimate }}</strong><br>
+      Customer: <strong>{{ estimate.client_billing_name|default:estimate.id_client.name|default:"Client" }}</strong><br>
+      Status: <strong>{% if estimate.status == "cancelled" %}Void{% else %}{{ estimate.get_status_display }}{% endif %}</strong>
+    </div>
+
+    <div class="actions">
+      <a class="btn_main" href="{{ public_preview_url }}">View Estimate</a>
+    </div>
+  </div>
+</div>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html>

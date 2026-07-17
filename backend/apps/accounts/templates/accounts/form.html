@@ -1,0 +1,153 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}{{ form_title }}{% endblock %}
+{% block page_subtitle %}Configure role information and module access from one compact, responsive screen.{% endblock %}
+
+{% block extra_head %}
+  {% include "accounts/partials/_role_design_system.html" %}
+{% endblock %}
+
+{% block content %}
+<form class="nj-invoice role-standard" method="post" novalidate id="RoleFullForm">
+  {% csrf_token %}
+  <div class="role-shell">
+    <header class="role-page-head">
+      <div><span class="role-kicker"><i class="bi bi-shield-lock" aria-hidden="true"></i> Access control</span><h1 class="role-title">{{ form_title }}</h1><p class="role-subtitle">Create a standard CRM role or enable contractor-only mode for a restricted field workspace. Permissions are saved together with the role.</p></div>
+      <div class="role-head-actions"><a class="role-btn is-secondary" href="{% if role_detail_url %}{{ role_detail_url }}{% else %}{{ role_list_url }}{% endif %}"><i class="bi bi-arrow-left"></i> Back</a></div>
+    </header>
+
+    {% if form.non_field_errors %}<section class="role-card"><div class="role-card-body"><div class="role-error">{{ form.non_field_errors }}</div></div></section>{% endif %}
+
+    <section class="role-card">
+      <div class="role-card-head"><div class="role-card-heading"><i class="bi bi-card-heading"></i><div><h2 class="role-card-title">Role information</h2><p class="role-card-copy">Use a clear name and a short description so company administrators can identify the purpose of the role.</p></div></div></div>
+      <div class="role-card-body">
+        <div class="role-form-grid">
+          <div class="role-field"><label for="{{ form.name.id_for_label }}">Role name</label>{{ form.name }}{% if form.name.errors %}<div class="role-error">{{ form.name.errors }}</div>{% endif %}</div>
+          <div class="role-field"><label for="{{ form.description.id_for_label }}">Description</label>{{ form.description }}{% if form.description.errors %}<div class="role-error">{{ form.description.errors }}</div>{% endif %}</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="role-card">
+      <div class="role-card-head"><div class="role-card-heading"><i class="bi bi-person-workspace"></i><div><h2 class="role-card-title">Contractor access</h2><p class="role-card-copy">This special mode is controlled only by the company owner and replaces the standard permission matrix.</p></div></div></div>
+      <div class="role-card-body">
+        <label class="role-contractor-card{% if form.is_contractor_only.field.disabled %} is-disabled{% endif %}" for="{{ form.is_contractor_only.id_for_label }}">
+          <span class="role-contractor-icon"><i class="bi bi-cone-striped" aria-hidden="true"></i></span>
+          <span class="role-contractor-copy"><strong>Contractor only</strong><span>Show only assigned inspections and projects. Allow evidence, notes and audit submission while keeping company and commercial data read-only.</span></span>
+          <span class="role-switch">{{ form.is_contractor_only }}<span class="role-switch-track" aria-hidden="true"></span></span>
+        </label>
+        <div class="role-contractor-preview"><i class="bi bi-lock"></i><span>Automatic access: Projects (view assigned work) and Inspections (view assigned work). Standard create, edit, delete and approval permissions are disabled.</span></div>
+        {% if form.is_contractor_only.help_text %}<p class="role-card-copy" style="margin:8px 1px 0;">{{ form.is_contractor_only.help_text }}</p>{% endif %}
+        {% if form.is_contractor_only.errors %}<div class="role-error">{{ form.is_contractor_only.errors }}</div>{% endif %}
+      </div>
+    </section>
+
+    {% if show_permission_matrix %}
+      <section class="role-card role-permission-panel" id="RolePermissionMatrix">
+        <div class="role-card-head"><div class="role-card-heading"><i class="bi bi-grid-3x3-gap"></i><div><h2 class="role-card-title">Module permissions</h2><p class="role-card-copy">Manage automatically enables View. Approve also enables View. Turn off View to clear both dependent permissions.</p></div></div></div>
+        <div class="role-card-body">
+          <div class="role-permission-tools">
+            <div class="role-module-search"><i class="bi bi-search"></i><input type="search" data-module-search placeholder="Search modules"></div>
+            <div class="role-quick-actions" aria-label="Permission presets">
+              <button class="role-preset" type="button" data-action="view-only"><i class="bi bi-eye"></i> View all</button>
+              <button class="role-preset" type="button" data-action="manage-all"><i class="bi bi-pencil-square"></i> Manage all</button>
+              <button class="role-preset" type="button" data-action="approve-all"><i class="bi bi-check2-circle"></i> Approve all</button>
+              <button class="role-preset" type="button" data-action="select-all"><i class="bi bi-shield-check"></i> Full access</button>
+              <button class="role-preset is-clear" type="button" data-action="clear-all"><i class="bi bi-x-lg"></i> Clear</button>
+            </div>
+          </div>
+
+          <div class="role-permission-head"><span>Module</span><span>View</span><span>Manage</span><span>Approve</span></div>
+          <div class="role-permission-list">
+            {% for row in permission_rows %}
+              <article class="role-permission-row" data-module-row="{{ row.module }}" data-module-search-text="{{ row.module_label }} {{ row.module }}">
+                <div class="role-module-copy"><strong>{{ row.module_label }}</strong><small>{{ row.module }}</small></div>
+                <label class="role-permission-toggle" title="View {{ row.module_label }}"><span class="role-mini-switch"><input type="checkbox" name="{{ row.module }}_can_view" {% if row.can_view %}checked{% endif %} data-perm="view" data-module="{{ row.module }}"><span class="role-mini-track"></span></span><span>View</span></label>
+                <label class="role-permission-toggle" title="Manage {{ row.module_label }}"><span class="role-mini-switch is-manage"><input type="checkbox" name="{{ row.module }}_can_manage" {% if row.can_manage %}checked{% endif %} data-perm="manage" data-module="{{ row.module }}"><span class="role-mini-track"></span></span><span>Manage</span></label>
+                <label class="role-permission-toggle" title="Approve {{ row.module_label }}"><span class="role-mini-switch is-approve"><input type="checkbox" name="{{ row.module }}_can_approve" {% if row.can_approve %}checked{% endif %} data-perm="approve" data-module="{{ row.module }}"><span class="role-mini-track"></span></span><span>Approve</span></label>
+              </article>
+            {% empty %}
+              <div class="role-empty"><i class="bi bi-grid"></i><strong>No modules available</strong><span>Enable company modules before configuring this role.</span></div>
+            {% endfor %}
+          </div>
+        </div>
+      </section>
+    {% endif %}
+
+    <div class="role-save-bar">
+      <span class="role-save-copy">Changes apply to users assigned to this role immediately after saving.</span>
+      <div class="role-actions"><a class="role-btn is-secondary" href="{% if role_detail_url %}{{ role_detail_url }}{% else %}{{ role_list_url }}{% endif %}"><i class="bi bi-x-lg"></i> Cancel</a><button class="role-btn is-success" type="submit"><i class="bi bi-check2"></i> {{ submit_label }}</button></div>
+    </div>
+  </div>
+</form>
+
+<script>
+(function(){
+  const form = document.getElementById('RoleFullForm');
+  if(!form) return;
+  const contractorToggle = form.querySelector('[data-contractor-role]');
+  const permissionPanel = document.getElementById('RolePermissionMatrix');
+  const moduleRows = Array.from(form.querySelectorAll('[data-module-row]'));
+
+  function getInput(module, permission){
+    return form.querySelector('input[data-module="' + module + '"][data-perm="' + permission + '"]');
+  }
+  function setRow(module, values){
+    const view = getInput(module, 'view');
+    const manage = getInput(module, 'manage');
+    const approve = getInput(module, 'approve');
+    if(!view || !manage || !approve) return;
+    view.checked = !!values.view || !!values.manage || !!values.approve;
+    manage.checked = !!values.manage;
+    approve.checked = !!values.approve;
+  }
+  function setAll(mode){
+    moduleRows.forEach(function(row){
+      const module = row.dataset.moduleRow;
+      if(mode === 'view-only') setRow(module, {view:true});
+      if(mode === 'manage-all') setRow(module, {view:true, manage:true});
+      if(mode === 'approve-all') setRow(module, {view:true, approve:true});
+      if(mode === 'select-all') setRow(module, {view:true, manage:true, approve:true});
+      if(mode === 'clear-all') setRow(module, {});
+    });
+  }
+  function syncContractorMode(){
+    const enabled = !!(contractorToggle && contractorToggle.checked);
+    form.classList.toggle('is-contractor-mode', enabled);
+    if(!permissionPanel) return;
+    permissionPanel.querySelectorAll('input[data-perm], button[data-action], [data-module-search]').forEach(function(control){
+      control.disabled = enabled;
+    });
+  }
+
+  form.addEventListener('change', function(event){
+    const input = event.target;
+    if(input === contractorToggle){ syncContractorMode(); return; }
+    if(!input.matches('input[data-perm]')) return;
+    const module = input.dataset.module;
+    const view = getInput(module, 'view');
+    const manage = getInput(module, 'manage');
+    const approve = getInput(module, 'approve');
+    if((input.dataset.perm === 'manage' || input.dataset.perm === 'approve') && input.checked && view){ view.checked = true; }
+    if(input.dataset.perm === 'view' && !input.checked){ if(manage) manage.checked = false; if(approve) approve.checked = false; }
+  });
+
+  form.querySelectorAll('[data-action]').forEach(function(button){
+    button.addEventListener('click', function(){ setAll(button.dataset.action); });
+  });
+
+  const moduleSearch = form.querySelector('[data-module-search]');
+  if(moduleSearch){
+    moduleSearch.addEventListener('input', function(){
+      const query = String(moduleSearch.value || '').trim().toLowerCase();
+      moduleRows.forEach(function(row){
+        const text = String(row.dataset.moduleSearchText || '').toLowerCase();
+        row.classList.toggle('is-hidden', !!query && !text.includes(query));
+      });
+    });
+  }
+
+  syncContractorMode();
+})();
+</script>
+{% endblock %}

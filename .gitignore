@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+# Django generated/runtime data
+media/
+staticfiles/
+db.sqlite3
+celerybeat-schedule*
+*.log
+
+# Node
+node_modules/
+dist/
+build/
+.env.local
+
+# Docker/local data
+postgres_data/
+redis_data/
+grafana_data/
+
+# Test and tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

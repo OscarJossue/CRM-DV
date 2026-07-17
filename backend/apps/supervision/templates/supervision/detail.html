@@ -1,0 +1,64 @@
+{% extends "layouts/base.html" %}
+{% block page_title %}Audit Review{% endblock %}
+{% block page_subtitle %}Review field photos, observations and recommendations before completing the work.{% endblock %}
+{% block extra_head %}
+  {% include "partials/_crm_design_system.html" %}
+  <style>
+    .audit-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}.audit-summary>div{padding:14px;border:1px solid #e5e7eb;border-radius:14px;background:#fff}.audit-summary small{display:block;color:#64748b;font-weight:700;margin-bottom:5px}.audit-summary strong{color:#0f172a}.audit-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.audit-photo{border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;background:#fff}.audit-photo img{width:100%;height:190px;object-fit:cover;display:block}.audit-photo-body{padding:12px}.audit-photo-body strong{display:block;margin-bottom:5px}.audit-note{padding:13px;border:1px solid #e5e7eb;border-radius:12px;background:#f8fafc;margin-bottom:10px}.audit-note-label{display:block;margin-bottom:6px;color:#334155;font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.04em}.audit-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}.audit-reject{display:flex;gap:8px;flex:1;min-width:320px}.audit-reject textarea{min-height:46px;max-height:100px}.audit-file{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #e5e7eb;border-radius:12px;text-decoration:none;color:#0f172a;background:#fff}.audit-file i{font-size:22px}.audit-section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}.audit-section-title h2{font-size:18px;margin:0}@media(max-width:900px){.audit-summary,.audit-grid{grid-template-columns:1fr}.audit-reject{min-width:100%;flex-direction:column}}
+  </style>
+{% endblock %}
+{% block content %}
+<div class="nj-invoice nj-page">
+  <header class="nj-page-head">
+    <div><span class="nj-page-kicker"><i class="bi bi-shield-check"></i> {{ supervision.target_type|title }} audit</span><h1 class="nj-page-title">{{ supervision.target_code }} · {{ supervision.target_name }}</h1><p class="nj-page-subtitle">{{ supervision.client.name }} · Submitted {{ supervision.created_at|date:"d/m/Y H:i" }}</p></div>
+    <div class="nj-head-actions"><a class="nj-btn nj-btn-secondary" href="{{ supervision_list_url }}"><i class="bi bi-arrow-left"></i> Back</a><a class="nj-btn nj-btn-secondary" href="{{ supervision.target_url }}"><i class="bi bi-box-arrow-up-right"></i> Open work</a>{% if can_edit_supervision %}<a class="nj-btn nj-btn-secondary" href="{{ supervision.edit_url }}"><i class="bi bi-pencil"></i> Edit audit</a>{% endif %}</div>
+  </header>
+
+  <section class="audit-summary">
+    <div><small>Work type</small><strong>{{ supervision.target_type|title }}</strong></div>
+    <div><small>Client</small><strong>{{ supervision.client.name }}</strong></div>
+    <div><small>Auditor</small><strong>{% if supervision.id_supervisor %}{{ supervision.id_supervisor.email }}{% else %}Unassigned{% endif %}</strong></div>
+    <div><small>Status</small><strong>{% if supervision.final_audit %}Audit completed{% elif supervision.rejected %}Corrections required{% elif supervision.approved %}Submission approved{% else %}Pending review{% endif %}</strong></div>
+  </section>
+
+  {% if supervision.rejected %}<div class="alert alert-danger"><strong>Corrections requested:</strong> {{ supervision.rejection_reason }}</div>{% endif %}
+
+  {% if supervision.id_inspection_assignment_id %}
+    <section class="nj-card" style="padding:20px;margin-bottom:18px;">
+      <div class="audit-section-title"><h2><i class="bi bi-journal-text"></i> Contractor report</h2><span>{{ inspection_gallery|length }} photos</span></div>
+      <div class="audit-note"><span class="audit-note-label">Observations</span>{{ supervision.id_inspection_assignment.inspection_notes|default:"No observations submitted."|linebreaksbr }}</div>
+      <div class="audit-note"><span class="audit-note-label">Recommendations</span>{{ supervision.id_inspection_assignment.recommendations|default:"No recommendations submitted."|linebreaksbr }}</div>
+      {% if supervision.id_inspection_assignment.notes %}<div class="audit-note"><span class="audit-note-label">Instructions assigned</span>{{ supervision.id_inspection_assignment.notes|linebreaksbr }}</div>{% endif %}
+      <div class="audit-grid">
+        {% for image in inspection_gallery %}
+          <article class="audit-photo"><a href="{{ image.file.url }}" target="_blank" rel="noopener"><img src="{{ image.file.url }}" alt="Inspection photo"></a><div class="audit-photo-body"><strong>Photo {{ forloop.counter }}</strong><div>{{ image.description|default:"No description"|linebreaksbr }}</div><small>{{ image.uploaded_at|date:"d/m/Y H:i" }}{% if image.uploaded_by %} · {{ image.uploaded_by.email }}{% endif %}</small></div></article>
+        {% empty %}<p>No inspection photos were submitted.</p>{% endfor %}
+      </div>
+    </section>
+  {% else %}
+    <section class="nj-card" style="padding:20px;margin-bottom:18px;">
+      <div class="audit-section-title"><h2><i class="bi bi-chat-left-text"></i> Contractor report</h2></div>
+      <div class="audit-note"><span class="audit-note-label">Observations</span>{{ supervision.id_project.contractor_observations|default:"No observations submitted."|linebreaksbr }}</div>
+      <div class="audit-note"><span class="audit-note-label">Recommendations</span>{{ supervision.id_project.contractor_recommendations|default:"No recommendations submitted."|linebreaksbr }}</div>
+      {% if project_notes %}{% for note in project_notes %}<div class="audit-note"><span class="audit-note-label">Previous project note</span>{{ note.note|linebreaksbr }}<small style="display:block;color:#64748b;margin-top:6px;">{{ note.created_at|date:"d/m/Y H:i" }}{% if note.created_by %} · {{ note.created_by.email }}{% endif %}</small></div>{% endfor %}{% endif %}
+    </section>
+    <section class="nj-card" style="padding:20px;margin-bottom:18px;">
+      <div class="audit-section-title"><h2><i class="bi bi-images"></i> Project photos</h2><span>{{ supervision.evidence_count|default:"0" }} photos</span></div>
+      {% if project_gallery %}<div class="audit-grid" style="margin-bottom:18px;">{% for image in project_gallery %}<article class="audit-photo"><a href="{{ image.image.url }}" target="_blank" rel="noopener"><img src="{{ image.image.url }}" alt="Project photo"></a><div class="audit-photo-body"><strong>Photo {{ forloop.counter }}</strong><div>Legacy gallery photo · No description</div><small>{{ image.uploaded_at|date:"d/m/Y H:i" }}{% if image.uploaded_by %} · {{ image.uploaded_by.email }}{% endif %}</small></div></article>{% endfor %}</div>{% endif %}
+      {% for evidence in project_evidence %}<a class="audit-file" href="{{ evidence.file.url }}" target="_blank" rel="noopener"><i class="bi bi-image"></i><span><strong>Photo {{ forloop.counter }}</strong><small style="display:block;color:#64748b;">{{ evidence.description|default:"No description" }} · {{ evidence.uploaded_at|date:"d/m/Y H:i" }}</small></span></a>{% empty %}{% if not project_gallery %}<p>No project photos were submitted.</p>{% endif %}{% endfor %}
+    </section>
+  {% endif %}
+
+  {% if supervision.observations %}<section class="nj-card" style="padding:20px;margin-bottom:18px;"><div class="audit-section-title"><h2><i class="bi bi-clipboard-check"></i> Auditor observations</h2></div><div class="audit-note">{{ supervision.observations|linebreaksbr }}</div></section>{% endif %}
+
+  {% if can_approve_supervision and not supervision.final_audit %}
+    <section class="nj-card" style="padding:20px;">
+      <div class="audit-section-title"><h2>Audit decision</h2><span>Completion is blocked until this review is approved.</span></div>
+      <div class="audit-actions">
+        <form method="post" action="{{ supervision.final_audit_url }}">{% csrf_token %}<button class="nj-btn" type="submit" onclick="return confirm('Approve this submission and complete the related work?');"><i class="bi bi-shield-check"></i> Approve audit & complete</button></form>
+        <form class="audit-reject" method="post" action="{{ supervision.reject_url }}">{% csrf_token %}<textarea class="crm_input" name="rejection_reason" required placeholder="Required correction reason for the contractor"></textarea><button class="nj-btn nj-btn-secondary" type="submit"><i class="bi bi-arrow-counterclockwise"></i> Return for corrections</button></form>
+      </div>
+    </section>
+  {% endif %}
+</div>
+{% endblock %}

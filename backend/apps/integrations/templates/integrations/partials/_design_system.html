@@ -1,0 +1,390 @@
+{% include "accounts/partials/_design_system.html" %}
+<style>
+  .integration_theme {
+    --integration-blue: #315d91;
+    --integration-blue-dark: #24486f;
+    --integration-blue-soft: rgba(49, 93, 145, 0.10);
+    --integration-green: #3f6b5e;
+    --integration-red: #c53d3d;
+    --integration-amber: #ab7224;
+  }
+
+  .integration_theme .integration_tool_grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .integration_theme .integration_tool_card {
+    min-height: 154px;
+    padding: 19px;
+    border: 1px solid var(--account-line);
+    border-radius: 22px;
+    background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+    box-shadow: 0 10px 22px rgba(33, 34, 39, 0.04);
+    display: grid;
+    align-content: space-between;
+    gap: 18px;
+    transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+  }
+
+  .integration_theme .integration_tool_card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(49, 93, 145, 0.24);
+    box-shadow: var(--account-shadow-soft);
+  }
+
+  .integration_theme .integration_tool_card_head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+  }
+
+  .integration_theme .integration_tool_arrow {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    color: var(--account-blue);
+    background: var(--integration-blue-soft);
+    flex: 0 0 32px;
+  }
+
+  .integration_theme .integration_tool_arrow svg,
+  .integration_theme .integration_tool_icon svg,
+  .integration_theme .integration_icon_action svg,
+  .integration_theme .integration_metric_icon svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.1;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .integration_theme .integration_tool_icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(180deg, rgba(189, 212, 231, 0.38) 0%, rgba(170, 185, 207, 0.16) 100%);
+    color: var(--account-blue);
+    border: 1px solid rgba(72, 101, 143, 0.14);
+  }
+
+  .integration_theme .integration_tool_copy {
+    display: grid;
+    gap: 6px;
+  }
+
+  .integration_theme .integration_status_bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 17px 18px;
+    border-radius: 22px;
+    border: 1px solid var(--account-line);
+    background: linear-gradient(135deg, rgba(189, 212, 231, 0.35) 0%, #ffffff 55%, rgba(170, 185, 207, 0.18) 100%);
+  }
+
+  .integration_theme .integration_security_note {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: var(--account-muted);
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .integration_theme .integration_security_note svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: var(--integration-green);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex: 0 0 17px;
+  }
+
+  /* Circular actions intentionally mirror the invoice action icon system. */
+  .integration_theme .integration_icon_actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .integration_theme .integration_icon_actions form {
+    margin: 0;
+  }
+
+  .integration_theme .integration_icon_action {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    display: inline-grid;
+    place-items: center;
+    background: rgba(29, 78, 216, 0.10);
+    color: var(--crm_primary, var(--integration-blue));
+    line-height: 1;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform 0.16s ease, background 0.16s ease, color 0.16s ease;
+  }
+
+  .integration_theme .integration_icon_action:hover {
+    transform: translateY(-1px);
+    background: rgba(29, 78, 216, 0.17);
+  }
+
+  .integration_theme .integration_icon_action_success {
+    background: rgba(63, 107, 94, 0.12);
+    color: var(--integration-green);
+  }
+
+  .integration_theme .integration_icon_action_success:hover {
+    background: rgba(63, 107, 94, 0.20);
+  }
+
+  .integration_theme .integration_icon_action_danger {
+    background: rgba(197, 61, 61, 0.12);
+    color: var(--integration-red);
+  }
+
+  .integration_theme .integration_icon_action_danger:hover {
+    background: rgba(197, 61, 61, 0.20);
+  }
+
+  .integration_theme .integration_form_grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .integration_theme .integration_form_field {
+    display: grid;
+    gap: 7px;
+    min-width: 0;
+  }
+
+  .integration_theme .integration_form_field_full {
+    grid-column: 1 / -1;
+  }
+
+  .integration_theme .integration_form_field label {
+    color: var(--account-ink);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0;
+  }
+
+  .integration_theme .integration_error {
+    color: var(--account-danger);
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .integration_theme .integration_code {
+    padding: 4px 8px;
+    border-radius: 8px;
+    background: #f4f7fa;
+    border: 1px solid var(--account-line);
+    color: var(--account-blue-dark);
+    font-size: 12px;
+    font-weight: 900;
+    word-break: break-all;
+  }
+
+  .integration_theme .integration_inline {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .integration_theme .integration_meter {
+    width: 100%;
+    height: 8px;
+    border-radius: 999px;
+    background: #edf2f7;
+    overflow: hidden;
+  }
+
+  .integration_theme .integration_meter span {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, var(--account-blue), var(--account-accent-soft));
+    border-radius: inherit;
+  }
+
+  .integration_theme .integration_metrics_grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .integration_theme .integration_metric_card {
+    min-height: 112px;
+    padding: 16px;
+    border: 1px solid var(--account-line);
+    border-radius: 20px;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    box-shadow: 0 8px 18px rgba(33, 34, 39, 0.035);
+  }
+
+  .integration_theme .integration_metric_icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    color: var(--integration-blue);
+    background: var(--integration-blue-soft);
+    flex: 0 0 42px;
+  }
+
+  .integration_theme .integration_metric_value {
+    display: block;
+    margin-top: 5px;
+    color: var(--account-ink);
+    font-size: 25px;
+    line-height: 1;
+    font-weight: 950;
+  }
+
+  .integration_theme .integration_chart_grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .integration_theme .integration_chart_card {
+    min-height: 350px;
+    padding: 18px;
+    border: 1px solid var(--account-line);
+    border-radius: 22px;
+    background: #ffffff;
+    box-shadow: 0 8px 18px rgba(33, 34, 39, 0.035);
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 14px;
+  }
+
+  .integration_theme .integration_chart_head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .integration_theme .integration_chart_head h3 {
+    margin: 0;
+    color: var(--account-ink);
+    font-size: 17px;
+    font-weight: 950;
+  }
+
+  .integration_theme .integration_chart_head p {
+    margin: 4px 0 0;
+    color: var(--account-muted);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .integration_theme .integration_chart_legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    justify-content: flex-end;
+  }
+
+  .integration_theme .integration_chart_legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--account-muted);
+    font-size: 11px;
+    font-weight: 900;
+  }
+
+  .integration_theme .integration_chart_legend i {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--integration-blue);
+  }
+
+  .integration_theme .integration_chart_legend i.alt {
+    background: var(--integration-green);
+  }
+
+  .integration_theme .integration_chart_canvas_wrap {
+    position: relative;
+    min-height: 260px;
+  }
+
+  .integration_theme .integration_chart_canvas {
+    width: 100%;
+    height: 260px;
+    display: block;
+  }
+
+  .integration_theme .integration_chart_empty {
+    min-height: 260px;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    color: var(--account-muted);
+    font-size: 13px;
+    font-weight: 800;
+    border: 1px dashed var(--account-line);
+    border-radius: 16px;
+    background: #fbfcfe;
+  }
+
+  @media (max-width: 1100px) {
+    .integration_theme .integration_tool_grid,
+    .integration_theme .integration_chart_grid {
+      grid-template-columns: 1fr;
+    }
+
+    .integration_theme .integration_metrics_grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 760px) {
+    .integration_theme .integration_form_grid,
+    .integration_theme .integration_metrics_grid {
+      grid-template-columns: 1fr;
+    }
+
+    .integration_theme .integration_icon_actions {
+      justify-content: flex-start;
+    }
+
+    .integration_theme .integration_chart_head {
+      display: grid;
+    }
+
+    .integration_theme .integration_chart_legend {
+      justify-content: flex-start;
+    }
+  }
+</style>

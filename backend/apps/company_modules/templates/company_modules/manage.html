@@ -1,0 +1,125 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Manage Modules{% endblock %}
+
+{% block page_subtitle %}
+Enable or disable the mini CRM modules available for this company.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .cm_manage_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+
+  .cm_manage_grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .cm_manage_item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+    padding: 14px;
+    border: 1px solid var(--crm_border);
+    border-radius: 14px;
+    background: #ffffff;
+    min-width: 0;
+  }
+
+  .cm_manage_item input {
+    width: 20px;
+    height: 20px;
+  }
+
+  .cm_manage_text {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .cm_manage_label {
+    font-weight: 900;
+    color: var(--crm_text);
+    overflow-wrap: anywhere;
+  }
+
+  .cm_manage_value {
+    font-size: 13px;
+    color: var(--crm_muted);
+    overflow-wrap: anywhere;
+  }
+
+  .cm_manage_actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 18px;
+  }
+
+  .cm_inline_form {
+    margin: 0;
+  }
+
+  @media (max-width: 900px) {
+    .cm_manage_header {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .cm_manage_grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <section class="crm_card">
+    <div class="cm_manage_header">
+      <div>
+        <h2 class="crm_section_title">{{ company.name }}</h2>
+        <p class="crm_page_text">Select which modules this company can use in its mini CRM.</p>
+      </div>
+
+      <form class="cm_inline_form" method="post" action="{% url 'company_modules:company_module_sync' company.id_company %}">
+        {% csrf_token %}
+        <button class="crm_button crm_button_secondary" type="submit">Sync Missing Modules</button>
+      </form>
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="cm_manage_grid">
+        {% for row in module_rows %}
+          <label class="cm_manage_item">
+            <input
+              type="checkbox"
+              name="enabled_modules"
+              value="{{ row.module }}"
+              {% if row.is_enabled %}checked{% endif %}
+            >
+
+            <span class="cm_manage_text">
+              <span class="cm_manage_label">{{ row.module_label }}</span>
+              <span class="cm_manage_value">{{ row.module }}</span>
+            </span>
+          </label>
+        {% endfor %}
+      </div>
+
+      <div class="cm_manage_actions">
+        <button class="crm_button" type="submit">Save Company Modules</button>
+        <a class="crm_button crm_button_secondary" href="{% url 'companies:company_detail' company.id_company %}">Back To Company</a>
+      </div>
+    </form>
+  </section>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Platform Subscriptions{% endblock %}
+{% block page_subtitle %}Control company access, plans, renewals and reactivation from one simple screen.{% endblock %}
+
+{% block extra_head %}
+<style>
+  .platform_page { display:grid; gap:18px; }
+  .platform_head { display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; padding:22px; border:1px solid var(--crm_border); border-radius:22px; background:radial-gradient(circle at 0 0, rgba(155,120,72,.16), transparent 34%), #fff; box-shadow:var(--crm_shadow); }
+  .platform_head h2 { margin:0; color:var(--crm_text); font-size:24px; font-weight:950; letter-spacing:-.03em; }
+  .platform_head p { margin:6px 0 0; color:var(--crm_muted); font-size:14px; line-height:1.6; font-weight:700; }
+  .platform_note { padding:14px; border:1px solid rgba(155,120,72,.22); border-radius:16px; background:rgba(155,120,72,.08); color:var(--crm_primary_dark); font-size:13px; font-weight:800; line-height:1.55; }
+  .platform_table_wrap { width:100%; overflow-x:auto; }
+  .platform_table { width:100%; min-width:980px; border-collapse:collapse; }
+  .platform_table th, .platform_table td { padding:14px 12px; border-bottom:1px solid var(--crm_border); text-align:left; vertical-align:top; font-size:14px; }
+  .platform_table th { color:var(--crm_muted); font-size:12px; font-weight:950; text-transform:uppercase; letter-spacing:.05em; }
+  .platform_name { color:var(--crm_text); font-weight:950; overflow-wrap:anywhere; }
+  .platform_muted { color:var(--crm_muted); font-size:13px; line-height:1.45; font-weight:700; overflow-wrap:anywhere; }
+  .platform_badge { display:inline-flex; width:fit-content; min-height:30px; align-items:center; justify-content:center; padding:6px 10px; border:1px solid var(--crm_border); border-radius:999px; font-size:12px; font-weight:950; text-transform:uppercase; color:var(--crm_primary); background:rgba(155,120,72,.08); }
+  .platform_badge.active, .platform_badge.trial { color:var(--crm_success); background:rgba(15,118,110,.07); border-color:rgba(15,118,110,.22); }
+  .platform_badge.expired, .platform_badge.suspended, .platform_badge.canceled { color:var(--crm_danger); background:rgba(185,28,28,.06); border-color:rgba(185,28,28,.22); }
+  .platform_actions { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .platform_icon_btn { width:38px; height:38px; border:1px solid var(--crm_border); border-radius:12px; display:inline-flex; align-items:center; justify-content:center; background:#fff; color:var(--crm_primary); font-size:16px; cursor:pointer; }
+  .platform_icon_btn:hover { border-color:var(--crm_primary); background:rgba(155,120,72,.08); color:var(--crm_primary_dark); }
+  .platform_icon_btn.success { color:var(--crm_success); }
+  .platform_icon_btn.danger { color:var(--crm_danger); }
+  .platform_empty { padding:24px; text-align:center; color:var(--crm_muted); font-weight:750; }
+  @media(max-width:700px){ .platform_head{align-items:flex-start;} }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="platform_page">
+  <div class="platform_head">
+    <div>
+      <h2><i class="bi bi-arrow-repeat"></i> Company Subscriptions</h2>
+      <p>Edit plan, renewal date and status. Reactivate creates a fresh valid cycle and restores company access.</p>
+    </div>
+    <div class="crm_actions">
+      <a class="crm_button" href="{% url 'companies:company_create' %}"><i class="bi bi-building-add"></i>&nbsp; Create Company</a>
+      {% if can_create_subscriptions %}
+      <a class="crm_button crm_button_secondary" href="{% url 'platform_subscriptions:create' %}"><i class="bi bi-plus-circle"></i>&nbsp; New Subscription</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="platform_note">
+    Use <strong>Reactivate</strong> when a company was expired, suspended or canceled. It updates the subscription to active, creates a new renewal date from the plan cycle and reopens the company workspace.
+  </div>
+
+  <div class="crm_card">
+    <div class="platform_table_wrap">
+      <table class="platform_table">
+        <thead>
+          <tr>
+            <th>Company</th>
+            <th>Plan</th>
+            <th>Status</th>
+            <th>Start</th>
+            <th>Renewal</th>
+            <th>Company Access</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for subscription in subscriptions %}
+          <tr>
+            <td><div class="platform_name">{{ subscription.id_company.name }}</div><div class="platform_muted">/{{ subscription.id_company.slug }}/</div></td>
+            <td><div class="platform_name">{{ subscription.id_plan.name }}</div><div class="platform_muted">{{ subscription.id_plan.billing_cycle_display_label }} · ${{ subscription.id_plan.price }} · {{ subscription.id_plan.max_users }} users</div></td>
+            <td><span class="platform_badge {{ subscription.status }}">{{ subscription.get_status_display }}</span></td>
+            <td>{{ subscription.start_date|date:"Y-m-d" }}</td>
+            <td>{{ subscription.renewal_date|date:"Y-m-d"|default:"No date" }}</td>
+            <td><span class="platform_badge {{ subscription.id_company.status }}">{{ subscription.id_company.get_status_display }}</span></td>
+            <td>
+              <div class="platform_actions">
+                <a class="platform_icon_btn" title="View" href="{% url 'platform_subscriptions:detail' subscription.id_subscription %}"><i class="bi bi-eye"></i></a>
+                {% if can_edit_subscriptions %}<a class="platform_icon_btn" title="Edit" href="{% url 'platform_subscriptions:update' subscription.id_subscription %}"><i class="bi bi-pencil" aria-hidden="true"></i></a>{% endif %}
+                {% if can_approve_subscriptions and subscription.status != 'active' %}
+                <form method="post" action="{% url 'platform_subscriptions:activate' subscription.id_subscription %}" data-platform-confirm data-platform-confirm-title="Reactivate subscription" data-platform-confirm-text="This will set the subscription to active, create a new renewal date from the plan cycle, and reactivate company access." data-platform-confirm-button="Reactivate">
+                  {% csrf_token %}<button class="platform_icon_btn success" title="Reactivate" type="submit"><i class="bi bi-arrow-clockwise"></i></button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td class="platform_empty" colspan="7">No subscriptions found. Onboard a company to create the first subscription.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% include "platform_core/partials/_action_confirm.html" %}
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "layouts/base.html" %}
+{% block page_title %}Google Connection{% endblock %}
+{% block page_subtitle %}Connection status, enabled tool IDs and granted OAuth scopes.{% endblock %}
+{% block extra_head %}{% include "integrations/partials/_design_system.html" %}{% endblock %}
+{% block content %}
+<div class="account_theme integration_theme account_page">
+  <section class="account_detail_hero">
+    <div>
+      <p class="account_detail_kicker">Google Connection</p>
+      <h2 class="account_detail_title">{{ connection.connected_email|default:"Google Account" }}</h2>
+      <p class="account_detail_subtitle">Company: {{ connection.id_company.name }} · Last updated {{ connection.updated_at|date:"Y-m-d H:i" }}</p>
+      <div class="account_detail_chips"><span class="account_pill account_status_{{ connection.status }}">{{ connection.get_status_display }}</span><span class="account_pill blue">{{ connection.scopes|length }} scopes</span></div>
+    </div>
+    <div class="integration_icon_actions">
+      <a class="integration_icon_action" href="../" data-tooltip="Back" aria-label="Back"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></a>
+      <a class="integration_icon_action" href="../google/setup/" data-tooltip="Configure Google App" aria-label="Configure Google App"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+      <a class="integration_icon_action integration_icon_action_success" href="settings/" data-tooltip="Tool settings" aria-label="Tool settings"><svg viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M2 14h4M10 8h4M18 16h4"/></svg></a>
+    </div>
+  </section>
+
+  <section class="crm_card">
+    <div class="account_info_grid">
+      <div class="account_info_item"><span class="account_detail_label">Google App</span><span class="account_detail_value">{% if connection.has_google_app_credentials %}Configured · {{ connection.oauth_client_id_masked }}{% else %}Missing credentials{% endif %}</span></div>
+      <div class="account_info_item"><span class="account_detail_label">Calendar ID</span><span class="account_detail_value">{{ connection.calendar_id|default:"primary" }}</span></div>
+      <div class="account_info_item"><span class="account_detail_label">Drive Folder</span><span class="account_detail_value">{{ connection.drive_folder_id|default:"Default Drive area" }}</span></div>
+      <div class="account_info_item"><span class="account_detail_label">Analytics Property</span><span class="account_detail_value">{{ connection.analytics_property_id|default:"Not configured" }}</span></div>
+      <div class="account_info_item"><span class="account_detail_label">Token Expiration</span><span class="account_detail_value">{{ connection.access_token_expires_at|date:"Y-m-d H:i"|default:"Unknown" }}</span></div>
+      <div class="account_info_item"><span class="account_detail_label">Enabled Tools</span><span class="account_detail_value">Calendar / Meet · Drive · Analytics</span></div>
+      <div class="account_info_item account_info_item_full"><span class="account_detail_label">Last Error</span><span class="account_detail_value">{{ connection.last_error|default:"No errors" }}</span></div>
+    </div>
+  </section>
+
+  <section class="crm_card">
+    <h3 class="crm_section_title">Granted Scopes</h3>
+    <div class="integration_inline">
+      {% for scope in connection.scopes %}<span class="integration_code">{{ scope }}</span>{% empty %}<span class="account_muted">No scopes registered yet.</span>{% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

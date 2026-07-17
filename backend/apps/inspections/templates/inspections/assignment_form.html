@@ -1,0 +1,79 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+{% block page_title %}{{ form_title|default:"Assign Inspection" }}{% endblock %}
+{% block page_subtitle %}Create or update an inspection assignment with automatic workflow status.{% endblock %}
+{% block extra_head %}
+  {% include "inspections/partials/_design_system.html" %}
+  <link rel="stylesheet" href="{% static 'vendor/tom-select/2.4.3/tom-select.css' %}">
+  <script src="{% static 'vendor/tom-select/2.4.3/tom-select.complete.min.js' %}"></script>
+  <style>
+    .operations-standard .ts-wrapper{width:100%}.operations-standard .ts-control{min-height:42px!important;border:1px solid #cfdbea!important;border-radius:11px!important;padding:8px 11px!important;box-shadow:none!important}.operations-standard .ts-dropdown{z-index:10030!important;border:1px solid #cfdbea;border-radius:11px;overflow:auto!important;max-height:min(320px,48vh)!important;box-shadow:0 18px 42px rgba(7,19,61,.18)!important}.client-autofill-locked{background:#f2f6fb!important;color:var(--nj-muted)!important}.inspection-readonly{min-height:42px;padding:10px 11px;border:1px solid #dce6f1;border-radius:11px;background:#f8fbff;color:var(--nj-ink);font-size:12px;font-weight:700;white-space:pre-line}
+  </style>
+{% endblock %}
+{% block content %}
+<div class="nj-invoice operations-standard">
+  <header class="ops-head"><div><span class="ops-kicker"><i class="bi bi-clipboard2-pulse"></i> Inspection management</span><h1 class="ops-title">{{ form_title|default:"Assign Inspection" }}</h1><p class="ops-subtitle">Choose an existing client or enter a new one, assign an inspector, schedule the visit and save as Draft or Pending.</p></div><div class="ops-toolbar"><a class="ops-btn is-secondary" href="{{ cancel_url }}"><i class="bi bi-arrow-left"></i> Back</a></div></header>
+
+  <form class="ops-stack" method="post" novalidate id="InspectionAssignmentForm">{% csrf_token %}
+    {% if form.non_field_errors %}<div class="ops-form-errors">{{ form.non_field_errors }}</div>{% endif %}
+
+    <section class="ops-card">
+      <header class="ops-card-head"><div class="ops-card-heading"><i class="bi bi-person-vcard"></i><div><h2 class="ops-card-title">Client</h2><p class="ops-card-copy">Select a company client. Leave it empty only to create the client with the fields below.</p></div></div></header>
+      <div class="ops-card-body"><div class="ops-form-grid">
+        {% if form.client %}
+          <div class="ops-field is-full"><label for="{{ form.client.id_for_label }}">Existing client</label>{{ form.client }}{{ form.client.errors }}</div>
+          <div class="ops-field"><label for="{{ form.temp_first_name.id_for_label }}">First name</label>{{ form.temp_first_name }}{{ form.temp_first_name.errors }}</div>
+          <div class="ops-field"><label for="{{ form.temp_middle_name.id_for_label }}">Middle name</label>{{ form.temp_middle_name }}{{ form.temp_middle_name.errors }}</div>
+          <div class="ops-field"><label for="{{ form.temp_last_name.id_for_label }}">Last name</label>{{ form.temp_last_name }}{{ form.temp_last_name.errors }}</div>
+          <div class="ops-field"><label for="{{ form.temp_second_last_name.id_for_label }}">Second last name</label>{{ form.temp_second_last_name }}{{ form.temp_second_last_name.errors }}</div>
+          <div class="ops-field"><label for="{{ form.temp_phone.id_for_label }}">Phone</label>{{ form.temp_phone }}{{ form.temp_phone.errors }}</div>
+          <div class="ops-field"><label for="{{ form.temp_email.id_for_label }}">Email</label>{{ form.temp_email }}{{ form.temp_email.errors }}</div>
+        {% else %}
+          <div class="ops-field is-full"><label>Client</label><div class="inspection-readonly">{{ assignment.client.name|default:"No client" }}{% if assignment.client.email %}\n{{ assignment.client.email }}{% endif %}</div></div>
+        {% endif %}
+      </div></div>
+    </section>
+
+    <section class="ops-card">
+      <header class="ops-card-head"><div class="ops-card-heading"><i class="bi bi-calendar2-check"></i><div><h2 class="ops-card-title">Assignment</h2><p class="ops-card-copy">Inspector and scheduled date. Status changes automatically from the explicit save action.</p></div></div></header>
+      <div class="ops-card-body"><div class="ops-form-grid">
+        <div class="ops-field"><label for="{{ form.inspector.id_for_label }}">Inspector</label>{{ form.inspector }}{{ form.inspector.errors }}</div>
+        <div class="ops-field"><label for="{{ form.inspection_date.id_for_label }}">Inspection date and time</label>{{ form.inspection_date }}{{ form.inspection_date.errors }}</div>
+      </div></div>
+    </section>
+
+    <section class="ops-card">
+      <header class="ops-card-head"><div class="ops-card-heading"><i class="bi bi-geo-alt"></i><div><h2 class="ops-card-title">Direction and Maps</h2><p class="ops-card-copy">Both location fields stay in the same section.</p></div></div></header>
+      <div class="ops-card-body"><div class="ops-form-grid">
+        {% if form.temp_address %}<div class="ops-field"><label for="{{ form.temp_address.id_for_label }}">Address</label>{{ form.temp_address }}{{ form.temp_address.errors }}</div>{% else %}<div class="ops-field"><label>Address</label><div class="inspection-readonly">{{ assignment.client.address|default:"No address" }}</div></div>{% endif %}
+        <div class="ops-field"><label for="{{ form.google_maps_url.id_for_label }}">Google Maps URL</label>{{ form.google_maps_url }}{{ form.google_maps_url.errors }}</div>
+      </div></div>
+    </section>
+
+    <section class="ops-card">
+      <header class="ops-card-head"><div class="ops-card-heading"><i class="bi bi-journal-text"></i><div><h2 class="ops-card-title">Assignment notes</h2><p class="ops-card-copy">Administrative instructions for the scheduled inspection. Client notes and contractor inspection notes are not edited here.</p></div></div></header>
+      <div class="ops-card-body"><div class="ops-form-grid"><div class="ops-field is-full"><label for="{{ form.notes.id_for_label }}">Notes</label>{{ form.notes }}{{ form.notes.errors }}</div></div></div>
+    </section>
+
+    <section class="ops-card"><div class="ops-card-body"><div class="ops-form-actions">
+      <a class="ops-btn is-secondary" href="{{ cancel_url }}"><i class="bi bi-x-lg"></i> Cancel</a>
+      {% if allow_save_draft %}<button class="ops-btn is-secondary" type="submit" name="save_mode" value="draft"><i class="bi bi-pencil-square"></i> Save draft</button>{% endif %}
+      <button class="ops-btn" type="submit" name="save_mode" value="pending"><i class="bi bi-check2"></i> {{ primary_submit_label|default:submit_label }}</button>
+    </div></div></section>
+  </form>
+</div>
+{{ client_autofill_data|json_script:"InspectionClientAutofill" }}
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+  const dataNode=document.getElementById("InspectionClientAutofill");const clientData=dataNode?JSON.parse(dataNode.textContent):{};
+  const clientField=document.getElementById("id_client");const inspectorField=document.getElementById("id_inspector");
+  const fields={first_name:document.getElementById("id_temp_first_name"),middle_name:document.getElementById("id_temp_middle_name"),last_name:document.getElementById("id_temp_last_name"),second_last_name:document.getElementById("id_temp_second_last_name"),phone:document.getElementById("id_temp_phone"),email:document.getElementById("id_temp_email"),address:document.getElementById("id_temp_address")};
+  function lock(value){Object.values(fields).forEach(function(field){if(!field)return;field.readOnly=value;field.classList.toggle("client-autofill-locked",value);});}
+  function clear(){Object.values(fields).forEach(function(field){if(field)field.value="";});}
+  function fill(id){const item=clientData[id];if(!item){clear();lock(false);return;}Object.keys(fields).forEach(function(key){if(fields[key])fields[key].value=item[key]||"";});lock(true);}
+  if(clientField&&window.TomSelect&&!clientField.tomselect){new TomSelect(clientField,{create:false,maxOptions:500,searchField:["text"],allowEmptyOption:true,plugins:["clear_button"],placeholder:"Search existing client",onChange:fill});}
+  if(inspectorField&&window.TomSelect&&!inspectorField.tomselect){new TomSelect(inspectorField,{create:false,maxOptions:500,searchField:["text"],allowEmptyOption:true,plugins:["clear_button"],placeholder:"Search inspector"});}
+  if(clientField&&clientField.value)fill(clientField.value);else lock(false);
+});
+</script>
+{% endblock %}

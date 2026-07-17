@@ -1,0 +1,106 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Roles{% endblock %}
+{% block page_subtitle %}Configure compact, company-scoped access for administrators, office users and field contractors.{% endblock %}
+
+{% block extra_head %}
+  {% include "accounts/partials/_role_design_system.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="nj-invoice role-standard">
+  <div class="role-shell">
+    <header class="role-page-head">
+      <div>
+        <span class="role-kicker"><i class="bi bi-shield-lock" aria-hidden="true"></i> Access control</span>
+        <h1 class="role-title">Roles</h1>
+        <p class="role-subtitle">Define exactly which CRM modules each role can view, manage or approve. Contractor-only roles receive a restricted field workspace automatically.</p>
+      </div>
+      {% if can_create_roles %}
+        <div class="role-head-actions">
+          <a class="role-btn" href="{{ role_create_url }}"><i class="bi bi-plus-lg" aria-hidden="true"></i> New role</a>
+        </div>
+      {% endif %}
+    </header>
+
+    <section class="role-summary-grid" aria-label="Role summary">
+      <article class="role-summary-card"><span class="nj-icon-box"><i class="bi bi-shield-check" aria-hidden="true"></i></span><div><strong>{{ role_summary.total|default:0 }}</strong><span>Total roles</span></div></article>
+      <article class="role-summary-card"><span class="nj-icon-box is-success"><i class="bi bi-person-gear" aria-hidden="true"></i></span><div><strong>{{ role_summary.standard|default:0 }}</strong><span>Standard access</span></div></article>
+      <article class="role-summary-card"><span class="nj-icon-box is-violet"><i class="bi bi-person-workspace" aria-hidden="true"></i></span><div><strong>{{ role_summary.contractor|default:0 }}</strong><span>Contractor only</span></div></article>
+      <article class="role-summary-card"><span class="nj-icon-box is-warning"><i class="bi bi-people" aria-hidden="true"></i></span><div><strong>{{ role_summary.assigned_users|default:0 }}</strong><span>Assigned users</span></div></article>
+    </section>
+
+    <form class="role-card" method="get" action="{{ role_list_url }}">
+      <div class="role-card-body">
+        <div class="role-filter-grid">
+          <div class="role-field">
+            <label for="RoleSearch">Search</label>
+            <div class="role-search"><i class="bi bi-search" aria-hidden="true"></i><input id="RoleSearch" type="search" name="q" value="{{ role_filters.q }}" placeholder="Role name or description"></div>
+          </div>
+          <div class="role-field">
+            <label for="RoleAccess">Access type</label>
+            <select id="RoleAccess" name="access">
+              <option value=""{% if not role_filters.access %} selected{% endif %}>All roles</option>
+              <option value="standard"{% if role_filters.access == "standard" %} selected{% endif %}>Standard</option>
+              <option value="contractor"{% if role_filters.access == "contractor" %} selected{% endif %}>Contractor only</option>
+            </select>
+          </div>
+          <div class="role-field">
+            <label for="RoleOrder">Order</label>
+            <select id="RoleOrder" name="order">
+              <option value="name"{% if role_filters.order == "name" %} selected{% endif %}>Name</option>
+              <option value="modules"{% if role_filters.order == "modules" %} selected{% endif %}>Most modules</option>
+              <option value="users"{% if role_filters.order == "users" %} selected{% endif %}>Most users</option>
+            </select>
+          </div>
+          <button class="role-btn" type="submit"><i class="bi bi-funnel" aria-hidden="true"></i> Apply</button>
+          <a class="role-btn is-secondary" href="{{ role_list_url }}"><i class="bi bi-x-lg" aria-hidden="true"></i> Clear</a>
+        </div>
+      </div>
+    </form>
+
+    <section class="role-card">
+      <div class="role-card-head">
+        <div class="role-card-heading"><i class="bi bi-list-check" aria-hidden="true"></i><div><h2 class="role-card-title">Configured roles</h2><p class="role-card-copy">Permission counts are calculated from the saved company configuration.</p></div></div>
+      </div>
+      <div class="role-card-body">
+        {% if roles %}
+          <div class="role-list-head" aria-hidden="true"><span>Role</span><span>Access</span><span>View</span><span>Manage</span><span>Approve</span><span>Users</span><span>Actions</span></div>
+          <div class="role-list">
+            {% for role in roles %}
+              <article class="role-list-row">
+                <div class="role-main">
+                  <span class="role-main-icon{% if role.is_contractor_only %} is-contractor{% endif %}"><i class="bi {% if role.is_contractor_only %}bi-person-workspace{% else %}bi-shield-check{% endif %}" aria-hidden="true"></i></span>
+                  <div class="role-main-copy"><a href="{{ role.detail_url }}">{{ role.name }}</a><small>{{ role.description|default:"No description"|truncatechars:88 }}</small></div>
+                </div>
+                <div>{% if role.is_contractor_only %}<span class="role-pill is-contractor"><i class="bi bi-cone-striped"></i> Contractor</span>{% else %}<span class="role-pill"><i class="bi bi-grid"></i> Standard</span>{% endif %}</div>
+                <div class="role-count">{{ role.view_modules_count|default:0 }}</div>
+                <div class="role-count">{{ role.manage_modules_count|default:0 }}</div>
+                <div class="role-count">{{ role.approve_modules_count|default:0 }}</div>
+                <div class="role-count">{{ role.assigned_users_count|default:0 }}</div>
+                <div class="role-actions">
+                  <a class="role-icon-btn" href="{{ role.detail_url }}" data-tooltip="View" aria-label="View role"><i class="bi bi-eye" aria-hidden="true"></i></a>
+                  {% if can_edit_roles %}<a class="role-icon-btn is-neutral" href="{{ role.edit_url }}" data-tooltip="Edit" aria-label="Edit role"><i class="bi bi-pencil" aria-hidden="true"></i></a>{% endif %}
+                </div>
+              </article>
+            {% endfor %}
+          </div>
+
+          {% if is_paginated %}
+            <div class="role-pagination">
+              <span class="role-pagination-label">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} · {{ page_obj.paginator.count }} roles</span>
+              <nav class="role-page-links" aria-label="Role pages">
+                {% if page_obj.has_previous %}<a class="role-page-link" href="?{% if role_filter_query %}{{ role_filter_query }}&{% endif %}page={{ page_obj.previous_page_number }}"><i class="bi bi-chevron-left" aria-hidden="true"></i></a>{% endif %}
+                <span class="role-page-link is-current">{{ page_obj.number }}</span>
+                {% if page_obj.has_next %}<a class="role-page-link" href="?{% if role_filter_query %}{{ role_filter_query }}&{% endif %}page={{ page_obj.next_page_number }}"><i class="bi bi-chevron-right" aria-hidden="true"></i></a>{% endif %}
+              </nav>
+            </div>
+          {% endif %}
+        {% else %}
+          <div class="role-empty"><i class="bi bi-shield-x" aria-hidden="true"></i><strong>No roles found</strong><span>Change the filters or create the first role for this company.</span>{% if can_create_roles %}<a class="role-btn" href="{{ role_create_url }}"><i class="bi bi-plus-lg"></i> New role</a>{% endif %}</div>
+        {% endif %}
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

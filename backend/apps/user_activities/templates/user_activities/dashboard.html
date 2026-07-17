@@ -1,0 +1,494 @@
+
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Activities Dashboard{% endblock %}
+
+{% block page_subtitle %}
+Track pending activities, completed tasks, project assignments and inspection responsibilities.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+*{box-sizing:border-box}
+
+.activities_dashboard{
+  width:100%;
+  margin:0;
+  padding:5%;
+}
+
+.activities_hero{
+  background:#ffffff;
+  border:1px solid #e5e7eb;
+  border-radius:30px;
+  padding:5%;
+  margin-bottom:28px;
+  box-shadow:0 24px 60px rgba(15,23,42,.08);
+}
+
+.activities_hero h2{
+  margin:0 0 14px;
+  text-align:center;
+  font-family:Poppins,sans-serif;
+  font-size:48px;
+  line-height:1.1;
+  color:#0f172a;
+}
+
+.activities_hero p{
+  max-width:960px;
+  margin:0 auto;
+  text-align:justify;
+  text-align-last:center;
+  font-family:Montserrat,sans-serif;
+  font-size:16px;
+  line-height:1.7;
+  font-weight:500;
+  color:#475569;
+}
+
+.activities_stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:22px;
+  margin-bottom:28px;
+}
+
+.activities_stat{
+  background:#ffffff;
+  border:1px solid #e5e7eb;
+  border-radius:24px;
+  padding:28px;
+  box-shadow:0 18px 50px rgba(15,23,42,.08);
+}
+
+.activities_stat span{
+  display:block;
+  margin-bottom:12px;
+  font-family:Montserrat,sans-serif;
+  font-size:14px;
+  font-weight:800;
+  color:#64748b;
+}
+
+.activities_stat strong{
+  display:block;
+  font-family:Poppins,sans-serif;
+  font-size:42px;
+  line-height:1;
+  color:#0f172a;
+}
+
+.activities_layout{
+  display:grid;
+  grid-template-columns:2fr 1fr;
+  gap:28px;
+  align-items:start;
+}
+
+.activities_card{
+  background:#ffffff;
+  border:1px solid #e5e7eb;
+  border-radius:30px;
+  padding:28px;
+  box-shadow:0 24px 60px rgba(15,23,42,.08);
+}
+
+.activities_card_head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:22px;
+}
+
+.activities_card_head h3{
+  margin:0;
+  font-family:Poppins,sans-serif;
+  font-size:30px;
+  color:#0f172a;
+}
+
+.activities_table_wrap{
+  width:100%;
+  overflow-x:auto;
+}
+
+.activities_table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+.activities_table th{
+  text-align:left;
+  padding:14px 12px;
+  border-bottom:1px solid #e5e7eb;
+  font-family:Montserrat,sans-serif;
+  font-size:14px;
+  font-weight:800;
+  color:#334155;
+}
+
+.activities_table td{
+  padding:16px 12px;
+  border-bottom:1px solid #edf2f7;
+  vertical-align:middle;
+  font-family:Montserrat,sans-serif;
+  font-size:15px;
+  color:#0f172a;
+}
+
+.activities_badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:7px 12px;
+  border-radius:999px;
+  background:#eef2ff;
+  color:#1d4ed8;
+  font-size:13px;
+  font-weight:800;
+}
+
+.activities_status{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:7px 12px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:800;
+}
+
+.activities_status.pending{
+  background:#fef3c7;
+  color:#92400e;
+}
+
+.activities_status.in_progress{
+  background:#dbeafe;
+  color:#1d4ed8;
+}
+
+.activities_status.completed,
+.activities_status.done,
+.activities_status.approved{
+  background:#dcfce7;
+  color:#166534;
+}
+
+.activities_button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:42px;
+  padding:10px 18px;
+  border-radius:14px;
+  background:#2563eb;
+  color:#ffffff;
+  text-decoration:none;
+  font-family:Montserrat,sans-serif;
+  font-size:14px;
+  font-weight:800;
+  transition:.25s ease;
+}
+
+.activities_button:hover{
+  background:#0f172a;
+  color:#ffffff;
+  transform:translateY(-2px);
+}
+
+.activities_side{
+  display:grid;
+  gap:28px;
+}
+
+.activities_list{
+  display:grid;
+  gap:14px;
+}
+
+.activities_item{
+  border:1px solid #e5e7eb;
+  background:#f8fafc;
+  border-radius:20px;
+  padding:18px;
+}
+
+.activities_item strong{
+  display:block;
+  margin-bottom:6px;
+  font-family:Montserrat,sans-serif;
+  font-size:15px;
+  color:#0f172a;
+}
+
+.activities_item span{
+  display:block;
+  font-family:Montserrat,sans-serif;
+  font-size:14px;
+  color:#64748b;
+}
+
+.activities_empty{
+  padding:38px;
+  text-align:center;
+  border:1px dashed #cbd5e1;
+  border-radius:24px;
+  font-family:Montserrat,sans-serif;
+  color:#64748b;
+}
+
+@media(max-width:1100px){
+
+  .activities_stats{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .activities_layout{
+    grid-template-columns:1fr;
+  }
+}
+
+@media(max-width:700px){
+
+  .activities_hero h2{
+    font-size:32px;
+  }
+
+  .activities_stats{
+    grid-template-columns:1fr;
+  }
+
+  .activities_card_head{
+    flex-direction:column;
+  }
+
+  .activities_card_head h3{
+    text-align:center;
+    font-size:26px;
+  }
+}
+
+.activities_item_link{
+  display:block;
+  text-decoration:none;
+  color:inherit;
+  transition:.25s ease;
+}
+
+.activities_item_link:hover{
+  transform:translateY(-2px);
+  border-color:#2563eb;
+  box-shadow:0 16px 34px rgba(37,99,235,.14);
+}
+
+.activities_item_link small{
+  display:inline-block;
+  margin-top:10px;
+  font-family:Montserrat,sans-serif;
+  font-size:13px;
+  font-weight:900;
+  color:#2563eb;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="activities_dashboard">
+
+  <div class="activities_hero">
+    <h2>Activities Dashboard</h2>
+
+    <p>
+      Monitor pending assignments, completed tasks, inspections and project responsibilities based on the logged-in user and role permissions.
+    </p>
+  </div>
+
+  <div class="activities_stats">
+
+    <div class="activities_stat">
+      <span>Total Activities</span>
+      <strong>{{ total }}</strong>
+    </div>
+
+    <div class="activities_stat">
+      <span>Pending Tasks</span>
+      <strong>{{ pending_count }}</strong>
+    </div>
+
+    <div class="activities_stat">
+      <span>In Progress</span>
+      <strong>{{ in_progress_count }}</strong>
+    </div>
+
+    <div class="activities_stat">
+      <span>Completed</span>
+      <strong>{{ completed_count }}</strong>
+    </div>
+
+  </div>
+
+  <div class="activities_layout">
+
+    <div class="activities_card">
+
+      <div class="activities_card_head">
+        <h3>Pending Activities</h3>
+      </div>
+
+      {% if pending %}
+
+        <div class="activities_table_wrap">
+
+          <table class="activities_table">
+
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Type</th>
+                <th>Code</th>
+                <th>Title</th>
+                <th>Client</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+
+              {% for item in pending %}
+              <tr>
+
+                <td>{{ item.user }}</td>
+
+                <td>
+                  <span class="activities_badge">
+                    {{ item.type }}
+                  </span>
+                </td>
+
+                <td>{{ item.code }}</td>
+
+                <td>{{ item.title }}</td>
+
+                <td>{{ item.client }}</td>
+
+                <td>
+                  <span class="activities_status {{ item.status }}">
+                    {{ item.status|title }}
+                  </span>
+                </td>
+
+                <td>
+                  {{ item.created_at|date:"Y-m-d H:i" }}
+                </td>
+
+                <td>
+                  <a
+                    href="{{ item.detail_url }}"
+                    class="activities_button"
+                  >
+                    View
+                  </a>
+                </td>
+
+              </tr>
+              {% endfor %}
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      {% else %}
+
+        <div class="activities_empty">
+          No pending activities assigned.
+        </div>
+
+      {% endif %}
+
+    </div>
+
+    <aside class="activities_side">
+
+      <div class="activities_card">
+
+        <div class="activities_card_head">
+          <h3>Notifications</h3>
+        </div>
+
+        <div class="activities_list">
+
+          {% for item in recent_notifications %}
+
+            <a class="activities_item activities_item_link" href="{{ item.detail_url }}">
+              <strong>
+                {{ item.type }} {{ item.code }}
+              </strong>
+
+              <span>
+                {{ item.title }} requires attention.
+              </span>
+
+              <small>View details →</small>
+            </a>
+
+          {% empty %}
+
+            <div class="activities_empty">
+              No notifications available.
+            </div>
+
+          {% endfor %}
+
+        </div>
+
+      </div>
+
+      <div class="activities_card">
+
+        <div class="activities_card_head">
+          <h3>Completed Tasks</h3>
+        </div>
+
+        <div class="activities_list">
+
+          {% for item in recent_completed %}
+
+            <a class="activities_item activities_item_link" href="{{ item.detail_url }}">
+
+              <strong>
+                {{ item.type }} {{ item.code }}
+              </strong>
+
+              <span>
+                Completed successfully.
+              </span>
+
+              <small>View details →</small>
+
+            </a>
+
+          {% empty %}
+
+            <div class="activities_empty">
+              No completed tasks available.
+            </div>
+
+          {% endfor %}
+
+        </div>
+
+      </div>
+
+    </aside>
+
+  </div>
+
+</section>
+{% endblock %}

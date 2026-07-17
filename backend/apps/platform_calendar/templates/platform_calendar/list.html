@@ -1,0 +1,663 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Platform Calendar{% endblock %}
+
+{% block page_subtitle %}
+CEO Marketing SaaS calendar for renewals, payments, documents, notifications, company reviews and internal follow-ups.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .platform_smart_calendar,
+  .platform_smart_calendar * {
+    box-sizing: border-box;
+    min-width: 0;
+  }
+
+  .platform_smart_calendar {
+    --gold-1: #d0ad6a;
+    --gold-2: #a67d40;
+    --gold-3: #703f0a;
+    --gold-4: #a67c52;
+    --gold-5: #c69c6d;
+    --ink: #20150c;
+    --muted: #6f6252;
+    --soft: #fbf8f2;
+    --line: rgba(112, 63, 10, .16);
+    --blue: #0b6db7;
+    --sky: #36aeea;
+    --purple: #5b2bb3;
+    --red: #ff7178;
+    --green: #1fc788;
+    display: grid;
+    gap: 16px;
+  }
+
+  .pscal_top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 16px;
+    align-items: center;
+    padding: 22px;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(208, 173, 106, .30), transparent 32%),
+      linear-gradient(135deg, #ffffff 0%, #fbf8f2 100%);
+    box-shadow: var(--crm_shadow);
+  }
+
+  .pscal_top h2 {
+    margin: 0;
+    color: var(--ink);
+    font-size: clamp(26px, 4vw, 38px);
+    line-height: 1.1;
+    font-weight: 950;
+    letter-spacing: -.04em;
+    overflow-wrap: anywhere;
+  }
+
+  .pscal_top p {
+    margin: 6px 0 0;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.65;
+  }
+
+  .pscal_stats {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .pscal_stat {
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    gap: 6px;
+    padding: 16px;
+    min-height: 100px;
+    border-radius: 20px;
+    color: #ffffff;
+    box-shadow: 0 18px 42px rgba(32, 21, 12, .12);
+  }
+
+  .pscal_stat:nth-child(1) {
+    background: linear-gradient(135deg, #703f0a 0%, #a67d40 56%, #d0ad6a 100%);
+  }
+
+  .pscal_stat:nth-child(2) {
+    background: linear-gradient(135deg, #0b6db7 0%, #36aeea 100%);
+  }
+
+  .pscal_stat:nth-child(3) {
+    background: linear-gradient(135deg, #009bb7 0%, #1fc788 100%);
+  }
+
+  .pscal_stat:nth-child(4) {
+    background: linear-gradient(135deg, #5b2bb3 0%, #7c4dff 100%);
+  }
+
+  .pscal_stat:nth-child(5) {
+    background: linear-gradient(135deg, #ff7178 0%, #b91c1c 100%);
+  }
+
+  .pscal_stat:nth-child(6) {
+    background: linear-gradient(135deg, #a67c52 0%, #c69c6d 58%, #d0ad6a 100%);
+  }
+
+  .pscal_stat span {
+    position: relative;
+    z-index: 1;
+    color: rgba(255,255,255,.84);
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+
+  .pscal_stat strong {
+    position: relative;
+    z-index: 1;
+    color: #ffffff;
+    font-size: 31px;
+    line-height: 1;
+    font-weight: 950;
+  }
+
+  .pscal_filters {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) minmax(190px, .36fr) auto auto auto auto;
+    gap: 12px;
+    align-items: end;
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .pscal_field {
+    display: grid;
+    gap: 6px;
+  }
+
+  .pscal_label {
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+
+  .pscal_layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(340px, .34fr);
+    gap: 16px;
+    align-items: start;
+  }
+
+  .pscal_calendar_card {
+    overflow: hidden;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .pscal_month_header {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    border-bottom: 1px solid var(--line);
+    background: #fbf8f2;
+  }
+
+  .pscal_week_label {
+    padding: 13px 8px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 950;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    border-right: 1px solid var(--line);
+  }
+
+  .pscal_week_label:last-child {
+    border-right: 0;
+  }
+
+  .pscal_month_grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+
+  .pscal_day {
+    min-height: 152px;
+    display: grid;
+    align-content: start;
+    gap: 8px;
+    padding: 10px;
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    background: #ffffff;
+  }
+
+  .pscal_day:nth-child(7n) {
+    border-right: 0;
+  }
+
+  .pscal_day.is_other_month {
+    background: #f8fafc;
+  }
+
+  .pscal_day.is_today {
+    background:
+      linear-gradient(180deg, rgba(208,173,106,.18), transparent 48%),
+      #ffffff;
+  }
+
+  .pscal_day_head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .pscal_day_number {
+    display: inline-flex;
+    width: 28px;
+    height: 28px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 950;
+  }
+
+  .pscal_day.is_today .pscal_day_number {
+    background: var(--gold-3);
+    color: #ffffff;
+  }
+
+  .pscal_day_count {
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .pscal_event_stack {
+    display: grid;
+    gap: 6px;
+  }
+
+  .pscal_chip {
+    display: grid;
+    gap: 2px;
+    padding: 7px 8px;
+    border-left: 4px solid var(--blue);
+    border-radius: 9px;
+    background: rgba(11, 109, 183, .08);
+    text-decoration: none;
+    color: var(--ink);
+  }
+
+  .pscal_chip.type_renewal {
+    border-left-color: var(--gold-3);
+    background: rgba(208, 173, 106, .16);
+  }
+
+  .pscal_chip.type_payment {
+    border-left-color: var(--green);
+    background: rgba(31, 199, 136, .10);
+  }
+
+  .pscal_chip.type_document {
+    border-left-color: var(--sky);
+    background: rgba(54, 174, 234, .10);
+  }
+
+  .pscal_chip.type_notification {
+    border-left-color: var(--purple);
+    background: rgba(91, 43, 179, .08);
+  }
+
+  .pscal_chip.type_company {
+    border-left-color: var(--red);
+    background: rgba(255, 113, 120, .10);
+  }
+
+  .pscal_chip.is_high {
+    box-shadow: inset 0 0 0 1px rgba(185, 28, 28, .18);
+  }
+
+  .pscal_chip_title {
+    display: block;
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 950;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pscal_chip_meta {
+    display: block;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1.25;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pscal_more {
+    color: var(--gold-3);
+    font-size: 11px;
+    font-weight: 950;
+  }
+
+  .pscal_side {
+    display: grid;
+    gap: 16px;
+  }
+
+  .pscal_panel {
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .pscal_panel_title {
+    margin: 0 0 12px;
+    color: var(--ink);
+    font-size: 19px;
+    font-weight: 950;
+    letter-spacing: -.025em;
+  }
+
+  .pscal_agenda {
+    display: grid;
+    gap: 10px;
+    max-height: 640px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  .pscal_agenda_item {
+    display: grid;
+    grid-template-columns: 54px minmax(0, 1fr);
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 15px;
+    background: linear-gradient(135deg, #ffffff 0%, #fbf8f2 100%);
+  }
+
+  .pscal_agenda_date {
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    min-height: 54px;
+    border-radius: 13px;
+    background: rgba(208, 173, 106, .18);
+  }
+
+  .pscal_agenda_day {
+    color: var(--gold-3);
+    font-size: 22px;
+    font-weight: 950;
+    line-height: 1;
+  }
+
+  .pscal_agenda_month {
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 950;
+    text-transform: uppercase;
+  }
+
+  .pscal_badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 6px;
+  }
+
+  .pscal_badge {
+    display: inline-flex;
+    width: fit-content;
+    padding: 4px 7px;
+    border-radius: 999px;
+    background: rgba(208, 173, 106, .16);
+    color: var(--gold-3);
+    font-size: 10px;
+    font-weight: 950;
+    text-transform: uppercase;
+  }
+
+  .pscal_badge_high {
+    background: rgba(255, 113, 120, .13);
+    color: #b91c1c;
+  }
+
+  .pscal_agenda_title {
+    display: block;
+    color: var(--ink);
+    font-size: 13px;
+    line-height: 1.35;
+    font-weight: 950;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+
+  .pscal_agenda_title:hover {
+    color: var(--gold-3);
+    text-decoration: underline;
+  }
+
+  .pscal_agenda_text {
+    margin: 5px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+
+  .pscal_empty {
+    padding: 16px;
+    border: 1px dashed rgba(166, 125, 64, .34);
+    border-radius: 16px;
+    background: var(--soft);
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 1280px) {
+    .pscal_layout,
+    .pscal_top,
+    .pscal_filters {
+      grid-template-columns: 1fr;
+    }
+
+    .pscal_stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .pscal_calendar_card {
+      overflow-x: auto;
+    }
+
+    .pscal_calendar_inner {
+      min-width: 980px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .pscal_stats {
+      grid-template-columns: 1fr;
+    }
+
+    .pscal_top,
+    .pscal_panel {
+      padding: 16px;
+    }
+
+    .pscal_calendar_inner {
+      min-width: 900px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="platform_smart_calendar">
+  <div class="pscal_top">
+    <div>
+      <h2>{{ month_label }}</h2>
+      <p>
+        Smart SaaS calendar for CEO Marketing. It pulls subscriptions, renewals, platform payments,
+        SaaS documents, notification logs, inactive companies and manual internal follow-ups.
+      </p>
+    </div>
+
+    <a class="crm_button" href="{% url 'platform_calendar:create' %}">Create Internal Event</a>
+  </div>
+
+  <section class="pscal_stats">
+    <article class="pscal_stat">
+      <span>Total Items</span>
+      <strong>{{ total_events }}</strong>
+    </article>
+
+    <article class="pscal_stat">
+      <span>Renewals</span>
+      <strong>{{ renewal_events }}</strong>
+    </article>
+
+    <article class="pscal_stat">
+      <span>Payments</span>
+      <strong>{{ payment_events }}</strong>
+    </article>
+
+    <article class="pscal_stat">
+      <span>Documents</span>
+      <strong>{{ document_events }}</strong>
+    </article>
+
+    <article class="pscal_stat">
+      <span>Notifications</span>
+      <strong>{{ notification_events }}</strong>
+    </article>
+
+    <article class="pscal_stat">
+      <span>High Priority</span>
+      <strong>{{ high_priority_events }}</strong>
+    </article>
+  </section>
+
+  <form class="pscal_filters" method="get">
+    <input type="hidden" name="year" value="{{ year }}">
+    <input type="hidden" name="month" value="{{ month }}">
+
+    <label class="pscal_field">
+      <span class="pscal_label">Search</span>
+      <input class="crm_input" type="search" name="q" value="{{ q }}" placeholder="Search company, document, payment, renewal">
+    </label>
+
+    <label class="pscal_field">
+      <span class="pscal_label">Type</span>
+      <select class="crm_input" name="type">
+        <option value="">All SaaS Calendar Items</option>
+        {% for value, label in event_type_choices %}
+          <option value="{{ value }}" {% if event_type_filter == value %}selected{% endif %}>
+            {{ label }}
+          </option>
+        {% endfor %}
+      </select>
+    </label>
+
+    <button class="crm_button" type="submit">Apply</button>
+
+    <a class="crm_button crm_button_secondary" href="?year={{ navigation.previous_year }}&month={{ navigation.previous_month }}">
+      Previous
+    </a>
+
+    <a class="crm_button crm_button_secondary" href="?year={{ navigation.next_year }}&month={{ navigation.next_month }}">
+      Next
+    </a>
+
+    <a class="crm_button crm_button_secondary" href="./">
+      Today
+    </a>
+  </form>
+
+  <section class="pscal_layout">
+    <section class="pscal_calendar_card">
+      <div class="pscal_calendar_inner">
+        <div class="pscal_month_header">
+          {% for day_label in week_days %}
+            <div class="pscal_week_label">{{ day_label }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="pscal_month_grid">
+          {% for week in calendar_weeks %}
+            {% for day in week %}
+              <article class="pscal_day {% if not day.is_current_month %}is_other_month{% endif %} {% if day.is_today %}is_today{% endif %}">
+                <div class="pscal_day_head">
+                  <span class="pscal_day_number">{{ day.day_number }}</span>
+
+                  {% if day.item_count %}
+                    <span class="pscal_day_count">{{ day.item_count }}</span>
+                  {% endif %}
+                </div>
+
+                <div class="pscal_event_stack">
+                  {% for item in day.visible_items %}
+                    <a
+                      class="pscal_chip type_{{ item.event_type }} {% if item.priority == 'high' %}is_high{% endif %}"
+                      href="{{ item.url }}"
+                      title="{{ item.title }}"
+                    >
+                      <span class="pscal_chip_title">
+                        {% if item.time %}{{ item.time|time:"H:i" }} {% endif %}{{ item.title }}
+                      </span>
+
+                      <span class="pscal_chip_meta">
+                        {{ item.event_type_label }}{% if item.meta %} · {{ item.meta }}{% endif %}
+                      </span>
+                    </a>
+                  {% endfor %}
+
+                  {% if day.hidden_count %}
+                    <span class="pscal_more">{{ day.hidden_count }} more</span>
+                  {% endif %}
+                </div>
+              </article>
+            {% endfor %}
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    <aside class="pscal_side">
+      <section class="pscal_panel">
+        <h2 class="pscal_panel_title">SaaS Agenda</h2>
+
+        {% if calendar_items %}
+          <div class="pscal_agenda">
+            {% for item in calendar_items %}
+              <article class="pscal_agenda_item">
+                <div class="pscal_agenda_date">
+                  <span class="pscal_agenda_day">{{ item.date|date:"d" }}</span>
+                  <span class="pscal_agenda_month">{{ item.date|date:"M" }}</span>
+                </div>
+
+                <div>
+                  <div class="pscal_badges">
+                    <span class="pscal_badge">{{ item.event_type_label }}</span>
+
+                    {% if item.priority == "high" %}
+                      <span class="pscal_badge pscal_badge_high">High</span>
+                    {% endif %}
+                  </div>
+
+                  <a class="pscal_agenda_title" href="{{ item.url }}">
+                    {% if item.time %}{{ item.time|time:"H:i" }} · {% endif %}{{ item.title }}
+                  </a>
+
+                  <p class="pscal_agenda_text">
+                    {{ item.description|default:item.meta|default:"No additional details."|truncatechars:120 }}
+                  </p>
+                </div>
+              </article>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="pscal_empty">
+            No SaaS calendar items found for this month.
+          </div>
+        {% endif %}
+      </section>
+
+      <section class="pscal_panel">
+        <h2 class="pscal_panel_title">SaaS Calendar Logic</h2>
+
+        <div class="pscal_empty">
+          This platform calendar is for CEO Marketing staff. It helps the SaaS owner track renewals,
+          pending payments, document due dates, failed notifications, inactive companies and internal follow-ups.
+        </div>
+      </section>
+    </aside>
+  </section>
+</section>
+{% endblock %}

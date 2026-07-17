@@ -1,0 +1,333 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Resources Dashboard{% endblock %}
+
+{% block page_subtitle %}
+{% if is_global %}
+Global SaaS resources, company activity and platform usage.
+{% else %}
+Company resources, activity and mini CRM usage.
+{% endif %}
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .metrics_header {
+    display: grid;
+    gap: 6px;
+    margin-bottom: 18px;
+  }
+
+  .metrics_scope {
+    margin: 0;
+    color: var(--crm_muted);
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+
+  .metrics_grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .metrics_card {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+    padding: 18px;
+    border: 1px solid var(--crm_border);
+    border-radius: var(--crm_radius);
+    background: var(--crm_surface);
+    box-shadow: var(--crm_shadow);
+  }
+
+  .metrics_label {
+    color: var(--crm_muted);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    overflow-wrap: anywhere;
+  }
+
+  .metrics_value {
+    color: var(--crm_primary);
+    font-size: 30px;
+    font-weight: 900;
+    line-height: 1;
+    overflow-wrap: anywhere;
+  }
+
+  .metrics_charts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    margin-top: 22px;
+  }
+
+  .metrics_chart_card {
+    min-width: 0;
+    padding: 20px;
+    border: 1px solid var(--crm_border);
+    border-radius: var(--crm_radius);
+    background: var(--crm_surface);
+    box-shadow: var(--crm_shadow);
+  }
+
+  .metrics_chart_title {
+    margin: 0 0 14px;
+    color: var(--crm_text);
+    font-size: 18px;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+  }
+
+  .metrics_canvas_wrap {
+    position: relative;
+    min-height: 280px;
+  }
+
+  .metrics_canvas_wrap canvas {
+    width: 100% !important;
+    max-width: 100%;
+  }
+
+  @media (max-width: 1100px) {
+    .metrics_grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .metrics_charts {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 620px) {
+    .metrics_grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .metrics_company_filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 14px;
+  border: 1px solid var(--crm_border);
+  border-radius: var(--crm_radius);
+  background: var(--crm_surface);
+  box-shadow: var(--crm_shadow);
+}
+
+.metrics_company_filter label {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--crm_text);
+}
+
+.metrics_select {
+  min-height: 42px;
+  min-width: 260px;
+  max-width: 100%;
+  border: 1px solid var(--crm_border);
+  border-radius: 12px;
+  padding: 8px 12px;
+  background: #ffffff;
+  color: var(--crm_text);
+  font: inherit;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+  <div class="metrics_header">
+    <h2 class="crm_section_title">
+      {% if is_global %}
+        SaaS Global Resources
+      {% else %}
+        Company Resources
+      {% endif %}
+    </h2>
+
+    <p class="metrics_scope">
+      Current scope: {{ company_name }}
+    </p>
+  </div>
+
+  {% if request.user.is_superuser %}
+    <form method="get" class="metrics_company_filter">
+        <label for="company_id">View scope</label>
+
+        <select id="company_id" name="company_id" class="metrics_select" onchange="this.form.submit()">
+        <option value="">SaaS Global</option>
+
+        {% for company in companies %}
+            <option value="{{ company.id_company }}" {% if selected_company_id == company.id_company|stringformat:"s" %}selected{% endif %}>
+            {{ company.name }}
+            </option>
+        {% endfor %}
+        </select>
+    </form>
+    {% endif %}
+
+  <section class="metrics_grid">
+    {% for card in metrics.cards %}
+      <article class="metrics_card">
+        <span class="metrics_label">{{ card.label }}</span>
+        <strong class="metrics_value">{{ card.value }}</strong>
+      </article>
+    {% endfor %}
+  </section>
+
+  <section class="metrics_charts">
+    <article class="metrics_chart_card">
+      <h2 class="metrics_chart_title">Operational Resources</h2>
+      <div class="metrics_canvas_wrap">
+        <canvas id="operationalChart"></canvas>
+      </div>
+    </article>
+
+    <article class="metrics_chart_card">
+      <h2 class="metrics_chart_title">Financial Summary</h2>
+      <div class="metrics_canvas_wrap">
+        <canvas id="financialChart"></canvas>
+      </div>
+    </article>
+
+    <article class="metrics_chart_card">
+      <h2 class="metrics_chart_title">Project Status</h2>
+      <div class="metrics_canvas_wrap">
+        <canvas id="projectStatusChart"></canvas>
+      </div>
+    </article>
+
+    {% if is_global %}
+      <article class="metrics_chart_card">
+        <h2 class="metrics_chart_title">Company Plans</h2>
+        <div class="metrics_canvas_wrap">
+          <canvas id="companyPlansChart"></canvas>
+        </div>
+      </article>
+    {% endif %}
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+    (function () {
+    const metricsUrl = "{% url 'dashboard_metrics:resources_api' %}" + window.location.search;
+      function makeBarChart(elementId, labels, values, title) {
+        const element = document.getElementById(elementId);
+
+        if (!element) {
+          return;
+        }
+
+        new Chart(element, {
+          type: "bar",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: title,
+                data: values
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true
+              }
+            }
+          }
+        });
+      }
+
+      function makeDoughnutChart(elementId, rows, title) {
+        const element = document.getElementById(elementId);
+
+        if (!element) {
+          return;
+        }
+
+        const labels = rows.map(function (row) {
+          return row.label;
+        });
+
+        const values = rows.map(function (row) {
+          return row.value;
+        });
+
+        new Chart(element, {
+          type: "doughnut",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: title,
+                data: values
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false
+          }
+        });
+      }
+
+      fetch(metricsUrl, {
+        headers: {
+          "X-Requested-With": "XMLHttpRequest"
+        }
+      })
+        .then(function (response) {
+          return response.json();
+        })
+        .then(function (data) {
+          const charts = data.charts || {};
+
+          if (charts.operational) {
+            makeBarChart(
+              "operationalChart",
+              charts.operational.labels || [],
+              charts.operational.values || [],
+              "Resources"
+            );
+          }
+
+          if (charts.financial) {
+            makeBarChart(
+              "financialChart",
+              charts.financial.labels || [],
+              charts.financial.values || [],
+              "Amount"
+            );
+          }
+
+          makeDoughnutChart(
+            "projectStatusChart",
+            charts.project_status || [],
+            "Projects"
+          );
+
+          makeDoughnutChart(
+            "companyPlansChart",
+            charts.company_plans || [],
+            "Plans"
+          );
+        });
+    })();
+  </script>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "layouts/base.html" %}
+{% block page_title %}{{ form_title }}{% endblock %}
+{% block page_subtitle %}Assign a reviewer or record audit observations.{% endblock %}
+{% block extra_head %}{% include "partials/_crm_design_system.html" %}{% endblock %}
+{% block content %}
+<div class="nj-invoice nj-page">
+  <header class="nj-page-head"><div><span class="nj-page-kicker"><i class="bi bi-shield-check"></i> Audit</span><h1 class="nj-page-title">{{ form_title }}</h1><p class="nj-page-subtitle">Select one inspection or project. Approval is completed from the audit review page.</p></div></header>
+  <section class="nj-card" style="padding:24px;max-width:980px;">
+    <form method="post" novalidate>{% csrf_token %}
+      {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;">
+        <div class="nj-field"><label for="{{ form.id_project.id_for_label }}">Project</label>{{ form.id_project }}{{ form.id_project.errors }}</div>
+        <div class="nj-field"><label for="{{ form.id_inspection_assignment.id_for_label }}">Inspection</label>{{ form.id_inspection_assignment }}{{ form.id_inspection_assignment.errors }}</div>
+        <div class="nj-field" style="grid-column:1/-1;"><label for="{{ form.id_supervisor.id_for_label }}">Auditor</label>{{ form.id_supervisor }}{{ form.id_supervisor.errors }}</div>
+        <div class="nj-field" style="grid-column:1/-1;"><label for="{{ form.observations.id_for_label }}">Observations</label>{{ form.observations }}{{ form.observations.errors }}</div>
+      </div>
+      <div class="nj-head-actions" style="margin-top:22px;"><button class="nj-btn" type="submit"><i class="bi bi-check2-circle"></i> {{ submit_label }}</button><a class="nj-btn nj-btn-secondary" href="{{ cancel_url }}">Cancel</a></div>
+    </form>
+  </section>
+</div>
+{% endblock %}

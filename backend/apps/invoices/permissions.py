@@ -1,0 +1,15 @@
+from apps.core.permissions import HasModulePermission
+
+
+class InvoicePermission(HasModulePermission):
+    pass
+
+
+def user_can_access_invoice(user, invoice):
+    if not user or not user.is_authenticated:
+        return False
+
+    if user.is_superuser:
+        return True
+
+    return invoice.id_company_id == user.id_company_id

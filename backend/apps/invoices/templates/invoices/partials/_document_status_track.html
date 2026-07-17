@@ -1,0 +1,13 @@
+<div class="nj-workflow finance-locked-workflow{% if detail %} is-detail{% endif %}{% if compact %} is-compact{% endif %}" aria-label="Document status: {{ invoice.get_status_display }}">
+  <span class="finance-workflow-lock"><i class="bi bi-lock-fill" aria-hidden="true"></i> Workflow controlled</span>
+  <div class="nj-status-track finance-status-track nj-status-track-document">
+    <span class="nj-status-node is-neutral{% if invoice.status == 'draft' %} is-current{% endif %}" style="--stage-color:#64748b" title="Draft" aria-label="Draft"><i class="bi bi-file-earmark" aria-hidden="true"></i></span>
+    <span class="nj-status-line" aria-hidden="true"></span>
+    <span class="nj-status-node is-blue{% if invoice.status == 'pending_send' or invoice.status == 'pending' %} is-current{% endif %}" style="--stage-color:#0868e8" title="Pending send" aria-label="Pending send"><i class="bi bi-clock-history" aria-hidden="true"></i></span>
+    <span class="nj-status-line" aria-hidden="true"></span>
+    <span class="nj-status-node is-success{% if invoice.status == 'sent' or invoice.status == 'partially_paid' or invoice.status == 'paid' or invoice.status == 'overdue' %} is-current{% endif %}" style="--stage-color:#0e9f6e" title="Sent" aria-label="Sent"><i class="bi bi-send-check" aria-hidden="true"></i></span>
+    <span class="nj-status-line" aria-hidden="true"></span>
+    <span class="nj-status-node is-void{% if invoice.status == 'void' or invoice.status == 'cancelled' %} is-current{% endif %}" style="--stage-color:#6b7280" title="Void" aria-label="Void"><i class="bi bi-x-lg" aria-hidden="true"></i></span>
+  </div>
+  <span class="nj-status-caption {% if invoice.status == 'draft' %}is-neutral{% elif invoice.status == 'pending_send' or invoice.status == 'pending' %}is-blue{% elif invoice.status == 'sent' or invoice.status == 'partially_paid' or invoice.status == 'paid' or invoice.status == 'overdue' %}is-success{% else %}is-void{% endif %}">{{ invoice.get_status_display }}</span>
+</div>

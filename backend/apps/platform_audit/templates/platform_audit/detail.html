@@ -1,0 +1,159 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Audit Log #{{ audit_log.id_audit }}{% endblock %}
+
+{% block page_subtitle %}
+Detailed SaaS administration audit record.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .paudit_detail_grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .paudit_detail_item {
+    display: grid;
+    gap: 8px;
+    padding: 16px;
+    border: 1px solid var(--crm_border);
+    border-radius: 14px;
+    background: #ffffff;
+    min-width: 0;
+  }
+
+  .paudit_detail_item_full {
+    grid-column: 1 / -1;
+  }
+
+  .paudit_detail_label {
+    color: var(--crm_muted);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  .paudit_detail_value {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--crm_text);
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .paudit_pre {
+    white-space: pre-wrap;
+    line-height: 1.7;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 13px;
+    color: var(--crm_text);
+    background: #f8fafc;
+    border: 1px solid var(--crm_border);
+    border-radius: 14px;
+    padding: 16px;
+    overflow-x: auto;
+  }
+
+  .paudit_actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 18px;
+  }
+
+  @media (max-width: 1100px) {
+    .paudit_detail_grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 680px) {
+    .paudit_detail_grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <section class="crm_card">
+    <h2 class="crm_section_title">Audit Information</h2>
+
+    <div class="paudit_detail_grid">
+      <div class="paudit_detail_item">
+        <span class="paudit_detail_label">Actor</span>
+        <span class="paudit_detail_value">
+          {% if audit_log.actor_user %}
+            {{ audit_log.actor_user.email }}
+          {% else %}
+            System
+          {% endif %}
+        </span>
+      </div>
+
+      <div class="paudit_detail_item">
+        <span class="paudit_detail_label">Company</span>
+        <span class="paudit_detail_value">
+          {% if audit_log.id_company %}
+            {{ audit_log.id_company.name }}
+          {% else %}
+            No company
+          {% endif %}
+        </span>
+      </div>
+
+      <div class="paudit_detail_item">
+        <span class="paudit_detail_label">Module</span>
+        <span class="paudit_detail_value">{{ audit_log.module_name }}</span>
+      </div>
+
+      <div class="paudit_detail_item">
+        <span class="paudit_detail_label">Action</span>
+        <span class="paudit_detail_value">{{ audit_log.get_action_display }}</span>
+      </div>
+
+      <div class="paudit_detail_item">
+        <span class="paudit_detail_label">Object ID</span>
+        <span class="paudit_detail_value">{{ audit_log.object_id|default:"No object ID" }}</span>
+      </div>
+
+      <div class="paudit_detail_item">
+        <span class="paudit_detail_label">Object Label</span>
+        <span class="paudit_detail_value">{{ audit_log.object_label|default:"No object label" }}</span>
+      </div>
+
+      <div class="paudit_detail_item">
+        <span class="paudit_detail_label">IP Address</span>
+        <span class="paudit_detail_value">{{ audit_log.ip_address|default:"No IP" }}</span>
+      </div>
+
+      <div class="paudit_detail_item">
+        <span class="paudit_detail_label">Created At</span>
+        <span class="paudit_detail_value">{{ audit_log.created_at|date:"Y-m-d H:i:s" }}</span>
+      </div>
+
+      <div class="paudit_detail_item paudit_detail_item_full">
+        <span class="paudit_detail_label">Description</span>
+        <span class="paudit_detail_value">{{ audit_log.description|default:"No description" }}</span>
+      </div>
+
+      <div class="paudit_detail_item paudit_detail_item_full">
+        <span class="paudit_detail_label">User Agent</span>
+        <span class="paudit_detail_value">{{ audit_log.user_agent|default:"No user agent" }}</span>
+      </div>
+
+      <div class="paudit_detail_item paudit_detail_item_full">
+        <span class="paudit_detail_label">Metadata</span>
+        <pre class="paudit_pre">{{ audit_log.metadata|default:"{}" }}</pre>
+      </div>
+    </div>
+
+    <div class="paudit_actions">
+      <a class="crm_button crm_button_secondary" href="{% url 'platform_audit:list' %}">Back</a>
+    </div>
+  </section>
+{% endblock %}

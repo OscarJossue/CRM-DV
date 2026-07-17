@@ -1,0 +1,1453 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}{{ form_title }}{% endblock %}
+
+{% block page_subtitle %}
+Create or update proforma information with client, project, items, validations and automatic company branding.
+{% endblock %}
+
+{% block extra_head %}
+{% include "estimates/partials/_design_system.html" %}
+<style>
+  .estimate_form {
+    display: grid;
+    gap: 14px;
+  }
+
+  .estimate_card_compact {
+    padding: 16px 18px;
+    border-radius: 22px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .estimate_card_compact::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--estimate-blue) 0%, var(--estimate-accent-soft) 55%, var(--estimate-accent-pale) 100%);
+  }
+
+  .estimate_section_head,
+  .estimate_items_head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+
+  .estimate_section_head .crm_section_title,
+  .estimate_items_head .crm_section_title {
+    margin-bottom: 6px;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--estimate-ink);
+  }
+
+  .estimate_section_head .crm_page_text,
+  .estimate_items_head .crm_page_text {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    font-weight: 600;
+    color: var(--estimate-muted);
+  }
+
+  .estimate_company_badge {
+    min-width: min(280px, 100%);
+    max-width: 380px;
+    border: 1px solid rgba(72, 101, 143, 0.14);
+    background: linear-gradient(180deg, rgba(189, 212, 231, 0.24) 0%, #ffffff 100%);
+    border-radius: 18px;
+    padding: 12px 14px;
+    display: grid;
+    gap: 4px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
+  }
+
+  .estimate_company_badge span {
+    color: var(--estimate-blue);
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .estimate_company_badge strong {
+    color: var(--estimate-ink);
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+
+  .estimate_company_source,
+  .client_hidden_select select {
+    position: absolute !important;
+    left: -9999px !important;
+    width: 1px !important;
+    height: 1px !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  .estimate_form_field {
+    display: grid;
+    gap: 7px;
+    min-width: 0;
+  }
+
+  .estimate_form_field label,
+  .estimate_field_label {
+    margin: 0;
+    color: var(--estimate-ink);
+    font-size: 12px;
+    line-height: 1.3;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    overflow-wrap: anywhere;
+  }
+
+  .crm_input,
+  .client_autocomplete input {
+    width: 100%;
+    min-height: 38px;
+    height: 38px;
+    padding: 8px 12px;
+    color: var(--estimate-ink);
+    font: inherit;
+    font-size: 14px;
+    line-height: 1.35;
+  }
+
+  textarea.crm_input {
+    height: auto;
+    min-height: 62px;
+    padding-top: 11px;
+    padding-bottom: 11px;
+    resize: vertical;
+  }
+
+  .estimate_item_grid textarea.crm_input {
+    min-height: 54px;
+  }
+
+  .estimate_form input[type="date"].crm_input,
+  .estimate_form input[type="number"].crm_input,
+  .estimate_form input[type="text"].crm_input,
+  .estimate_form input[type="email"].crm_input,
+  .estimate_form input[type="file"].crm_input,
+  .estimate_form select.crm_input {
+    min-height: 38px;
+  }
+
+  .estimate_error {
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .estimate_small_note,
+  .client_autocomplete_hint,
+  .estimate_photo_hint {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.45;
+    margin: 0;
+  }
+
+  .client_autocomplete {
+    position: relative;
+    width: 100%;
+  }
+
+  .client_autocomplete input {
+    padding-left: 38px;
+  }
+
+  .client_autocomplete::before {
+    content: "⌕";
+    position: absolute;
+    left: 13px;
+    top: 50%;
+    transform: translateY(-52%);
+    color: var(--estimate-blue);
+    font-size: 16px;
+    font-weight: 900;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .estimate_inline_info {
+    min-height: 38px;
+    border-style: dashed;
+    border-width: 1px;
+    border-radius: 16px;
+    padding: 8px 12px;
+    color: var(--estimate-ink);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    line-height: 1.45;
+    font-weight: 700;
+  }
+
+  .estimate_inline_info span {
+    color: var(--estimate-muted);
+    font-weight: 600;
+  }
+
+  .estimate_check_control,
+  .pdf_header_option {
+    min-height: 38px;
+    padding: 8px 12px;
+    display: inline-flex;
+    width: fit-content;
+    max-width: 100%;
+    align-items: center;
+    gap: 10px;
+    color: var(--estimate-ink);
+    font-size: 13px;
+    line-height: 1.3;
+  }
+
+  .estimate_check_control input[type="checkbox"],
+  .pdf_header_option input[type="checkbox"],
+  .estimate_hidden_delete input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    min-width: 16px;
+    margin: 0;
+    accent-color: var(--estimate-blue);
+    cursor: pointer;
+  }
+
+  .estimate_item_card {
+    padding: 14px;
+    border: 1px solid var(--estimate-line);
+    border-radius: 20px;
+    background: linear-gradient(180deg, #ffffff 0%, #fafcff 100%);
+    margin-bottom: 12px;
+    box-shadow: 0 10px 18px rgba(33, 34, 39, 0.04);
+  }
+
+  .estimate_item_grid {
+    display: grid;
+    grid-template-columns: minmax(240px, 1.7fr) minmax(190px, 1fr) minmax(96px, 0.45fr) minmax(110px, 0.55fr) minmax(120px, 0.55fr) minmax(100px, auto);
+    gap: 12px;
+    align-items: end;
+  }
+
+  .estimate_line_total {
+    min-height: 38px;
+    border-radius: 14px;
+    background: linear-gradient(180deg, var(--estimate-ink) 0%, #3c4148 100%);
+    color: #ffffff;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    font-size: 14px;
+    font-weight: 900;
+    white-space: nowrap;
+    box-shadow: 0 12px 24px rgba(33, 34, 39, 0.14);
+  }
+
+  .estimate_hidden_delete {
+    display: none;
+  }
+
+  .estimate_item_actions {
+    display: flex;
+    align-items: end;
+    justify-content: flex-end;
+  }
+
+  .remove_item_button {
+    min-height: 38px !important;
+    padding-inline: 16px !important;
+  }
+
+  .estimate_form_actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .estimate_summary {
+    border-radius: 24px;
+    background: linear-gradient(135deg, #212227 0%, #4a5669 100%);
+    color: #ffffff;
+    padding: 18px;
+    box-shadow: 0 18px 34px rgba(33, 34, 39, 0.18);
+  }
+
+  .estimate_summary_grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .estimate_summary_box {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 18px;
+    padding: 12px 14px;
+    backdrop-filter: blur(8px);
+  }
+
+  .estimate_summary_box span {
+    display: block;
+    font-size: 11px;
+    color: rgba(255,255,255,0.75);
+    margin-bottom: 6px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .estimate_summary_box strong {
+    font-size: 20px;
+    color: #ffffff;
+    line-height: 1.2;
+    font-weight: 800;
+  }
+
+  .estimate_summary_actions {
+    margin-top: 16px;
+  }
+
+  .estimate_form .crm_button {
+    min-height: 38px;
+    padding: 8px 14px;
+    border-radius: 14px;
+    font-size: 14px;
+  }
+
+  .estimate_form input[type="file"].crm_input {
+    padding: 6px 8px;
+    line-height: 1.2;
+    font-size: 12px;
+  }
+
+  .estimate_form input[type="file"]::file-selector-button {
+    min-height: 30px;
+    margin-right: 8px;
+    border: 1px solid var(--estimate-line-strong);
+    border-radius: 10px;
+    background: #f4f8fd;
+    color: var(--estimate-blue);
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .estimate_accordion {
+    border: 1px solid var(--estimate-line);
+    border-radius: 22px;
+    background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+    overflow: hidden;
+    box-shadow: 0 10px 18px rgba(33, 34, 39, 0.04);
+  }
+
+  .estimate_accordion summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    user-select: none;
+  }
+
+  .estimate_accordion summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .estimate_accordion_title {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .estimate_accordion_title strong {
+    color: var(--estimate-ink);
+    font-size: 19px;
+    line-height: 1.25;
+    font-weight: 800;
+  }
+
+  .estimate_accordion_title span {
+    color: var(--estimate-muted);
+    font-size: 12px;
+    line-height: 1.45;
+    font-weight: 600;
+  }
+
+  .estimate_accordion_chevron {
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(189,212,231,.38) 0%, rgba(170,185,207,.22) 100%);
+    border: 1px solid rgba(72, 101, 143, 0.16);
+    color: var(--estimate-blue);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 900;
+    flex: 0 0 auto;
+    transition: transform 0.18s ease;
+  }
+
+  .estimate_accordion[open] .estimate_accordion_chevron {
+    transform: rotate(180deg);
+  }
+
+  .estimate_accordion_body {
+    padding: 0 18px 18px;
+  }
+
+  .estimate_option_row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: flex-end;
+  }
+
+
+  .estimate_identity_grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    grid-template-areas:
+      "client client"
+      "left right";
+    gap: 12px 16px;
+    align-items: start;
+  }
+
+  .estimate_identity_client {
+    grid-area: client;
+  }
+
+  .estimate_identity_left {
+    grid-area: left;
+    display: grid;
+    gap: 12px;
+  }
+
+  .estimate_identity_right {
+    grid-area: right;
+    display: grid;
+    gap: 12px;
+  }
+
+  .estimate_identity_right textarea.crm_input {
+    height: 62px;
+    min-height: 62px;
+  }
+
+  .estimate_settings_grid {
+    display: grid;
+    grid-template-columns: minmax(105px, 0.8fr) minmax(130px, 0.9fr) minmax(110px, 0.8fr) minmax(130px, 0.9fr) minmax(150px, 1fr);
+    gap: 12px;
+    align-items: end;
+  }
+
+  .estimate_card_compact .estimate_section_head {
+    margin-bottom: 12px;
+  }
+
+
+  .estimate_form_modal_overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9990;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background: rgba(15, 31, 48, 0.48);
+    backdrop-filter: blur(6px);
+  }
+
+  .estimate_form_modal_overlay.is_visible {
+    display: flex;
+  }
+
+  .estimate_form_modal_box {
+    width: min(560px, 100%);
+    border-radius: 24px;
+    border: 1px solid rgba(72, 101, 143, 0.2);
+    background: #ffffff;
+    box-shadow: 0 24px 70px rgba(15, 31, 48, 0.2);
+    overflow: hidden;
+  }
+
+  .estimate_form_modal_head {
+    padding: 18px 20px 10px;
+    border-bottom: 1px solid rgba(72, 101, 143, 0.12);
+  }
+
+  .estimate_form_modal_head h3 {
+    margin: 0 0 6px;
+    color: var(--estimate-ink);
+    font-size: 20px;
+    font-weight: 900;
+    line-height: 1.2;
+  }
+
+  .estimate_form_modal_head p,
+  .estimate_form_modal_body p {
+    margin: 0;
+    color: var(--estimate-muted);
+    font-size: 13px;
+    font-weight: 650;
+    line-height: 1.5;
+  }
+
+  .estimate_form_modal_body {
+    padding: 18px 20px;
+    display: grid;
+    gap: 12px;
+  }
+
+  .estimate_form_modal_notice {
+    border: 1px solid rgba(72, 101, 143, 0.14);
+    background: linear-gradient(180deg, rgba(189, 212, 231, 0.2) 0%, rgba(255,255,255,0.9) 100%);
+    border-radius: 18px;
+    padding: 12px 14px;
+    color: var(--estimate-ink);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.5;
+  }
+
+  .estimate_form_modal_actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 0 20px 20px;
+  }
+
+  @media (max-width: 1280px) {
+    .estimate_item_grid {
+      grid-template-columns: minmax(0, 1fr) minmax(180px, 0.95fr) repeat(3, minmax(100px, 0.45fr));
+    }
+
+    .estimate_item_actions {
+      grid-column: 1 / -1;
+      justify-content: flex-start;
+    }
+  }
+
+  @media (max-width: 1100px) {
+    .estimate_settings_grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .estimate_summary_grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 900px) {
+    .estimate_identity_grid {
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        "client"
+        "left"
+        "right";
+    }
+  }
+
+  @media (max-width: 768px) {
+    .estimate_card_compact,
+    .estimate_summary {
+      padding: 18px;
+      border-radius: 22px;
+    }
+
+    .estimate_item_grid,
+    .estimate_summary_grid,
+    .estimate_settings_grid {
+      grid-template-columns: 1fr;
+    }
+
+    .estimate_check_control,
+    .pdf_header_option,
+    .estimate_company_badge {
+      width: 100%;
+      max-width: none;
+    }
+  }
+</style>
+{% include "estimates/partials/_finance_standard.html" %}
+{% endblock %}
+
+{% block content %}
+  <form class="estimate_theme estimate_form nj-invoice nj-page finance-standard" method="post" action="{{ form_action_url }}" enctype="multipart/form-data" id="EstimateForm" data-projects-url="{{ estimate_projects_api_url }}" novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="update_project_after_save" id="UpdateProjectAfterSaveInput" value="0">
+    <div class="finance-security-note"><i class="bi bi-shield-lock" aria-hidden="true"></i><span>The proforma status is controlled by the real workflow. Saving, generating, sending, customer approval/rejection and conversion are the only actions that can move it.</span></div>
+
+    {% if form.non_field_errors %}
+      <section class="crm_card estimate_card_compact">
+        <div class="estimate_error">{{ form.non_field_errors }}</div>
+      </section>
+    {% endif %}
+
+    {% if item_formset.non_form_errors %}
+      <section class="crm_card estimate_card_compact">
+        <div class="estimate_error">{{ item_formset.non_form_errors }}</div>
+      </section>
+    {% endif %}
+
+    <section class="crm_card estimate_card_compact">
+      <div class="estimate_section_head">
+        <div>
+          <h2 class="crm_section_title">{{ form_title }}</h2>
+          <p class="crm_page_text">
+            Select a client, choose an existing project or type a new project name, and keep all fields compact and aligned.
+          </p>
+        </div>
+      </div>
+
+      <div class="estimate_company_source">
+        {{ form.id_company }}
+      </div>
+      {% if form.id_company.errors %}<div class="estimate_error mb-2">{{ form.id_company.errors }}</div>{% endif %}
+
+      <div class="estimate_identity_grid">
+        <div class="estimate_identity_client">
+          <div class="estimate_form_field">
+            <label for="EstimateClientSearch">Client Required</label>
+            <div class="client_autocomplete">
+              <input type="search" id="EstimateClientSearch" list="EstimateClientOptions" placeholder="Search client, code CL_000000 or phone" autocomplete="off">
+              <datalist id="EstimateClientOptions"></datalist>
+            </div>
+            <div class="client_hidden_select">{{ form.id_client }}</div>
+            <div class="client_autocomplete_hint">Type and select the matching client.</div>
+            {% if form.id_client.errors %}<div class="estimate_error">{{ form.id_client.errors }}</div>{% endif %}
+          </div>
+        </div>
+
+        <div class="estimate_identity_left">
+          <div class="estimate_form_field">
+            <label for="{{ form.id_project.id_for_label }}">Existing Project Optional</label>
+            {{ form.id_project }}
+            <div class="estimate_small_note">Only projects from the selected client are shown.</div>
+            {% if form.id_project.errors %}<div class="estimate_error">{{ form.id_project.errors }}</div>{% endif %}
+          </div>
+
+          <div class="estimate_form_field">
+            <label for="{{ form.project_name.id_for_label }}">Project Name Required</label>
+            {{ form.project_name }}
+            {% if form.project_name.errors %}<div class="estimate_error">{{ form.project_name.errors }}</div>{% endif %}
+          </div>
+        </div>
+
+        <div class="estimate_identity_right">
+          <div class="estimate_form_field">
+            <label for="{{ form.description.id_for_label }}">Description</label>
+            {{ form.description }}
+            {% if form.description.errors %}<div class="estimate_error">{{ form.description.errors }}</div>{% endif %}
+          </div>
+
+          <div class="estimate_form_field">
+            <label for="{{ form.project_address.id_for_label }}">Project Address Optional</label>
+            {{ form.project_address }}
+            {% if form.project_address.errors %}<div class="estimate_error">{{ form.project_address.errors }}</div>{% endif %}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="crm_card estimate_card_compact">
+      <details class="estimate_accordion" {% if form.client_billing_name.value or form.client_billing_email.value or form.client_billing_phone.value or form.client_billing_address.value or form.client_billing_name.errors or form.client_billing_email.errors or form.client_billing_phone.errors or form.client_billing_address.errors %}open{% endif %}>
+        <summary>
+          <span class="estimate_accordion_title">
+            <strong>Client Billing Snapshot</strong>
+            <span>Optional billing information for the proforma PDF. Expand only when you need to customize it.</span>
+          </span>
+          <span class="estimate_accordion_chevron"><svg class="estimate_inline_svg" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/></svg></span>
+        </summary>
+
+        <div class="estimate_accordion_body">
+          <div class="row g-3 align-items-start">
+            <div class="col-12 col-xl-3 col-md-6">
+              <div class="estimate_form_field">
+                <label for="{{ form.client_billing_name.id_for_label }}">Billing Name Optional</label>
+                {{ form.client_billing_name }}
+                {% if form.client_billing_name.errors %}<div class="estimate_error">{{ form.client_billing_name.errors }}</div>{% endif %}
+              </div>
+            </div>
+
+            <div class="col-12 col-xl-3 col-md-6">
+              <div class="estimate_form_field">
+                <label for="{{ form.client_billing_email.id_for_label }}">Billing Email Optional</label>
+                {{ form.client_billing_email }}
+                {% if form.client_billing_email.errors %}<div class="estimate_error">{{ form.client_billing_email.errors }}</div>{% endif %}
+              </div>
+            </div>
+
+            <div class="col-12 col-xl-3 col-md-6">
+              <div class="estimate_form_field">
+                <label for="{{ form.client_billing_phone.id_for_label }}">Billing Phone Optional</label>
+                {{ form.client_billing_phone }}
+                {% if form.client_billing_phone.errors %}<div class="estimate_error">{{ form.client_billing_phone.errors }}</div>{% endif %}
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="estimate_form_field">
+                <label for="{{ form.client_billing_address.id_for_label }}">Billing Address</label>
+                {{ form.client_billing_address }}
+                {% if form.client_billing_address.errors %}<div class="estimate_error">{{ form.client_billing_address.errors }}</div>{% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <section class="crm_card estimate_card_compact">
+      <div class="estimate_section_head">
+        <div>
+          <h2 class="crm_section_title">Validity, Tax and PDF</h2>
+          <p class="crm_page_text">Configure validity, taxes, discount and PDF header style without oversized fields.</p>
+        </div>
+      </div>
+
+      <div class="estimate_settings_grid">
+        <div class="estimate_form_field">
+          <label for="{{ form.validity_days.id_for_label }}">Validity Days</label>
+          {{ form.validity_days }}
+          {% if form.validity_days.errors %}<div class="estimate_error">{{ form.validity_days.errors }}</div>{% endif %}
+        </div>
+
+        <div class="estimate_form_field">
+          <label for="{{ form.tax_enabled.id_for_label }}">Tax Enabled</label>
+          <div class="estimate_check_control">{{ form.tax_enabled }} <span>Apply tax</span></div>
+          {% if form.tax_enabled.errors %}<div class="estimate_error">{{ form.tax_enabled.errors }}</div>{% endif %}
+        </div>
+
+        <div class="estimate_form_field">
+          <label for="{{ form.tax_rate.id_for_label }}">Tax Rate (%)</label>
+          {{ form.tax_rate }}
+          {% if form.tax_rate.errors %}<div class="estimate_error">{{ form.tax_rate.errors }}</div>{% endif %}
+        </div>
+
+        <div class="estimate_form_field">
+          <label for="{{ form.discount_amount.id_for_label }}">Discount Amount</label>
+          {{ form.discount_amount }}
+          {% if form.discount_amount.errors %}<div class="estimate_error">{{ form.discount_amount.errors }}</div>{% endif %}
+        </div>
+
+        <div class="estimate_form_field">
+          <label for="{{ form.pdf_header_dark.id_for_label }}">PDF Style</label>
+          <div class="pdf_header_option">{{ form.pdf_header_dark }} <span>Dark logo background</span></div>
+          {% if form.pdf_header_dark.errors %}<div class="estimate_error">{{ form.pdf_header_dark.errors }}</div>{% endif %}
+        </div>
+      </div>
+    </section>
+
+    <section class="crm_card estimate_card_compact">
+      <div class="estimate_items_head">
+        <div>
+          <h2 class="crm_section_title">Items</h2>
+          <p class="crm_page_text">Add services, materials, labor, quantities and unit prices.</p>
+        </div>
+
+        <button type="button" class="crm_button" id="AddItemButton"><svg class="estimate_btn_icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/></svg>Add Item</button>
+      </div>
+
+      {{ item_formset.management_form }}
+
+      <div id="ItemsContainer">
+        {% for item_form in item_formset %}
+          <div class="estimate_item_card estimate_item_row">
+            {% for hidden in item_form.hidden_fields %}
+              {{ hidden }}
+            {% endfor %}
+
+            <div class="estimate_hidden_delete">
+              {% if item_form.DELETE %}
+                {{ item_form.DELETE }}
+              {% endif %}
+            </div>
+
+            <div class="estimate_item_grid">
+              <div class="estimate_form_field">
+                <label>Description</label>
+                {{ item_form.description }}
+                {% if item_form.description.errors %}<div class="estimate_error">{{ item_form.description.errors }}</div>{% endif %}
+              </div>
+
+              <div class="estimate_form_field">
+                <label>Item Photo Optional</label>
+                {{ item_form.photo }}
+                <div class="estimate_photo_hint">Attach image if needed.</div>
+                {% if item_form.photo.errors %}<div class="estimate_error">{{ item_form.photo.errors }}</div>{% endif %}
+              </div>
+
+              <div class="estimate_form_field">
+                <label>Quantity</label>
+                {{ item_form.quantity }}
+                {% if item_form.quantity.errors %}<div class="estimate_error">{{ item_form.quantity.errors }}</div>{% endif %}
+              </div>
+
+              <div class="estimate_form_field">
+                <label>Unit Price</label>
+                {{ item_form.unit_price }}
+                {% if item_form.unit_price.errors %}<div class="estimate_error">{{ item_form.unit_price.errors }}</div>{% endif %}
+              </div>
+
+              <div class="estimate_form_field">
+                <label>Line Total</label>
+                <div class="estimate_line_total">$0.00</div>
+              </div>
+
+              <div class="estimate_item_actions">
+                <button type="button" class="crm_button crm_button_secondary remove_item_button"><svg class="estimate_btn_icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/><path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1 0-2H5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1h2.5a1 1 0 0 1 1 1"/></svg>Remove</button>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="estimate_summary">
+      <div class="estimate_summary_grid">
+        <div class="estimate_summary_box">
+          <span>Subtotal</span>
+          <strong id="SubtotalOutput">$0.00</strong>
+        </div>
+
+        <div class="estimate_summary_box">
+          <span>Discount</span>
+          <strong id="DiscountOutput">$0.00</strong>
+        </div>
+
+        <div class="estimate_summary_box">
+          <span>Tax</span>
+          <strong id="TaxOutput">$0.00</strong>
+        </div>
+
+        <div class="estimate_summary_box">
+          <span>Total</span>
+          <strong id="TotalOutput">$0.00</strong>
+        </div>
+      </div>
+
+      <div class="estimate_form_actions estimate_summary_actions">
+        {% if show_draft_button %}
+          <button class="crm_button crm_button_secondary" type="submit" name="save_mode" value="draft">
+            Save Draft
+          </button>
+        {% endif %}
+
+        {% if show_proforma_button %}
+          <button class="crm_button" type="submit" name="save_mode" value="proforma">
+            Save Proforma
+          </button>
+        {% endif %}
+
+        {% if show_save_changes_button %}
+          <button class="crm_button" type="submit" name="save_mode" value="proforma">
+            Save Changes
+          </button>
+        {% endif %}
+
+        <a class="crm_button crm_button_secondary" href="{{ cancel_url }}">Cancel</a>
+      </div>
+    </section>
+  </form>
+
+  <div class="estimate_form_modal_overlay" id="EstimateProjectUpdateModal" aria-hidden="true">
+    <div class="estimate_form_modal_box" role="dialog" aria-modal="true" aria-labelledby="EstimateProjectUpdateTitle">
+      <div class="estimate_form_modal_head">
+        <h3 id="EstimateProjectUpdateTitle">Update linked project?</h3>
+        <p>You selected an existing project for this estimate.</p>
+      </div>
+      <div class="estimate_form_modal_body">
+        <div class="estimate_form_modal_notice">
+          Do you want to apply the estimate values to the selected project, save only the estimate, or cancel?
+        </div>
+        <p>Only the mapped estimate fields will be applied to the project. Other project data will not be touched.</p>
+      </div>
+      <div class="estimate_form_modal_actions">
+        <button type="button" class="crm_button crm_button_secondary" id="CancelProjectUpdateModal">Cancel</button>
+        <button type="button" class="crm_button crm_button_secondary" id="SaveEstimateOnlyButton">Save estimate only</button>
+        <button type="button" class="crm_button" id="SaveAndUpdateProjectButton">Save and update project</button>
+      </div>
+    </div>
+  </div>
+
+
+  <template id="EmptyItemTemplate">
+    <div class="estimate_item_card estimate_item_row">
+      {% for hidden in item_formset.empty_form.hidden_fields %}
+        {{ hidden }}
+      {% endfor %}
+
+      <div class="estimate_hidden_delete">
+        {% if item_formset.empty_form.DELETE %}
+          {{ item_formset.empty_form.DELETE }}
+        {% endif %}
+      </div>
+
+      <div class="estimate_item_grid">
+        <div class="estimate_form_field">
+          <label>Description</label>
+          {{ item_formset.empty_form.description }}
+        </div>
+
+        <div class="estimate_form_field">
+          <label>Item Photo Optional</label>
+          {{ item_formset.empty_form.photo }}
+          <div class="estimate_photo_hint">Attach image if needed.</div>
+        </div>
+
+        <div class="estimate_form_field">
+          <label>Quantity</label>
+          {{ item_formset.empty_form.quantity }}
+        </div>
+
+        <div class="estimate_form_field">
+          <label>Unit Price</label>
+          {{ item_formset.empty_form.unit_price }}
+        </div>
+
+        <div class="estimate_form_field">
+          <label>Line Total</label>
+          <div class="estimate_line_total">$0.00</div>
+        </div>
+
+        <div class="estimate_item_actions">
+          <button type="button" class="crm_button crm_button_secondary remove_item_button"><svg class="estimate_btn_icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/><path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1 0-2H5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1h2.5a1 1 0 0 1 1 1"/></svg>Remove</button>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <script>
+    (function () {
+      const form = document.getElementById("EstimateForm");
+      const itemsContainer = document.getElementById("ItemsContainer");
+      const addItemButton = document.getElementById("AddItemButton");
+      const emptyTemplate = document.getElementById("EmptyItemTemplate");
+      const totalFormsInput = document.querySelector('input[name$="-TOTAL_FORMS"]');
+
+      const taxEnabledInput = document.querySelector('[name="tax_enabled"]');
+      const taxRateInput = document.querySelector('[name="tax_rate"]');
+      const discountInput = document.querySelector('[name="discount_amount"]');
+
+      const subtotalOutput = document.getElementById("SubtotalOutput");
+      const discountOutput = document.getElementById("DiscountOutput");
+      const taxOutput = document.getElementById("TaxOutput");
+      const totalOutput = document.getElementById("TotalOutput");
+
+      const clientInput = form ? form.querySelector('[name="id_client"]') : null;
+      const projectInput = form ? form.querySelector('[name="id_project"]') : null;
+      const projectNameInput = form ? form.querySelector('[name="project_name"]') : null;
+      const projectAddressInput = form ? form.querySelector('[name="project_address"]') : null;
+      const descriptionInput = form ? form.querySelector('[name="description"]') : null;
+      const projectsApiTemplate = form ? (form.dataset.projectsUrl || "") : "";
+      const updateProjectAfterSaveInput = document.getElementById("UpdateProjectAfterSaveInput");
+      const projectUpdateModal = document.getElementById("EstimateProjectUpdateModal");
+      const cancelProjectUpdateModal = document.getElementById("CancelProjectUpdateModal");
+      const saveEstimateOnlyButton = document.getElementById("SaveEstimateOnlyButton");
+      const saveAndUpdateProjectButton = document.getElementById("SaveAndUpdateProjectButton");
+      let projectsById = {};
+      let pendingSubmitter = null;
+      let bypassProjectUpdateModal = false;
+
+      function hasExistingProjectSelected() {
+        return Boolean(projectInput && projectInput.value);
+      }
+
+      function openProjectUpdateModal() {
+        if (!projectUpdateModal) {
+          return;
+        }
+
+        projectUpdateModal.classList.add("is_visible");
+        projectUpdateModal.setAttribute("aria-hidden", "false");
+      }
+
+      function closeProjectUpdateModal() {
+        if (!projectUpdateModal) {
+          return;
+        }
+
+        projectUpdateModal.classList.remove("is_visible");
+        projectUpdateModal.setAttribute("aria-hidden", "true");
+      }
+
+      function submitEstimateFormWithChoice(updateProject) {
+        if (!form) {
+          return;
+        }
+
+        if (updateProjectAfterSaveInput) {
+          updateProjectAfterSaveInput.value = updateProject ? "1" : "0";
+        }
+
+        bypassProjectUpdateModal = true;
+        closeProjectUpdateModal();
+
+        if (form.requestSubmit && pendingSubmitter && pendingSubmitter.tagName === "BUTTON") {
+          form.requestSubmit(pendingSubmitter);
+          return;
+        }
+
+        form.submit();
+      }
+
+      function setupCompanyBadge() {
+        const companySelect = form ? form.querySelector('[name="id_company"]') : null;
+        const companyNameOutput = document.getElementById("EstimateCompanyName");
+
+        if (!companySelect || !companyNameOutput) {
+          return;
+        }
+
+        const selectedOption = companySelect.options[companySelect.selectedIndex];
+        const selectedText = selectedOption ? (selectedOption.textContent || "").trim() : "";
+        companyNameOutput.textContent = selectedText || "Company assigned automatically";
+      }
+
+      function setupClientAutocomplete() {
+        const searchInput = document.getElementById("EstimateClientSearch");
+        const datalist = document.getElementById("EstimateClientOptions");
+
+        if (!searchInput || !datalist || !clientInput) { return; }
+
+        const clientOptions = Array.from(clientInput.options).map(function (option) {
+          return {
+            value: option.value,
+            text: (option.textContent || "").trim(),
+            selected: option.selected,
+          };
+        }).filter(function (item) {
+          return item.value && item.text;
+        });
+
+        function renderOptions(term) {
+          const cleanTerm = String(term || "").toLowerCase().trim();
+          datalist.innerHTML = "";
+
+          clientOptions
+            .filter(function (item) {
+              return !cleanTerm || item.text.toLowerCase().includes(cleanTerm) || item.value === cleanTerm;
+            })
+            .slice(0, 30)
+            .forEach(function (item) {
+              const option = document.createElement("option");
+              option.value = item.text;
+              option.dataset.value = item.value;
+              datalist.appendChild(option);
+            });
+        }
+
+        function syncInputFromSelect() {
+          const selected = clientOptions.find(function (item) {
+            return String(item.value) === String(clientInput.value || "");
+          });
+
+          searchInput.value = selected ? selected.text : "";
+          searchInput.readOnly = Boolean(clientInput.disabled);
+          renderOptions(searchInput.value);
+        }
+
+        function chooseClientFromInput(allowSingleMatch) {
+          const typed = String(searchInput.value || "").trim();
+          const normalized = typed.toLowerCase();
+          const previousValue = clientInput.value;
+
+          if (!typed) {
+            clientInput.value = "";
+          } else {
+            let match = clientOptions.find(function (item) {
+              return item.text.toLowerCase() === normalized || String(item.value) === typed;
+            });
+
+            if (!match && allowSingleMatch) {
+              const matches = clientOptions.filter(function (item) {
+                return item.text.toLowerCase().includes(normalized);
+              });
+              if (matches.length === 1) {
+                match = matches[0];
+                searchInput.value = match.text;
+              }
+            }
+
+            if (match) {
+              clientInput.value = match.value;
+            }
+          }
+
+          if (previousValue !== clientInput.value) {
+            clientInput.dispatchEvent(new Event("change", { bubbles: true }));
+          }
+        }
+
+        searchInput.addEventListener("input", function () {
+          renderOptions(searchInput.value);
+          chooseClientFromInput(false);
+        });
+
+        searchInput.addEventListener("change", function () {
+          chooseClientFromInput(true);
+        });
+
+        searchInput.addEventListener("blur", function () {
+          chooseClientFromInput(true);
+        });
+
+        clientInput.addEventListener("change", syncInputFromSelect);
+        syncInputFromSelect();
+      }
+
+      function setProjectNameLocked(isLocked) {
+        if (!projectNameInput) {
+          return;
+        }
+
+        if (isLocked) {
+          projectNameInput.setAttribute("readonly", "readonly");
+          projectNameInput.dataset.projectLocked = "1";
+        } else {
+          projectNameInput.removeAttribute("readonly");
+          delete projectNameInput.dataset.projectLocked;
+        }
+      }
+
+      function resetProjectOptions(placeholder) {
+        if (!projectInput) {
+          return;
+        }
+
+        projectInput.innerHTML = "";
+
+        const emptyOption = document.createElement("option");
+        emptyOption.value = "";
+        emptyOption.textContent = placeholder || "No existing project";
+        projectInput.appendChild(emptyOption);
+
+        projectsById = {};
+      }
+
+      function fillProjectFields(project) {
+        if (!project) {
+          setProjectNameLocked(false);
+          return;
+        }
+
+        if (projectNameInput) {
+          projectNameInput.value = project.name || "";
+        }
+
+        if (projectAddressInput) {
+          projectAddressInput.value = project.project_address || "";
+        }
+
+        if (descriptionInput && project.description) {
+          descriptionInput.value = project.description;
+        }
+
+        setProjectNameLocked(true);
+      }
+
+      function handleProjectChange() {
+        if (!projectInput) {
+          return;
+        }
+
+        const projectId = projectInput.value;
+
+        if (!projectId) {
+          setProjectNameLocked(false);
+          return;
+        }
+
+        fillProjectFields(projectsById[projectId]);
+      }
+
+      async function loadProjectsForClient(keepSelectedProjectId) {
+        if (!clientInput || !projectInput || !projectsApiTemplate) {
+          return;
+        }
+
+        const clientId = clientInput.value;
+
+        if (!clientId) {
+          resetProjectOptions("Select a client first");
+          setProjectNameLocked(false);
+          return;
+        }
+
+        resetProjectOptions("Loading projects...");
+
+        const url = projectsApiTemplate.replace("/client/0/projects/", "/client/" + encodeURIComponent(clientId) + "/projects/");
+
+        try {
+          const response = await fetch(url, {
+            headers: {
+              "X-Requested-With": "XMLHttpRequest",
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error("Project lookup failed");
+          }
+
+          const payload = await response.json();
+          const projects = payload.projects || [];
+
+          resetProjectOptions(projects.length ? "No existing project" : "No projects for this client");
+
+          projects.forEach(function (project) {
+            const option = document.createElement("option");
+            option.value = String(project.id);
+            option.textContent = project.label || project.name || ("Project " + project.id);
+            projectInput.appendChild(option);
+            projectsById[String(project.id)] = project;
+          });
+
+          if (keepSelectedProjectId && projectsById[String(keepSelectedProjectId)]) {
+            projectInput.value = String(keepSelectedProjectId);
+            fillProjectFields(projectsById[String(keepSelectedProjectId)]);
+          } else {
+            projectInput.value = "";
+            setProjectNameLocked(false);
+          }
+        } catch (error) {
+          resetProjectOptions("Could not load projects");
+          setProjectNameLocked(false);
+        }
+      }
+
+      function parseMoney(value) {
+        if (!value) {
+          return 0;
+        }
+
+        const normalized = String(value).replace(",", ".").replace(/[^0-9.-]/g, "");
+        const parsed = parseFloat(normalized);
+
+        return Number.isNaN(parsed) ? 0 : parsed;
+      }
+
+      function formatMoney(value) {
+        return "$" + Number(value || 0).toFixed(2);
+      }
+
+      function rowIsDeleted(row) {
+        const deleteInput = row.querySelector('input[type="checkbox"][name$="-DELETE"]');
+
+        return deleteInput && deleteInput.checked;
+      }
+
+      function calculateTotals() {
+        let subtotal = 0;
+
+        itemsContainer.querySelectorAll(".estimate_item_row").forEach(function (row) {
+          if (rowIsDeleted(row)) {
+            return;
+          }
+
+          const quantityInput = row.querySelector('[name$="-quantity"]');
+          const priceInput = row.querySelector('[name$="-unit_price"]');
+          const lineTotalOutput = row.querySelector(".estimate_line_total");
+
+          const quantity = parseMoney(quantityInput ? quantityInput.value : 0);
+          const price = parseMoney(priceInput ? priceInput.value : 0);
+          const lineTotal = quantity * price;
+
+          subtotal += lineTotal;
+
+          if (lineTotalOutput) {
+            lineTotalOutput.textContent = formatMoney(lineTotal);
+          }
+        });
+
+        const discount = Math.max(parseMoney(discountInput ? discountInput.value : 0), 0);
+        const taxEnabled = taxEnabledInput ? taxEnabledInput.checked : false;
+        const taxRate = taxEnabled ? Math.max(parseMoney(taxRateInput ? taxRateInput.value : 0), 0) : 0;
+
+        let taxableBase = subtotal - discount;
+
+        if (taxableBase < 0) {
+          taxableBase = 0;
+        }
+
+        const tax = taxableBase * taxRate / 100;
+        const total = taxableBase + tax;
+
+        subtotalOutput.textContent = formatMoney(subtotal);
+        discountOutput.textContent = formatMoney(discount);
+        taxOutput.textContent = formatMoney(tax);
+        totalOutput.textContent = formatMoney(total);
+      }
+
+      function bindRow(row) {
+        row.querySelectorAll("input, textarea, select").forEach(function (input) {
+          input.addEventListener("input", calculateTotals);
+          input.addEventListener("change", calculateTotals);
+        });
+
+        const removeButton = row.querySelector(".remove_item_button");
+
+        if (removeButton) {
+          removeButton.addEventListener("click", function () {
+            const deleteInput = row.querySelector('input[type="checkbox"][name$="-DELETE"]');
+
+            if (deleteInput) {
+              deleteInput.checked = true;
+              row.style.display = "none";
+            } else {
+              row.remove();
+            }
+
+            calculateTotals();
+          });
+        }
+      }
+
+      function addItem() {
+        if (!totalFormsInput || !emptyTemplate) {
+          return;
+        }
+
+        const index = parseInt(totalFormsInput.value, 10);
+        const html = emptyTemplate.innerHTML.replace(/__prefix__/g, index);
+
+        const wrapper = document.createElement("div");
+        wrapper.innerHTML = html.trim();
+
+        const newRow = wrapper.firstElementChild;
+        itemsContainer.appendChild(newRow);
+
+        totalFormsInput.value = index + 1;
+
+        bindRow(newRow);
+        calculateTotals();
+      }
+
+      function normalizeDecimals() {
+        form.querySelectorAll('[name="tax_rate"], [name="discount_amount"], [name$="-quantity"], [name$="-unit_price"]').forEach(function (input) {
+          if (input.value) {
+            input.value = input.value.replace(",", ".");
+          }
+        });
+
+        const billingPhoneInput = form.querySelector('[name="client_billing_phone"]');
+
+        if (billingPhoneInput && billingPhoneInput.value) {
+          billingPhoneInput.value = billingPhoneInput.value.replace(/\s+/g, "");
+        }
+      }
+
+      if (addItemButton) {
+        addItemButton.addEventListener("click", addItem);
+      }
+
+      itemsContainer.querySelectorAll(".estimate_item_row").forEach(bindRow);
+
+      if (taxEnabledInput) {
+        taxEnabledInput.addEventListener("change", calculateTotals);
+      }
+
+      if (taxRateInput) {
+        taxRateInput.addEventListener("input", calculateTotals);
+      }
+
+      if (discountInput) {
+        discountInput.addEventListener("input", calculateTotals);
+      }
+
+      setupCompanyBadge();
+      setupClientAutocomplete();
+
+      if (clientInput && projectInput) {
+        const initialProjectId = projectInput.value;
+
+        clientInput.addEventListener("change", function () {
+          loadProjectsForClient(null);
+        });
+
+        projectInput.addEventListener("change", handleProjectChange);
+
+        if (clientInput.value) {
+          loadProjectsForClient(initialProjectId);
+        } else {
+          resetProjectOptions("Select a client first");
+          setProjectNameLocked(false);
+        }
+
+        if (initialProjectId) {
+          setProjectNameLocked(true);
+        }
+      }
+
+      if (form) {
+        form.addEventListener("submit", function (event) {
+          normalizeDecimals();
+
+          if (bypassProjectUpdateModal || !hasExistingProjectSelected()) {
+            return;
+          }
+
+          event.preventDefault();
+          pendingSubmitter = event.submitter || document.activeElement;
+          openProjectUpdateModal();
+        });
+      }
+
+      if (cancelProjectUpdateModal) {
+        cancelProjectUpdateModal.addEventListener("click", function () {
+          bypassProjectUpdateModal = false;
+          pendingSubmitter = null;
+          closeProjectUpdateModal();
+        });
+      }
+
+      if (saveEstimateOnlyButton) {
+        saveEstimateOnlyButton.addEventListener("click", function () {
+          submitEstimateFormWithChoice(false);
+        });
+      }
+
+      if (saveAndUpdateProjectButton) {
+        saveAndUpdateProjectButton.addEventListener("click", function () {
+          submitEstimateFormWithChoice(true);
+        });
+      }
+
+      if (projectUpdateModal) {
+        projectUpdateModal.addEventListener("click", function (event) {
+          if (event.target === projectUpdateModal) {
+            bypassProjectUpdateModal = false;
+            pendingSubmitter = null;
+            closeProjectUpdateModal();
+          }
+        });
+      }
+
+      if (itemsContainer.querySelectorAll(".estimate_item_row").length === 0) {
+        addItem();
+      }
+
+      calculateTotals();
+    })();
+  </script>
+{% endblock %}

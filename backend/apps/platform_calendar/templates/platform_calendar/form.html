@@ -1,0 +1,141 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}
+{% if form.instance.pk %}Edit Platform Event{% else %}Create Platform Event{% endif %}
+{% endblock %}
+
+{% block page_subtitle %}
+Create internal SaaS administration events for CEO MARKETING.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .pcal_form_layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(310px, .68fr);
+    gap: 18px;
+    align-items: start;
+  }
+
+  .pcal_form {
+    display: grid;
+    gap: 18px;
+  }
+
+  .pcal_grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .pcal_field {
+    display: grid;
+    gap: 7px;
+    min-width: 0;
+  }
+
+  .pcal_field_full {
+    grid-column: 1 / -1;
+  }
+
+  .pcal_label {
+    color: var(--crm_text);
+    font-size: 13px;
+    font-weight: 900;
+  }
+
+  .pcal_error {
+    color: var(--crm_danger);
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  .pcal_side {
+    display: grid;
+    gap: 14px;
+  }
+
+  .pcal_panel {
+    display: grid;
+    gap: 10px;
+    padding: 20px;
+    border: 1px solid var(--crm_border);
+    border-radius: 20px;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(31, 58, 138, 0.12), transparent 34%),
+      #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .pcal_panel h2 {
+    margin: 0;
+    color: var(--crm_text);
+    font-size: 18px;
+    font-weight: 900;
+  }
+
+  .pcal_panel p {
+    margin: 0;
+    color: var(--crm_muted);
+    font-size: 14px;
+    line-height: 1.65;
+  }
+
+  @media (max-width: 940px) {
+    .pcal_form_layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 680px) {
+    .pcal_grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <section class="pcal_form_layout">
+    <form class="crm_card pcal_form" method="post">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="crm_message">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="pcal_grid">
+        {% for field in form %}
+          <label class="pcal_field {% if field.name == 'description' %}pcal_field_full{% endif %}">
+            <span class="pcal_label">{{ field.label }}</span>
+            {{ field }}
+
+            {% if field.errors %}
+              <span class="pcal_error">{{ field.errors }}</span>
+            {% endif %}
+          </label>
+        {% endfor %}
+      </div>
+
+      <div class="crm_actions">
+        <button class="crm_button" type="submit">
+          {% if form.instance.pk %}Update Event{% else %}Create Event{% endif %}
+        </button>
+
+        <a class="crm_button crm_button_secondary" href="{% url 'platform_calendar:list' %}">
+          Cancel
+        </a>
+      </div>
+    </form>
+
+    <aside class="pcal_side">
+      <div class="pcal_panel">
+        <h2>Platform Calendar Rules</h2>
+        <p>
+          Use this calendar only for CEO MARKETING SaaS administration. Company operational events,
+          inspections and worker assignments should stay inside the company CRM calendar.
+        </p>
+      </div>
+    </aside>
+  </section>
+{% endblock %}

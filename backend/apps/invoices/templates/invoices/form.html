@@ -1,0 +1,1034 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}{{ form_title }}{% endblock %}
+{% block page_subtitle %}Create or update the invoice with the unified internal standard, keeping project, client and totals synchronized.{% endblock %}
+
+{% block extra_head %}
+  {% include "invoices/partials/_design_system.html" %}
+  <style>
+
+    .invoice-source-banner {
+      display:flex; align-items:flex-start; gap:10px; margin:0 0 14px; padding:12px 14px;
+      border:1px solid rgba(8,104,232,.14); border-radius:14px; background:linear-gradient(180deg, #f8fbff, #ffffff);
+      color:var(--nj-ink);
+    }
+    .invoice-source-banner i { color:var(--nj-blue); font-size:18px; line-height:1; margin-top:2px; }
+    .invoice-source-banner strong { display:block; font-size:13px; font-weight:900; }
+    .invoice-source-banner span { display:block; margin-top:3px; color:var(--nj-muted); font-size:11px; font-weight:600; line-height:1.5; }
+    .invoice-wizard-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(380px, 440px);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .invoice-wizard-main { min-width: 0; }
+
+    .invoice-steps {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      padding: 8px;
+      border-bottom: 1px solid var(--nj-line);
+      background: #f8fbff;
+    }
+
+    .nj-step {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 0;
+      padding: 10px 11px;
+      border: 0;
+      border-radius: 12px;
+      background: transparent;
+      color: var(--nj-muted);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .nj-step::after {
+      content: "";
+      position: absolute;
+      left: 11px;
+      right: 11px;
+      bottom: -9px;
+      height: 3px;
+      border-radius: 999px;
+      background: transparent;
+    }
+
+    .nj-step.is-active {
+      background: #fff;
+      color: var(--nj-navy);
+      box-shadow: 0 8px 18px rgba(7,27,120,.08);
+    }
+
+    .nj-step.is-active::after { background: var(--nj-blue); }
+
+    .nj-step.is-complete .invoice-step-number {
+      border-color: var(--nj-success);
+      background: var(--nj-success);
+      color: #fff;
+    }
+
+    .invoice-step-number {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border: 1px solid #d7e0ec;
+      border-radius: 999px;
+      background: #fff;
+      color: var(--nj-muted);
+      font-size: 12px;
+      font-weight: 950;
+    }
+
+    .nj-step.is-active .invoice-step-number {
+      border-color: var(--nj-blue);
+      background: linear-gradient(135deg, var(--nj-blue), var(--nj-deep));
+      color: #fff;
+      box-shadow: 0 7px 16px rgba(8,104,232,.20);
+    }
+
+    .invoice-step-copy { min-width: 0; }
+    .invoice-step-copy strong { display: block; color: inherit; font-size: 11px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .invoice-step-copy small { display: block; margin-top: 2px; color: var(--nj-muted); font-size: 9px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .invoice-step-panel { display: none; padding: 18px; }
+    .invoice-step-panel.is-active { display: block; }
+
+    .invoice-section-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 15px;
+    }
+
+    .invoice-section-title { display: flex; align-items: flex-start; gap: 10px; }
+    .invoice-section-title h2 { margin: 0; color: var(--nj-ink); font-size: 16px; font-weight: 900; }
+    .invoice-section-title p { margin: 4px 0 0; color: var(--nj-muted); font-size: 11px; font-weight: 600; line-height: 1.5; }
+
+    .invoice-form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 13px;
+    }
+
+    .invoice-form-grid.is-three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .invoice-form-grid.is-four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .invoice-field-full { grid-column: 1 / -1; }
+
+    .invoice-project-preview {
+      min-height: 68px;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 12px;
+      border: 1px solid var(--nj-line);
+      border-radius: 12px;
+      background: #f8fbff;
+    }
+
+    .invoice-project-preview.is-empty { display: none; }
+    .invoice-project-preview strong { display: block; color: var(--nj-ink); font-size: 13px; font-weight: 900; }
+    .invoice-project-preview span { display: block; margin-top: 4px; color: var(--nj-muted); font-size: 11px; font-weight: 600; line-height: 1.45; }
+
+    .invoice-toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 58px;
+      padding: 10px 12px;
+      border: 1px solid var(--nj-line);
+      border-radius: 12px;
+      background: #f8fbff;
+    }
+
+    .invoice-toggle-row strong { display: block; color: var(--nj-ink); font-size: 11px; font-weight: 850; }
+    .invoice-toggle-row small { display: block; margin-top: 3px; color: var(--nj-muted); font-size: 10px; font-weight: 650; }
+    .invoice-toggle-row.is-active {
+      border-color: rgba(8,104,232,.34);
+      background: linear-gradient(135deg, rgba(238,246,255,.96), #fff);
+      box-shadow: 0 8px 20px rgba(8,104,232,.08);
+    }
+    .invoice-toggle-row.is-active strong { color: var(--nj-blue); }
+
+    .invoice-date-input {
+      cursor: pointer;
+      color-scheme: light;
+      padding-right: 42px !important;
+    }
+    .invoice-date-input::-webkit-calendar-picker-indicator {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      opacity: 1;
+      filter: invert(32%) sepia(99%) saturate(1805%) hue-rotate(203deg) brightness(94%) contrast(101%);
+    }
+
+    .invoice-items-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .invoice-item-row {
+      display: grid;
+      grid-template-columns: minmax(240px, 1.7fr) minmax(90px, .45fr) minmax(120px, .55fr) minmax(115px, .48fr) 38px;
+      gap: 9px;
+      align-items: end;
+      margin-bottom: 10px;
+      padding: 12px;
+      border: 1px solid var(--nj-line);
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 7px 18px rgba(7,27,120,.04);
+    }
+
+    .invoice-item-row.is-deleted { display: none; }
+    .invoice-item-row textarea { min-height: 58px !important; }
+
+    .invoice-line-total {
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 9px 11px;
+      border-radius: 11px;
+      background: var(--nj-ice);
+      color: var(--nj-navy);
+      font-size: 13px;
+      font-weight: 950;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .invoice-items-empty {
+      display: none;
+      padding: 24px;
+      border: 1px dashed #cbd8e8;
+      border-radius: 13px;
+      color: var(--nj-muted);
+      text-align: center;
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .invoice-step-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 17px;
+      padding-top: 15px;
+      border-top: 1px solid var(--nj-line);
+    }
+
+    .invoice-live-summary {
+      position: sticky;
+      top: 18px;
+      overflow: hidden;
+    }
+
+    .invoice-summary-status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .invoice-summary-list { display: grid; gap: 14px; }
+
+    .invoice-summary-row {
+      display: grid;
+      grid-template-columns: 36px minmax(0, 1fr);
+      gap: 12px;
+      align-items: flex-start;
+      padding-bottom: 11px;
+      border-bottom: 1px solid #edf2f8;
+    }
+
+    .invoice-summary-row:last-child { border-bottom: 0; }
+    .invoice-summary-row i { color: var(--nj-blue); font-size: 18px; text-align: center; }
+    .invoice-summary-row span { display: block; color: var(--nj-muted); font-size: 11px; font-weight: 800; }
+    .invoice-summary-row strong { display: block; margin-top: 4px; color: var(--nj-ink); font-size: 14px; font-weight: 900; line-height: 1.45; overflow-wrap: anywhere; }
+    .invoice-summary-row small { display: block; margin-top: 3px; color: var(--nj-muted); font-size: 11px; font-weight: 650; line-height: 1.45; }
+
+    .invoice-total-box {
+      display: grid;
+      gap: 8px;
+      margin-top: 14px;
+      padding: 17px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--nj-navy), var(--nj-deep) 68%, var(--nj-blue));
+      color: #fff;
+      box-shadow: 0 15px 30px rgba(7,27,120,.18);
+    }
+
+    .invoice-total-line { display: flex; justify-content: space-between; gap: 12px; color: rgba(255,255,255,.80); font-size: 12px; font-weight: 750; }
+    .invoice-total-line strong { color: #fff; font-weight: 900; font-variant-numeric: tabular-nums; }
+    .invoice-total-line.is-total { margin-top: 3px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.18); color: #fff; font-size: 14px; }
+    .invoice-total-line.is-total strong { font-size: 22px; }
+
+    .invoice-review-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .invoice-review-card {
+      padding: 13px;
+      border: 1px solid var(--nj-line);
+      border-radius: 13px;
+      background: #f8fbff;
+    }
+
+    .invoice-review-card span { display: block; color: var(--nj-muted); font-size: 10px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+    .invoice-review-card strong { display: block; margin-top: 6px; color: var(--nj-ink); font-size: 13px; font-weight: 850; line-height: 1.45; overflow-wrap: anywhere; }
+
+    @media (max-width: 1120px) {
+      .invoice-wizard-layout { grid-template-columns: 1fr; }
+      .invoice-live-summary { position: static; }
+    }
+
+    @media (max-width: 820px) {
+      .invoice-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; }
+      .nj-step::after { display: none; }
+      .invoice-form-grid,
+      .invoice-form-grid.is-three,
+      .invoice-form-grid.is-four,
+      .invoice-review-grid { grid-template-columns: 1fr; }
+      .invoice-item-row { grid-template-columns: 1fr 1fr; }
+      .invoice-item-row .invoice-item-description { grid-column: 1 / -1; }
+      .invoice-item-row .invoice-item-total { grid-column: 1 / -1; }
+      .invoice-item-row .invoice-remove-cell { grid-column: 1 / -1; }
+      .invoice-item-row .invoice-remove-cell .nj-icon-btn { width: 100%; }
+    }
+
+    @media (max-width: 560px) {
+      .invoice-steps { grid-template-columns: 1fr; }
+      .invoice-step-copy small { display: none; }
+      .invoice-item-row { grid-template-columns: 1fr; }
+      .invoice-item-row > * { grid-column: 1 !important; }
+      .invoice-step-actions { align-items: stretch; flex-direction: column-reverse; }
+      .invoice-step-actions .nj-btn { width: 100%; }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+<div class="nj-invoice nj-page">
+  <header class="nj-page-head">
+    <div>
+      <span class="nj-page-kicker"><i class="bi bi-receipt" aria-hidden="true"></i> Invoice workflow</span>
+      <h1 class="nj-page-title">{{ form_title }}</h1>
+      <p class="nj-page-subtitle">Complete the four steps. Client, project, billing, items and totals remain connected throughout the process.</p>
+    </div>
+    <div class="nj-head-actions">
+      <a class="nj-btn nj-btn-secondary" href="{{ cancel_url }}"><i class="bi bi-x-lg" aria-hidden="true"></i> Cancel</a>
+      <button class="nj-btn nj-btn-secondary" type="submit" form="InvoiceWizardForm" name="submit_mode" value="draft"><i class="bi bi-cloud-arrow-down" aria-hidden="true"></i> Save draft</button>
+    </div>
+  </header>
+
+  {% if form.non_field_errors or item_formset.non_form_errors %}
+    <div class="nj-alert" role="alert">
+      <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+      <div>{{ form.non_field_errors }}{{ item_formset.non_form_errors }}</div>
+    </div>
+  {% endif %}
+
+  <form id="InvoiceWizardForm" action="{{ form_action_url }}" method="post" enctype="multipart/form-data" data-is-bound="{% if form.is_bound %}1{% else %}0{% endif %}" novalidate>
+    {% csrf_token %}
+    <div class="finance-security-note"><i class="bi bi-shield-lock" aria-hidden="true"></i><span>Invoice document and payment states are read-only. They change only after generate, send, payment allocation or a validated void action succeeds.</span></div>
+    {{ form.id_estimate }}
+
+    <div class="invoice-wizard-layout">
+      <main class="nj-card invoice-wizard-main">
+        {% if invoice_source_project %}
+          <div class="invoice-source-banner">
+            <i class="bi bi-briefcase" aria-hidden="true"></i>
+            <div>
+              <strong>Project-linked invoice</strong>
+              <span>The client, project and billing data were preloaded from <b>{{ invoice_source_project.project_code|default:invoice_source_project.id_project }}</b> · {{ invoice_source_project.project_name|default:invoice_source_project.name }}.</span>
+            </div>
+          </div>
+        {% endif %}
+        <nav class="invoice-steps" aria-label="Invoice creation steps">
+          <button class="nj-step is-active" type="button" data-step-target="1">
+            <span class="invoice-step-number">1</span>
+            <span class="invoice-step-copy"><strong>General data</strong><small>Client and project</small></span>
+          </button>
+          <button class="nj-step" type="button" data-step-target="2">
+            <span class="invoice-step-number">2</span>
+            <span class="invoice-step-copy"><strong>Billing</strong><small>Dates and taxes</small></span>
+          </button>
+          <button class="nj-step" type="button" data-step-target="3">
+            <span class="invoice-step-number">3</span>
+            <span class="invoice-step-copy"><strong>Items</strong><small>Services and prices</small></span>
+          </button>
+          <button class="nj-step" type="button" data-step-target="4">
+            <span class="invoice-step-number">4</span>
+            <span class="invoice-step-copy"><strong>Review</strong><small>Confirm and generate</small></span>
+          </button>
+        </nav>
+
+        <section class="invoice-step-panel is-active" data-step-panel="1">
+          <div class="invoice-section-head">
+            <div class="invoice-section-title">
+              <span class="nj-icon-box"><i class="bi bi-person-workspace" aria-hidden="true"></i></span>
+              <div><h2>Client and project</h2><p>Select the client first. The project list will only show projects linked to that client.</p></div>
+            </div>
+          </div>
+
+          <div class="invoice-form-grid">
+            {% if request.user.is_superuser %}
+              <div class="nj-field">
+                <label class="nj-required" for="{{ form.id_company.id_for_label }}">Company</label>
+                {{ form.id_company }}
+                <div class="nj-error">{{ form.id_company.errors }}</div>
+              </div>
+            {% else %}
+              {{ form.id_company.as_hidden }}
+            {% endif %}
+
+            <div class="nj-field {% if not request.user.is_superuser %}invoice-field-full{% endif %}">
+              <label class="nj-required" for="{{ form.id_client.id_for_label }}">Client</label>
+              {{ form.id_client }}
+              <span class="nj-help">The billing information can be adjusted in the next step.</span>
+              <div class="nj-error">{{ form.id_client.errors }}</div>
+            </div>
+
+            <div class="nj-field invoice-field-full">
+              <label class="nj-required" for="{{ form.id_project.id_for_label }}">Project</label>
+              {{ form.id_project }}
+              <span class="nj-help">Only projects belonging to the selected client are available.</span>
+              <div class="nj-error">{{ form.id_project.errors }}</div>
+            </div>
+
+            <div id="InvoiceProjectPreview" class="invoice-project-preview invoice-field-full is-empty">
+              <span class="nj-icon-box"><i class="bi bi-geo-alt" aria-hidden="true"></i></span>
+              <div><strong>Select a project</strong><span>The project address and snapshot will appear here.</span></div>
+            </div>
+
+            <div class="nj-field invoice-field-full">
+              <label for="{{ form.description.id_for_label }}">Description</label>
+              {{ form.description }}
+              <span class="nj-help">Brief scope or purpose of the invoice.</span>
+              <div class="nj-error">{{ form.description.errors }}</div>
+            </div>
+          </div>
+
+          <div class="invoice-step-actions">
+            <a class="nj-btn nj-btn-secondary" href="{{ cancel_url }}"><i class="bi bi-arrow-left" aria-hidden="true"></i> Cancel</a>
+            <button class="nj-btn" type="button" data-next-step="2">Next <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
+          </div>
+        </section>
+
+        <section class="invoice-step-panel" data-step-panel="2">
+          <div class="invoice-section-head">
+            <div class="invoice-section-title">
+              <span class="nj-icon-box is-violet"><i class="bi bi-person-vcard" aria-hidden="true"></i></span>
+              <div><h2>Billing and configuration</h2><p>The selected client's billing data loads automatically. Every field remains editable.</p></div>
+            </div>
+          </div>
+
+          <div class="invoice-form-grid is-four">
+            <div class="nj-field">
+              <label for="{{ form.client_billing_name.id_for_label }}">Billing name</label>
+              {{ form.client_billing_name }}
+              <div class="nj-error">{{ form.client_billing_name.errors }}</div>
+            </div>
+            <div class="nj-field">
+              <label for="{{ form.client_billing_dni.id_for_label }}">DNI / Tax ID <span class="nj-help">Optional</span></label>
+              {{ form.client_billing_dni }}
+              <div class="nj-error">{{ form.client_billing_dni.errors }}</div>
+            </div>
+            <div class="nj-field">
+              <label for="{{ form.client_billing_email.id_for_label }}">Billing email</label>
+              {{ form.client_billing_email }}
+              <div class="nj-error">{{ form.client_billing_email.errors }}</div>
+            </div>
+            <div class="nj-field">
+              <label for="{{ form.client_billing_phone.id_for_label }}">Billing phone</label>
+              {{ form.client_billing_phone }}
+              <div class="nj-error">{{ form.client_billing_phone.errors }}</div>
+            </div>
+            <div class="nj-field invoice-field-full">
+              <label for="{{ form.client_billing_address.id_for_label }}">Billing address</label>
+              {{ form.client_billing_address }}
+              <div class="nj-error">{{ form.client_billing_address.errors }}</div>
+            </div>
+          </div>
+
+          <div class="invoice-section-head" style="margin-top:18px;">
+            <div class="invoice-section-title">
+              <span class="nj-icon-box"><i class="bi bi-sliders" aria-hidden="true"></i></span>
+              <div><h2>Invoice configuration</h2><p>Choose issue and due dates, taxes and discount.</p></div>
+            </div>
+          </div>
+
+          <div class="invoice-form-grid is-three">
+            <div class="nj-field">
+              <label class="nj-required" for="{{ form.issue_date.id_for_label }}">Issue date</label>
+              {{ form.issue_date }}
+              <div class="nj-error">{{ form.issue_date.errors }}</div>
+            </div>
+            <div class="nj-field">
+              <label for="{{ form.due_date.id_for_label }}">Due date</label>
+              {{ form.due_date }}
+              <div class="nj-error">{{ form.due_date.errors }}</div>
+            </div>
+            <div class="nj-field">
+              <label for="{{ form.discount_amount.id_for_label }}">Discount amount</label>
+              {{ form.discount_amount }}
+              <div class="nj-error">{{ form.discount_amount.errors }}</div>
+            </div>
+            <div class="invoice-toggle-row">
+              <div><strong>Apply taxes</strong><small>Use the global tax rate for all items.</small></div>
+              <label class="nj-switch" aria-label="Apply taxes">{{ form.tax_enabled }}<span></span></label>
+            </div>
+            <div class="nj-field">
+              <label for="{{ form.tax_rate.id_for_label }}">Tax rate (%)</label>
+              {{ form.tax_rate }}
+              <div class="nj-error">{{ form.tax_rate.errors }}</div>
+            </div>
+          </div>
+
+          <div class="invoice-step-actions">
+            <button class="nj-btn nj-btn-secondary" type="button" data-previous-step="1"><i class="bi bi-arrow-left" aria-hidden="true"></i> Previous</button>
+            <button class="nj-btn" type="button" data-next-step="3">Next <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
+          </div>
+        </section>
+
+        <section class="invoice-step-panel" data-step-panel="3">
+          <div class="invoice-items-head">
+            <div class="invoice-section-title">
+              <span class="nj-icon-box is-success"><i class="bi bi-list-check" aria-hidden="true"></i></span>
+              <div><h2>Invoice items</h2><p>Add services or materials. Totals update automatically.</p></div>
+            </div>
+            <button id="InvoiceAddItem" class="nj-btn nj-btn-secondary" type="button"><i class="bi bi-plus-lg" aria-hidden="true"></i> Add item</button>
+          </div>
+
+          {{ item_formset.management_form }}
+          <div id="InvoiceItemsContainer">
+            {% for item_form in item_formset %}
+              <div class="invoice-item-row" data-item-row>
+                {% for hidden in item_form.hidden_fields %}
+                  {{ hidden }}
+                  {% for error in hidden.errors %}<div class="nj-error">{{ error }}</div>{% endfor %}
+                {% endfor %}
+                {% if item_form.non_field_errors %}<div class="nj-error invoice-item-form-error">{{ item_form.non_field_errors }}</div>{% endif %}
+                <div class="nj-field invoice-item-description">
+                  <label class="nj-required" for="{{ item_form.description.id_for_label }}">Description</label>
+                  {{ item_form.description }}
+                  <div class="nj-error">{{ item_form.description.errors }}</div>
+                </div>
+                <div class="nj-field">
+                  <label class="nj-required" for="{{ item_form.quantity.id_for_label }}">Quantity</label>
+                  {{ item_form.quantity }}
+                  <div class="nj-error">{{ item_form.quantity.errors }}</div>
+                </div>
+                <div class="nj-field">
+                  <label class="nj-required" for="{{ item_form.unit_price.id_for_label }}">Unit price</label>
+                  {{ item_form.unit_price }}
+                  <div class="nj-error">{{ item_form.unit_price.errors }}</div>
+                </div>
+                <div class="nj-field invoice-item-total">
+                  <label>Line total</label>
+                  <div class="invoice-line-total" data-line-total>$0.00</div>
+                </div>
+                <div class="invoice-remove-cell">
+                  <div style="display:none;">{{ item_form.DELETE }}</div>
+                  <button class="nj-icon-btn is-danger" type="button" data-remove-item data-tooltip="Remove" aria-label="Remove item"><i class="bi bi-trash3" aria-hidden="true"></i></button>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+          <div id="InvoiceItemsEmpty" class="invoice-items-empty">Add at least one invoice item.</div>
+
+          <template id="InvoiceEmptyItemTemplate">
+            <div class="invoice-item-row" data-item-row>
+              {% for hidden in item_formset.empty_form.hidden_fields %}{{ hidden }}{% endfor %}
+              <div class="nj-field invoice-item-description">
+                <label class="nj-required" for="{{ item_formset.empty_form.description.id_for_label }}">Description</label>
+                {{ item_formset.empty_form.description }}
+                <div class="nj-error">{{ item_formset.empty_form.description.errors }}</div>
+              </div>
+              <div class="nj-field">
+                <label class="nj-required" for="{{ item_formset.empty_form.quantity.id_for_label }}">Quantity</label>
+                {{ item_formset.empty_form.quantity }}
+                <div class="nj-error">{{ item_formset.empty_form.quantity.errors }}</div>
+              </div>
+              <div class="nj-field">
+                <label class="nj-required" for="{{ item_formset.empty_form.unit_price.id_for_label }}">Unit price</label>
+                {{ item_formset.empty_form.unit_price }}
+                <div class="nj-error">{{ item_formset.empty_form.unit_price.errors }}</div>
+              </div>
+              <div class="nj-field invoice-item-total">
+                <label>Line total</label>
+                <div class="invoice-line-total" data-line-total>$0.00</div>
+              </div>
+              <div class="invoice-remove-cell">
+                <div style="display:none;">{{ item_formset.empty_form.DELETE }}</div>
+                <button class="nj-icon-btn is-danger" type="button" data-remove-item data-tooltip="Remove" aria-label="Remove item"><i class="bi bi-trash3" aria-hidden="true"></i></button>
+              </div>
+            </div>
+          </template>
+
+          <div class="invoice-step-actions">
+            <button class="nj-btn nj-btn-secondary" type="button" data-previous-step="2"><i class="bi bi-arrow-left" aria-hidden="true"></i> Previous</button>
+            <button class="nj-btn" type="button" data-next-step="4">Review invoice <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
+          </div>
+        </section>
+
+        <section class="invoice-step-panel" data-step-panel="4">
+          <div class="invoice-section-head">
+            <div class="invoice-section-title">
+              <span class="nj-icon-box is-success"><i class="bi bi-check2-circle" aria-hidden="true"></i></span>
+              <div><h2>Final review</h2><p>Confirm the key information and totals before generating the invoice.</p></div>
+            </div>
+          </div>
+
+          <div class="invoice-review-grid">
+            <div class="invoice-review-card"><span>Client</span><strong id="InvoiceReviewClient">Not selected</strong></div>
+            <div class="invoice-review-card"><span>Project</span><strong id="InvoiceReviewProject">Not selected</strong></div>
+            <div class="invoice-review-card"><span>Issue date</span><strong id="InvoiceReviewIssueDate">Not selected</strong></div>
+            <div class="invoice-review-card"><span>Due date</span><strong id="InvoiceReviewDueDate">Not selected</strong></div>
+            <div class="invoice-review-card invoice-field-full"><span>Description</span><strong id="InvoiceReviewDescription">No description</strong></div>
+            <div class="invoice-review-card"><span>Items</span><strong id="InvoiceReviewItems">0 items</strong></div>
+            <div class="invoice-review-card"><span>Tax</span><strong id="InvoiceReviewTax">Not applied</strong></div>
+          </div>
+
+          <div class="nj-alert" style="margin-top:14px;">
+            <i class="bi bi-info-circle" aria-hidden="true"></i>
+            <div>Save draft keeps the invoice editable. Generate invoice locks the financial data and moves the document to pending send.</div>
+          </div>
+
+          <div class="invoice-step-actions">
+            <button class="nj-btn nj-btn-secondary" type="button" data-previous-step="3"><i class="bi bi-arrow-left" aria-hidden="true"></i> Previous</button>
+            <div class="nj-action-row">
+              <button class="nj-btn nj-btn-secondary" type="submit" name="submit_mode" value="draft"><i class="bi bi-cloud-arrow-down" aria-hidden="true"></i> Save draft</button>
+              <button class="nj-btn nj-btn-success" type="submit" name="submit_mode" value="generate"><i class="bi bi-check2-square" aria-hidden="true"></i> Generate invoice</button>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <aside class="nj-card invoice-live-summary">
+        <div class="nj-card-head invoice-summary-status">
+          <h2 class="nj-card-title"><i class="bi bi-activity" aria-hidden="true"></i> Live summary</h2>
+          <span class="nj-badge is-blue">Draft</span>
+        </div>
+        <div class="nj-card-body">
+          <div class="invoice-summary-list">
+            <div class="invoice-summary-row"><i class="bi bi-person" aria-hidden="true"></i><div><span>Client</span><strong id="InvoiceSummaryClient">Not selected</strong><small id="InvoiceSummaryBilling">Billing data will be completed automatically.</small></div></div>
+            <div class="invoice-summary-row"><i class="bi bi-briefcase" aria-hidden="true"></i><div><span>Project</span><strong id="InvoiceSummaryProject">Not selected</strong><small id="InvoiceSummaryAddress">No project address.</small></div></div>
+            <div class="invoice-summary-row"><i class="bi bi-calendar3" aria-hidden="true"></i><div><span>Dates</span><strong id="InvoiceSummaryDates">Not selected</strong><small>Issue and due date</small></div></div>
+            <div class="invoice-summary-row"><i class="bi bi-list-check" aria-hidden="true"></i><div><span>Items</span><strong id="InvoiceSummaryItems">0 active items</strong><small>Services and materials</small></div></div>
+          </div>
+
+          <div class="invoice-total-box">
+            <div class="invoice-total-line"><span>Subtotal</span><strong id="InvoiceSubtotal">$0.00</strong></div>
+            <div class="invoice-total-line"><span>Discount</span><strong id="InvoiceDiscount">$0.00</strong></div>
+            <div class="invoice-total-line"><span>Tax</span><strong id="InvoiceTax">$0.00</strong></div>
+            <div class="invoice-total-line is-total"><span>Total</span><strong id="InvoiceTotal">$0.00</strong></div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </form>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  const form = document.getElementById("InvoiceWizardForm");
+  if (!form) return;
+
+  const steps = Array.from(form.querySelectorAll("[data-step-target]"));
+  const panels = Array.from(form.querySelectorAll("[data-step-panel]"));
+  const clientSelect = form.querySelector('[name="id_client"]');
+  const projectSelect = form.querySelector('[name="id_project"]');
+  const descriptionInput = form.querySelector('[name="description"]');
+  const issueDateInput = form.querySelector('[name="issue_date"]');
+  const dueDateInput = form.querySelector('[name="due_date"]');
+  const billingNameInput = form.querySelector('[name="client_billing_name"]');
+  const billingEmailInput = form.querySelector('[name="client_billing_email"]');
+  const billingPhoneInput = form.querySelector('[name="client_billing_phone"]');
+  const billingDniInput = form.querySelector('[name="client_billing_dni"]');
+  const billingAddressInput = form.querySelector('[name="client_billing_address"]');
+  const taxEnabledInput = form.querySelector('[name="tax_enabled"]');
+  const taxRateInput = form.querySelector('[name="tax_rate"]');
+  const discountInput = form.querySelector('[name="discount_amount"]');
+  const itemsContainer = document.getElementById("InvoiceItemsContainer");
+  const emptyItemsMessage = document.getElementById("InvoiceItemsEmpty");
+  const emptyItemTemplate = document.getElementById("InvoiceEmptyItemTemplate");
+  const addItemButton = document.getElementById("InvoiceAddItem");
+  const totalFormsInput = form.querySelector('input[name$="-TOTAL_FORMS"]');
+  let currentStep = 1;
+
+  function money(value) {
+    return "$" + Number(value || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  }
+
+  function numberValue(value) {
+    const normalized = String(value || "").replace(",", ".").replace(/[^0-9.-]/g, "");
+    const parsed = Number.parseFloat(normalized);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  function selectedText(select, fallback) {
+    if (!select || !select.value) return fallback;
+    const option = select.options[select.selectedIndex];
+    return option ? String(option.textContent || "").trim() : fallback;
+  }
+
+  function showStep(stepNumber) {
+    currentStep = Math.max(1, Math.min(4, Number(stepNumber) || 1));
+    steps.forEach(function (step) {
+      const number = Number(step.dataset.stepTarget);
+      step.classList.toggle("is-active", number === currentStep);
+      step.classList.toggle("is-complete", number < currentStep);
+      step.setAttribute("aria-current", number === currentStep ? "step" : "false");
+    });
+    panels.forEach(function (panel) {
+      panel.classList.toggle("is-active", Number(panel.dataset.stepPanel) === currentStep);
+    });
+    updateSummary();
+  }
+
+  function activePanel() {
+    return panels.find(function (panel) { return Number(panel.dataset.stepPanel) === currentStep; });
+  }
+
+  function validateCurrentPanel() {
+    const panel = activePanel();
+    if (!panel) return true;
+    const controls = Array.from(panel.querySelectorAll("input, select, textarea"));
+    for (const control of controls) {
+      const row = control.closest("[data-item-row]");
+      const deleteInput = row ? row.querySelector('input[name$="-DELETE"]') : null;
+      if (control.disabled || control.type === "hidden" || (deleteInput && deleteInput.checked)) continue;
+      if (!control.checkValidity()) {
+        control.reportValidity();
+        control.focus({preventScroll: true});
+        control.scrollIntoView({behavior: "smooth", block: "center"});
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function populateBillingFromClient(force) {
+    if (!clientSelect || !clientSelect.value) return;
+    const option = clientSelect.options[clientSelect.selectedIndex];
+    if (!option) return;
+
+    const values = {
+      name: option.dataset.billingName || "",
+      email: option.dataset.billingEmail || "",
+      phone: option.dataset.billingPhone || "",
+      dni: option.dataset.billingDni || "",
+      address: option.dataset.billingAddress || ""
+    };
+
+    [
+      [billingNameInput, values.name],
+      [billingEmailInput, values.email],
+      [billingPhoneInput, values.phone],
+      [billingDniInput, values.dni],
+      [billingAddressInput, values.address]
+    ].forEach(function (pair) {
+      const input = pair[0];
+      const value = pair[1];
+      if (!input) return;
+      if (force || !String(input.value || "").trim()) input.value = value;
+    });
+  }
+
+  function filterProjects() {
+    if (!clientSelect || !projectSelect) return;
+    const clientId = String(clientSelect.value || "");
+    const currentValue = projectSelect.value;
+    Array.from(projectSelect.options).forEach(function (option) {
+      if (!option.value) {
+        option.hidden = false;
+        option.disabled = false;
+        return;
+      }
+      const optionClient = String(option.dataset.client || "");
+      const show = !clientId || optionClient === clientId;
+      option.hidden = !show;
+      option.disabled = !show;
+    });
+    const selectedOption = projectSelect.options[projectSelect.selectedIndex];
+    if (selectedOption && selectedOption.disabled) projectSelect.value = "";
+    if (currentValue && projectSelect.value === currentValue) updateProjectPreview();
+    else updateProjectPreview();
+  }
+
+  function updateProjectPreview() {
+    const preview = document.getElementById("InvoiceProjectPreview");
+    if (!projectSelect || !preview) return;
+    const option = projectSelect.options[projectSelect.selectedIndex];
+    const hasProject = Boolean(option && option.value);
+    preview.classList.toggle("is-empty", !hasProject);
+    const name = hasProject ? (option.dataset.projectName || option.textContent || "Selected project") : "";
+    const address = hasProject ? (option.dataset.projectAddress || "No project address registered.") : "";
+    preview.querySelector("strong").textContent = String(name).trim();
+    preview.querySelector("span:last-child").textContent = String(address).trim();
+    if (option && option.value && descriptionInput && !descriptionInput.value.trim() && option.dataset.projectDescription) {
+      descriptionInput.value = option.dataset.projectDescription;
+    }
+    updateSummary();
+  }
+
+  function itemRows() {
+    return Array.from(itemsContainer.querySelectorAll("[data-item-row]"));
+  }
+
+  function rowDeleted(row) {
+    const input = row.querySelector('input[name$="-DELETE"]');
+    return Boolean(input && input.checked);
+  }
+
+  function activeRows() {
+    return itemRows().filter(function (row) { return !rowDeleted(row); });
+  }
+
+  function selectedProjectItemData() {
+    if (!projectSelect || !projectSelect.value) return null;
+    const option = projectSelect.options[projectSelect.selectedIndex];
+    if (!option) return null;
+
+    const projectName = String(option.dataset.projectName || option.textContent || "").trim();
+    const projectDescription = String(option.dataset.projectDescription || "").trim();
+    const projectAmount = Math.max(0, numberValue(option.dataset.projectContractAmount || "0"));
+
+    return {
+      id: String(option.value || ""),
+      description: projectDescription || projectName || "Project services",
+      unitPrice: projectAmount.toFixed(2)
+    };
+  }
+
+  function syncFirstItemFromProject(force) {
+    const projectItem = selectedProjectItemData();
+    if (!projectItem) return;
+
+    const row = activeRows()[0];
+    if (!row) return;
+
+    const description = row.querySelector('[name$="-description"]');
+    const quantity = row.querySelector('[name$="-quantity"]');
+    const unitPrice = row.querySelector('[name$="-unit_price"]');
+    if (!description || !quantity || !unitPrice) return;
+
+    const descriptionWasAuto = Boolean(description.dataset.projectAutofill);
+    const priceWasAuto = Boolean(unitPrice.dataset.projectAutofill);
+    const quantityWasAuto = Boolean(quantity.dataset.projectAutofill);
+
+    if (force || !String(description.value || "").trim() || descriptionWasAuto) {
+      description.value = projectItem.description;
+      description.dataset.projectAutofill = projectItem.id;
+    }
+    if (force || numberValue(unitPrice.value) === 0 || priceWasAuto) {
+      unitPrice.value = projectItem.unitPrice;
+      unitPrice.dataset.projectAutofill = projectItem.id;
+    }
+    if (force || numberValue(quantity.value) <= 0 || quantityWasAuto) {
+      quantity.value = "1.00";
+      quantity.dataset.projectAutofill = projectItem.id;
+    }
+
+    updateSummary();
+  }
+
+  function calculateTotals() {
+    let subtotal = 0;
+    activeRows().forEach(function (row) {
+      const quantity = numberValue((row.querySelector('[name$="-quantity"]') || {}).value);
+      const unitPrice = numberValue((row.querySelector('[name$="-unit_price"]') || {}).value);
+      const lineTotal = Math.max(0, quantity * unitPrice);
+      const output = row.querySelector("[data-line-total]");
+      if (output) output.textContent = money(lineTotal);
+      subtotal += lineTotal;
+    });
+
+    const discount = Math.max(0, numberValue(discountInput ? discountInput.value : 0));
+    const taxableBase = Math.max(0, subtotal - discount);
+    const taxRate = taxEnabledInput && taxEnabledInput.checked ? Math.max(0, numberValue(taxRateInput ? taxRateInput.value : 0)) : 0;
+    const tax = taxableBase * (taxRate / 100);
+    const total = taxableBase + tax;
+
+    document.getElementById("InvoiceSubtotal").textContent = money(subtotal);
+    document.getElementById("InvoiceDiscount").textContent = money(discount);
+    document.getElementById("InvoiceTax").textContent = money(tax);
+    document.getElementById("InvoiceTotal").textContent = money(total);
+
+    if (emptyItemsMessage) emptyItemsMessage.style.display = activeRows().length ? "none" : "block";
+    return {subtotal: subtotal, discount: discount, tax: tax, total: total, count: activeRows().length, taxRate: taxRate};
+  }
+
+  function updateSummary() {
+    const totals = calculateTotals();
+    const client = selectedText(clientSelect, "Not selected");
+    const project = selectedText(projectSelect, "Not selected");
+    const projectOption = projectSelect && projectSelect.value ? projectSelect.options[projectSelect.selectedIndex] : null;
+    const address = projectOption ? (projectOption.dataset.projectAddress || "No project address.") : "No project address.";
+    const issue = issueDateInput && issueDateInput.value ? issueDateInput.value : "Not selected";
+    const due = dueDateInput && dueDateInput.value ? dueDateInput.value : "No due date";
+    const billing = [billingNameInput ? billingNameInput.value : "", billingDniInput && billingDniInput.value ? "DNI: " + billingDniInput.value : ""].filter(Boolean).join(" · ") || "Billing data will be completed automatically.";
+
+    document.getElementById("InvoiceSummaryClient").textContent = client;
+    document.getElementById("InvoiceSummaryBilling").textContent = billing;
+    document.getElementById("InvoiceSummaryProject").textContent = project;
+    document.getElementById("InvoiceSummaryAddress").textContent = address;
+    document.getElementById("InvoiceSummaryDates").textContent = issue + " → " + due;
+    document.getElementById("InvoiceSummaryItems").textContent = totals.count + (totals.count === 1 ? " active item" : " active items");
+
+    document.getElementById("InvoiceReviewClient").textContent = client;
+    document.getElementById("InvoiceReviewProject").textContent = project;
+    document.getElementById("InvoiceReviewIssueDate").textContent = issue;
+    document.getElementById("InvoiceReviewDueDate").textContent = due;
+    document.getElementById("InvoiceReviewDescription").textContent = descriptionInput && descriptionInput.value.trim() ? descriptionInput.value.trim() : "No description";
+    document.getElementById("InvoiceReviewItems").textContent = totals.count + (totals.count === 1 ? " item" : " items") + " · " + money(totals.subtotal);
+    document.getElementById("InvoiceReviewTax").textContent = totals.taxRate > 0 ? totals.taxRate.toFixed(2) + "% · " + money(totals.tax) : "Not applied";
+  }
+
+  function bindItemRow(row) {
+    row.querySelectorAll('[name$="-quantity"], [name$="-unit_price"], [name$="-description"]').forEach(function (input) {
+      input.addEventListener("input", function (event) {
+        if (event.isTrusted) delete input.dataset.projectAutofill;
+        updateSummary();
+      });
+      input.addEventListener("change", updateSummary);
+    });
+    const remove = row.querySelector("[data-remove-item]");
+    if (remove) {
+      remove.addEventListener("click", function () {
+        const deleteInput = row.querySelector('input[name$="-DELETE"]');
+        if (deleteInput) deleteInput.checked = true;
+        row.classList.add("is-deleted");
+        updateSummary();
+      });
+    }
+  }
+
+  function addItem() {
+    if (!emptyItemTemplate || !totalFormsInput) return;
+    const index = Number.parseInt(totalFormsInput.value || "0", 10);
+    const html = emptyItemTemplate.innerHTML.replaceAll("__prefix__", String(index));
+    const wrapper = document.createElement("div");
+    wrapper.innerHTML = html.trim();
+    const row = wrapper.firstElementChild;
+    if (!row) return;
+    itemsContainer.appendChild(row);
+    totalFormsInput.value = String(index + 1);
+    bindItemRow(row);
+    const description = row.querySelector('[name$="-description"]');
+    if (description) description.focus();
+    updateSummary();
+  }
+
+  steps.forEach(function (step) {
+    step.addEventListener("click", function () {
+      const target = Number(step.dataset.stepTarget);
+      if (target > currentStep && !validateCurrentPanel()) return;
+      showStep(target);
+    });
+  });
+
+  form.querySelectorAll("[data-next-step]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      if (validateCurrentPanel()) showStep(button.dataset.nextStep);
+    });
+  });
+
+  form.querySelectorAll("[data-previous-step]").forEach(function (button) {
+    button.addEventListener("click", function () { showStep(button.dataset.previousStep); });
+  });
+
+  if (clientSelect) clientSelect.addEventListener("change", function () {
+    populateBillingFromClient(true);
+    filterProjects();
+    updateSummary();
+  });
+  if (projectSelect) projectSelect.addEventListener("change", function () {
+    updateProjectPreview();
+    syncFirstItemFromProject(true);
+  });
+  [descriptionInput, issueDateInput, dueDateInput, billingNameInput, billingEmailInput, billingPhoneInput, billingDniInput, billingAddressInput, taxEnabledInput, taxRateInput, discountInput].forEach(function (input) {
+    if (!input) return;
+    input.addEventListener("input", updateSummary);
+    input.addEventListener("change", updateSummary);
+  });
+
+  function syncToggleCards() {
+    form.querySelectorAll(".invoice-toggle-row").forEach(function (row) {
+      const checkbox = row.querySelector('input[type="checkbox"]');
+      row.classList.toggle("is-active", Boolean(checkbox && checkbox.checked));
+    });
+  }
+
+  form.querySelectorAll('.invoice-toggle-row input[type="checkbox"]').forEach(function (checkbox) {
+    checkbox.addEventListener("change", syncToggleCards);
+  });
+
+  [issueDateInput, dueDateInput].forEach(function (input) {
+    if (!input) return;
+    input.addEventListener("click", function () {
+      if (typeof input.showPicker === "function") {
+        try { input.showPicker(); } catch (error) {}
+      }
+    });
+  });
+
+  syncToggleCards();
+
+  itemRows().forEach(bindItemRow);
+  if (addItemButton) addItemButton.addEventListener("click", addItem);
+
+  form.addEventListener("submit", function (event) {
+    if (!form.checkValidity()) {
+      event.preventDefault();
+      const invalid = form.querySelector(":invalid");
+      const panel = invalid ? invalid.closest("[data-step-panel]") : null;
+      if (panel) showStep(panel.dataset.stepPanel);
+      if (invalid) {
+        invalid.reportValidity();
+        invalid.scrollIntoView({behavior: "smooth", block: "center"});
+      }
+      return;
+    }
+
+    if (calculateTotals().count < 1) {
+      event.preventDefault();
+      showStep(3);
+      if (emptyItemsMessage) {
+        emptyItemsMessage.style.display = "block";
+        emptyItemsMessage.scrollIntoView({behavior: "smooth", block: "center"});
+      }
+    }
+  });
+
+  if (form.dataset.isBound !== "1") populateBillingFromClient(false);
+  filterProjects();
+  updateProjectPreview();
+  if (form.dataset.isBound !== "1") syncFirstItemFromProject(false);
+  updateSummary();
+
+  const serverError = panels.find(function (panel) {
+    return panel.querySelector(".errorlist li, .nj-error li");
+  });
+  if (serverError) showStep(serverError.dataset.stepPanel);
+})();
+</script>
+{% endblock %}

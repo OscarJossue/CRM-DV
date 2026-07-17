@@ -1,0 +1,76 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Purchases{% endblock %}
+{% block page_subtitle %}Supplier purchase records with automatic totals and internal payment balance.{% endblock %}
+{% block extra_head %}{% include "suppliers/partials/_design_system.html" %}{% endblock %}
+
+{% block content %}
+<div class="nj-invoice nj-page supplier_theme">
+  <section class="supplier_header_card">
+    <div class="supplier_title_block">
+      <span class="supplier_kicker"><i class="bi bi-cart3" aria-hidden="true"></i> Supplier purchases</span>
+      <h2>Purchases</h2>
+      <p>Company-only purchase control. It remains independent from customer invoices and customer payments.</p>
+    </div>
+    <div class="supplier_actions">
+      {% if can_create_suppliers %}<a class="supplier_btn" href="create/"><i class="bi bi-plus-lg" aria-hidden="true"></i> Register Purchase</a>{% endif %}
+      <a class="supplier_btn supplier_btn_secondary" href="../offers/"><i class="bi bi-box-seam" aria-hidden="true"></i> Products and Services</a>
+      <a class="supplier_btn supplier_btn_secondary" href="../reports/"><i class="bi bi-bar-chart" aria-hidden="true"></i> Reports</a>
+    </div>
+  </section>
+
+  <section class="supplier_grid_4" aria-label="Purchase workflow summary">
+    <article class="supplier_stat is-primary"><span>Total Records</span><strong class="primary">{{ purchase_status_summary.total }}</strong></article>
+    {% for item in purchase_status_summary.items %}
+      {% if item.key != 'draft' %}
+        <article class="supplier_stat {% if item.key == 'completed' %}is-success{% elif item.key == 'cancelled' %}is-danger{% else %}is-warning{% endif %}"><span>{{ item.label }}</span><strong>{{ item.count }}</strong></article>
+      {% endif %}
+    {% endfor %}
+  </section>
+
+  <section class="supplier_grid_3" aria-label="Purchase financial summary">
+    <article class="supplier_stat is-primary"><span>Total Purchases</span><strong>${{ total_purchases|floatformat:2 }}</strong></article>
+    <article class="supplier_stat is-success"><span>Total Paid</span><strong class="green">${{ total_paid|floatformat:2 }}</strong></article>
+    <article class="supplier_stat is-danger"><span>Open Balance</span><strong class="red">${{ total_balance|floatformat:2 }}</strong></article>
+  </section>
+
+  <section class="supplier_panel">
+    <form method="get" class="supplier_filters">
+      <div class="supplier_filter_field"><label for="purchaseSearch">Search</label><input id="purchaseSearch" class="crm_input" type="text" name="q" value="{{ current_search }}" placeholder="Purchase, reference or supplier"></div>
+      <div class="supplier_filter_field"><label for="purchaseSupplier">Supplier</label><select id="purchaseSupplier" name="supplier" class="crm_input"><option value="">All suppliers</option>{% for supplier in suppliers %}<option value="{{ supplier.id_supplier }}" {% if current_supplier == supplier.id_supplier|stringformat:'s' %}selected{% endif %}>{{ supplier.company_name }}</option>{% endfor %}</select></div>
+      <div class="supplier_filter_field"><label for="purchaseStatus">Status</label><select id="purchaseStatus" name="status" class="crm_input"><option value="">All statuses</option>{% for value,label in status_options %}<option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+      <div class="supplier_filter_field"><label for="purchasePayment">Payment</label><select id="purchasePayment" name="payment" class="crm_input"><option value="">All payment statuses</option>{% for value,label in payment_status_options %}<option value="{{ value }}" {% if current_payment == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+      <div class="supplier_filter_field"><label for="purchaseFrom">From</label><input id="purchaseFrom" class="crm_input" type="date" name="date_from" value="{{ current_date_from }}"></div>
+      <div class="supplier_filter_field"><label for="purchaseTo">To</label><input id="purchaseTo" class="crm_input" type="date" name="date_to" value="{{ current_date_to }}"></div>
+      <button class="supplier_btn" type="submit"><i class="bi bi-search" aria-hidden="true"></i> Filter</button>
+      <a class="supplier_btn supplier_btn_secondary" href="."><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Clear</a>
+    </form>
+  </section>
+
+  <section class="supplier_panel">
+    <div class="supplier_table_wrap">
+      <table class="supplier_table">
+        <thead><tr><th>Purchase</th><th>Date</th><th>Supplier</th><th>Items</th><th>Total</th><th>Paid</th><th>Balance</th><th>Status</th><th>Payment</th><th>Actions</th></tr></thead>
+        <tbody>
+          {% for purchase in purchases %}
+            <tr>
+              <td data-label="Purchase"><a class="supplier_name" href="{{ purchase.id_supplier_purchase }}/"><strong>{{ purchase.purchase_number }}</strong><span>{{ purchase.external_document_number|default:"No reference" }}</span></a></td>
+              <td data-label="Date">{{ purchase.purchase_date }}</td>
+              <td data-label="Supplier">{{ purchase.id_supplier.company_name }}</td>
+              <td data-label="Items">{{ purchase.items.count }}</td>
+              <td data-label="Total" class="supplier_money">${{ purchase.total|floatformat:2 }}</td>
+              <td data-label="Paid" class="supplier_money supplier_money_green">${{ purchase.paid_amount|floatformat:2 }}</td>
+              <td data-label="Balance" class="supplier_money {% if purchase.balance_due > 0 %}supplier_money_red{% endif %}">${{ purchase.balance_due|floatformat:2 }}</td>
+              <td data-label="Status">{% include "suppliers/partials/_purchase_status_track.html" with current_status=purchase.status current_label=purchase.get_status_display %}</td>
+              <td data-label="Payment">{% include "suppliers/partials/_purchase_payment_track.html" with current_status=purchase.payment_status current_label=purchase.get_payment_status_display %}</td>
+              <td data-label="Actions"><div class="supplier_icon_actions"><a class="supplier_icon_action" href="{{ purchase.id_supplier_purchase }}/" data-tooltip="View" aria-label="View purchase"><i class="bi bi-eye" aria-hidden="true"></i><span>View</span></a>{% if can_edit_suppliers %}<a class="supplier_icon_action" href="{{ purchase.id_supplier_purchase }}/edit/" data-tooltip="Edit" aria-label="Edit purchase"><i class="bi bi-pencil" aria-hidden="true"></i><span>Edit</span></a>{% endif %}{% if can_approve_suppliers and purchase.status != 'cancelled' %}<form method="post" action="{{ purchase.id_supplier_purchase }}/cancel/" class="supplier_inline_form" onsubmit="return confirm('Cancel this purchase?');">{% csrf_token %}<button class="supplier_icon_action supplier_icon_danger" type="submit" data-tooltip="Cancel" aria-label="Cancel purchase"><i class="bi bi-x-circle" aria-hidden="true"></i><span>Cancel</span></button></form>{% endif %}</div></td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="10"><div class="supplier_empty">No purchases found. Register a supplier purchase to start the purchase history.</div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

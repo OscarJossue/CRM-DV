@@ -1,0 +1,18 @@
+<div class="nj-workflow crm-inline-status-workflow project-status-workflow{% if detail %} is-detail{% endif %}{% if interactive and project.can_change_status %} is-interactive{% endif %}{% if interactive_close and project.can_close_record %} has-completion-action{% endif %}"
+  aria-label="Project status: {{ project.status_label|default:project.get_status_display }}"
+  {% if interactive and project.can_change_status %}data-project-status-workflow data-current-status="{{ project.status }}" data-current-label="{{ project.status_label|default:project.get_status_display }}" data-status-update-url="{{ project.status_update_url }}"{% endif %}>
+  {% if interactive and project.can_change_status %}<span class="crm-inline-status-hover-caption" data-project-status-hover-caption aria-hidden="true"></span>{% endif %}
+  <div class="nj-status-track project-status-track">
+    {% for value,label,icon,color,css_class in project_status_stages %}
+      {% if value == "completed" and interactive_close and project.can_close_record %}
+        <button class="nj-status-node {{ css_class }}{% if project.status == value %} is-current{% endif %} is-actionable" style="--stage-color:{{ color }};" type="button" data-project-action="close" data-action-url="{{ project.close_url }}" data-record-label="{{ project.project_code|default:project.id_project }} · {{ project.project_name }}" aria-label="Close project" title="Close project"><i class="bi {{ icon }}" aria-hidden="true"></i></button>
+      {% elif interactive and project.can_change_status %}
+        <button class="nj-status-node {{ css_class }}{% if project.status == value %} is-current{% endif %}" style="--stage-color:{{ color }};" type="button" data-project-status-node data-status-value="{{ value }}" data-status-label="{{ label }}" aria-label="Change status to {{ label }}" aria-pressed="{% if project.status == value %}true{% else %}false{% endif %}"><i class="bi {{ icon }}" aria-hidden="true"></i></button>
+      {% else %}
+        <span class="nj-status-node {{ css_class }}{% if project.status == value %} is-current{% endif %}" style="--stage-color:{{ color }};" title="{{ label }}" aria-label="{{ label }}"><i class="bi {{ icon }}" aria-hidden="true"></i></span>
+      {% endif %}
+      {% if not forloop.last %}<span class="nj-status-line" aria-hidden="true"></span>{% endif %}
+    {% endfor %}
+  </div>
+  <span class="nj-status-caption {{ project.status_caption_class }}" data-project-status-caption>{{ project.status_label|default:project.get_status_display }}</span>
+</div>

@@ -1,0 +1,366 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}{{ event.title }}{% endblock %}
+
+{% block page_subtitle %}
+Platform calendar event detail, related company, subscription and internal follow-up status.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .pcal_detail,
+  .pcal_detail * {
+    box-sizing: border-box;
+    min-width: 0;
+  }
+
+  .pcal_detail {
+    --gold-1: #d0ad6a;
+    --gold-2: #a67d40;
+    --gold-3: #703f0a;
+    --gold-4: #a67c52;
+    --gold-5: #c69c6d;
+    --ink: #20150c;
+    --muted: #6f6252;
+    --soft: #fbf8f2;
+    --line: rgba(112, 63, 10, .16);
+    display: grid;
+    gap: 18px;
+  }
+
+  .pcal_hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 18px;
+    align-items: center;
+    padding: 24px;
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(208, 173, 106, .28), transparent 32%),
+      linear-gradient(135deg, #ffffff 0%, #fbf8f2 100%);
+    box-shadow: var(--crm_shadow);
+  }
+
+  .pcal_kicker {
+    display: inline-flex;
+    width: fit-content;
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: rgba(208, 173, 106, .18);
+    color: var(--gold-3);
+    font-size: 11px;
+    font-weight: 950;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+  }
+
+  .pcal_hero h2 {
+    margin: 10px 0 0;
+    color: var(--ink);
+    font-size: clamp(28px, 4vw, 42px);
+    line-height: 1.08;
+    font-weight: 950;
+    letter-spacing: -.045em;
+    overflow-wrap: anywhere;
+  }
+
+  .pcal_hero p {
+    margin: 8px 0 0;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.65;
+  }
+
+  .pcal_actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+
+  .pcal_inline_form {
+    margin: 0;
+  }
+
+  .pcal_grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(330px, .52fr);
+    gap: 18px;
+    align-items: start;
+  }
+
+  .pcal_cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .pcal_info {
+    display: grid;
+    gap: 8px;
+    padding: 17px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 14px 34px rgba(32, 21, 12, .06);
+  }
+
+  .pcal_info_full {
+    grid-column: 1 / -1;
+  }
+
+  .pcal_label {
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 950;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+
+  .pcal_value {
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.55;
+    font-weight: 850;
+    overflow-wrap: anywhere;
+  }
+
+  .pcal_badge {
+    display: inline-flex;
+    width: fit-content;
+    min-height: 28px;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: rgba(208, 173, 106, .16);
+    color: var(--gold-3);
+    border: 1px solid rgba(166, 125, 64, .22);
+    font-size: 12px;
+    font-weight: 950;
+    text-transform: uppercase;
+  }
+
+  .pcal_badge_done {
+    background: rgba(31, 199, 136, .12);
+    color: #0f766e;
+  }
+
+  .pcal_badge_cancelled {
+    background: rgba(255, 113, 120, .12);
+    color: #b91c1c;
+  }
+
+  .pcal_side {
+    display: grid;
+    gap: 14px;
+  }
+
+  .pcal_panel {
+    display: grid;
+    gap: 10px;
+    padding: 20px;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .pcal_panel h3 {
+    margin: 0;
+    color: var(--ink);
+    font-size: 18px;
+    font-weight: 950;
+    letter-spacing: -.02em;
+  }
+
+  .pcal_panel p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.65;
+  }
+
+  .pcal_link {
+    color: var(--gold-3);
+    font-weight: 950;
+    text-decoration: none;
+  }
+
+  .pcal_link:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 1020px) {
+    .pcal_hero,
+    .pcal_grid {
+      grid-template-columns: 1fr;
+    }
+
+    .pcal_actions {
+      justify-content: flex-start;
+    }
+  }
+
+  @media (max-width: 680px) {
+    .pcal_cards {
+      grid-template-columns: 1fr;
+    }
+
+    .pcal_hero,
+    .pcal_panel {
+      padding: 16px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="pcal_detail">
+  <section class="pcal_hero">
+    <div>
+      <span class="pcal_kicker">Platform Internal Event</span>
+      <h2>{{ event.title }}</h2>
+
+      <p>
+        CEO Marketing SaaS follow-up item. Use this page to edit, complete or cancel manual platform calendar tasks.
+      </p>
+    </div>
+
+    <div class="pcal_actions">
+      <a class="crm_button crm_button_secondary" href="{% url 'platform_calendar:list' %}">Back</a>
+
+      {% if can_edit_platform_calendar %}
+        <a class="crm_button" href="{% url 'platform_calendar:update' event.id_event %}">Edit</a>
+      {% endif %}
+
+      {% if can_edit_platform_calendar and not is_done and not is_cancelled %}
+        <form class="pcal_inline_form" method="post" action="{% url 'platform_calendar:done' event.id_event %}">
+          {% csrf_token %}
+          <button class="crm_button" type="submit">Mark Done</button>
+        </form>
+      {% endif %}
+
+      {% if can_delete_platform_calendar and not is_cancelled %}
+        <form class="pcal_inline_form" method="post" action="{% url 'platform_calendar:cancel' event.id_event %}">
+          {% csrf_token %}
+          <button class="crm_button crm_button_secondary" type="submit">Cancel</button>
+        </form>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="pcal_grid">
+    <div class="crm_card">
+      <h2 class="crm_section_title">Event Information</h2>
+
+      <div class="pcal_cards">
+        <article class="pcal_info">
+          <span class="pcal_label">Type</span>
+          <span class="pcal_value">{{ event.get_event_type_display }}</span>
+        </article>
+
+        <article class="pcal_info">
+          <span class="pcal_label">Status</span>
+          <span class="pcal_value">
+            <span class="pcal_badge {% if is_done %}pcal_badge_done{% endif %} {% if is_cancelled %}pcal_badge_cancelled{% endif %}">
+              {{ event.get_status_display }}
+            </span>
+          </span>
+        </article>
+
+        <article class="pcal_info">
+          <span class="pcal_label">Priority</span>
+          <span class="pcal_value">{{ event.get_priority_display }}</span>
+        </article>
+
+        <article class="pcal_info">
+          <span class="pcal_label">Start</span>
+          <span class="pcal_value">
+            {{ event.start_date|date:"Y-m-d" }}
+            {% if event.start_time %} · {{ event.start_time|time:"H:i" }}{% endif %}
+          </span>
+        </article>
+
+        <article class="pcal_info">
+          <span class="pcal_label">End</span>
+          <span class="pcal_value">
+            {% if event.end_date %}
+              {{ event.end_date|date:"Y-m-d" }}
+              {% if event.end_time %} · {{ event.end_time|time:"H:i" }}{% endif %}
+            {% else %}
+              No end date
+            {% endif %}
+          </span>
+        </article>
+
+        <article class="pcal_info">
+          <span class="pcal_label">Created By</span>
+          <span class="pcal_value">
+            {% if event.created_by %}
+              {{ event.created_by.email }}
+            {% else %}
+              System / Unknown
+            {% endif %}
+          </span>
+        </article>
+
+        <article class="pcal_info pcal_info_full">
+          <span class="pcal_label">Description</span>
+          <span class="pcal_value">{{ event.description|default:"No description added." }}</span>
+        </article>
+      </div>
+    </div>
+
+    <aside class="pcal_side">
+      <section class="pcal_panel">
+        <h3>Related Company</h3>
+
+        {% if event.id_company %}
+          <p>
+            <a class="pcal_link" href="{% url 'companies:company_detail' event.id_company.id_company %}">
+              {{ event.id_company.name }}
+            </a>
+          </p>
+
+          <p>
+            Workspace:
+            <strong>/{{ event.id_company.slug }}/dashboard/</strong>
+          </p>
+        {% else %}
+          <p>This event is not linked to a specific company.</p>
+        {% endif %}
+      </section>
+
+      <section class="pcal_panel">
+        <h3>Related Subscription</h3>
+
+        {% if event.id_subscription %}
+          <p>
+            <a class="pcal_link" href="{% url 'platform_subscriptions:detail' event.id_subscription.id_subscription %}">
+              Subscription #{{ event.id_subscription.id_subscription }}
+            </a>
+          </p>
+
+          {% if event.id_subscription.id_plan %}
+            <p>Plan: <strong>{{ event.id_subscription.id_plan.name }}</strong></p>
+          {% endif %}
+
+          <p>Renewal: <strong>{{ event.id_subscription.renewal_date|default:"No renewal date" }}</strong></p>
+        {% else %}
+          <p>This event is not linked to a specific subscription.</p>
+        {% endif %}
+      </section>
+
+      <section class="pcal_panel">
+        <h3>Calendar Note</h3>
+        <p>
+          Synthetic SaaS calendar items open their real module directly from the calendar:
+          subscriptions, payments, documents, notifications or company detail. This page is only for manual internal follow-up events.
+        </p>
+      </section>
+    </aside>
+  </section>
+</section>
+{% endblock %}

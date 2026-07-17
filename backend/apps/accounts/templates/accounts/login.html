@@ -1,0 +1,375 @@
+{% load static i18n %}
+<!DOCTYPE html>
+<html lang="{{ request.LANGUAGE_CODE|default:'en' }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <meta name="theme-color" content="#EEF6FF">
+  <title>{% trans "Sign in" %} | NexxtJob CRM</title>
+
+  <link rel="icon" href="{% static 'branding/nexxtjob-symbol.svg' %}" type="image/svg+xml">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="{% static 'css/nexxtjob-auth.css' %}">
+</head>
+
+<body class="nj-auth-body">
+  <div class="nj-auth-background" aria-hidden="true">
+    <span class="nj-ribbon nj-ribbon-one"></span>
+    <span class="nj-ribbon nj-ribbon-two"></span>
+    <span class="nj-ribbon nj-ribbon-three"></span>
+    <span class="nj-orbit nj-orbit-one"></span>
+    <span class="nj-orbit nj-orbit-two"></span>
+    <span class="nj-dot-field nj-dot-field-one"></span>
+    <span class="nj-dot-field nj-dot-field-two"></span>
+  </div>
+
+  <div class="nj-auth-page">
+    <main class="nj-auth-stage">
+      <section class="nj-auth-card" aria-label="{% trans 'Sign in form' %}">
+        <div class="nj-language-switch" aria-label="{% trans 'Interface language' %}">
+          <form method="post" action="{% url 'language_switch' %}">
+            {% csrf_token %}
+            <input type="hidden" name="language" value="en">
+            <input type="hidden" name="next" value="{% url 'login' %}?language=en">
+            <button
+              class="nj-language-button {% if request.LANGUAGE_CODE|slice:':2' == 'en' %}is-active{% endif %}"
+              type="submit"
+              aria-label="{% trans 'Use English' %}"
+              title="{% trans 'Use English' %}"
+            >EN</button>
+          </form>
+
+          <span class="nj-language-divider" aria-hidden="true"></span>
+
+          <form method="post" action="{% url 'language_switch' %}">
+            {% csrf_token %}
+            <input type="hidden" name="language" value="es">
+            <input type="hidden" name="next" value="{% url 'login' %}?language=es">
+            <button
+              class="nj-language-button {% if request.LANGUAGE_CODE|slice:':2' == 'es' %}is-active{% endif %}"
+              type="submit"
+              aria-label="{% trans 'Use Spanish' %}"
+              title="{% trans 'Use Spanish' %}"
+            >ES</button>
+          </form>
+        </div>
+
+        <aside class="nj-auth-brand-panel" aria-label="NexxtJob CRM">
+          <div class="nj-brand-glow nj-brand-glow-one" aria-hidden="true"></div>
+          <div class="nj-brand-glow nj-brand-glow-two" aria-hidden="true"></div>
+          <div class="nj-brand-grid" aria-hidden="true"></div>
+
+          <div class="nj-brand-content">
+            <div class="nj-product-logo-wrap">
+              <img
+                class="nj-product-logo"
+                src="{% static 'branding/nexxtjob-logo-white.svg' %}"
+                alt="NexxtJob CRM"
+              >
+            </div>
+
+            <div class="nj-brand-message">
+              <span class="nj-brand-eyebrow">
+                <i class="bi bi-stars" aria-hidden="true"></i>
+                {% trans "Your business, connected" %}
+              </span>
+
+              <h1>{% if request.LANGUAGE_CODE|slice:":2" == "es" %}Bienvenido.{% else %}{% trans "Welcome back." %}{% endif %}</h1>
+
+              <p>
+                {% trans "Access the workspace that keeps customers, jobs, estimates, invoices and payments organized in one secure place." %}
+              </p>
+            </div>
+
+            <div class="nj-brand-features" aria-label="NexxtJob CRM">
+              <div class="nj-brand-feature">
+                <span class="nj-feature-icon"><i class="bi bi-kanban" aria-hidden="true"></i></span>
+                <span>{% trans "One workspace for every job" %}</span>
+              </div>
+
+              <div class="nj-brand-feature">
+                <span class="nj-feature-icon"><i class="bi bi-shield-check" aria-hidden="true"></i></span>
+                <span>{% trans "Secure access and permissions" %}</span>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <section class="nj-auth-form-panel">
+          <div class="nj-auth-form-wrap">
+            <div class="nj-auth-mobile-brand">
+              <img src="{% static 'branding/nexxtjob-logo.svg' %}" alt="NexxtJob CRM">
+            </div>
+
+            <span class="nj-panel-kicker">
+              <i class="bi bi-shield-lock" aria-hidden="true"></i>
+              {% trans "Secure access" %}
+            </span>
+
+            <h2 class="nj-panel-title">{% if request.LANGUAGE_CODE|slice:":2" == "es" %}Inicio de sesión{% else %}{% trans "Sign in" %}{% endif %}</h2>
+
+            <p class="nj-panel-text">
+              {% trans "Enter the email and password assigned to your NexxtJob account." %}
+            </p>
+
+            <form class="nj-login-form" method="post" novalidate>
+              {% csrf_token %}
+
+              {% if form.non_field_errors %}
+                <div class="nj-form-error" role="alert">
+                  <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+                  <div>{{ form.non_field_errors }}</div>
+                </div>
+              {% endif %}
+
+              <div class="nj-field">
+                <label for="{{ form.username.id_for_label }}">{% trans "Email address" %}</label>
+
+                <div class="nj-input-wrap">
+                  <i class="bi bi-envelope" aria-hidden="true"></i>
+                  {{ form.username }}
+                </div>
+
+                {% if form.username.errors %}
+                  <div class="nj-field-error" role="alert">{{ form.username.errors }}</div>
+                {% endif %}
+              </div>
+
+              <div class="nj-field">
+                <label for="{{ form.password.id_for_label }}">{% trans "Password" %}</label>
+
+                <div class="nj-input-wrap">
+                  <i class="bi bi-lock" aria-hidden="true"></i>
+                  {{ form.password }}
+
+                  <button
+                    class="nj-password-toggle"
+                    type="button"
+                    data-password-toggle
+                    aria-label="{% trans 'Show password' %}"
+                    title="{% trans 'Show password' %}"
+                  >
+                    <i class="bi bi-eye" aria-hidden="true"></i>
+                  </button>
+                </div>
+
+                {% if form.password.errors %}
+                  <div class="nj-field-error" role="alert">{{ form.password.errors }}</div>
+                {% endif %}
+              </div>
+
+              <div class="nj-login-options">
+                <label class="nj-remember">
+                  <input type="checkbox" name="remember_me" value="1">
+                  <span>{% trans "Remember me" %}</span>
+                </label>
+
+                <a class="nj-forgot" href="{% url 'accounts:password_reset' %}">
+                  {% trans "Forgot your password?" %}
+                </a>
+              </div>
+
+              <button class="nj-primary-button" type="submit">
+                <span>{% trans "Sign in" %}</span>
+                <i class="bi bi-arrow-right" aria-hidden="true"></i>
+              </button>
+            </form>
+
+            <div class="nj-support-row">
+              <span class="nj-support-icon"><i class="bi bi-headset" aria-hidden="true"></i></span>
+              <div class="nj-support-copy">
+                <strong>{% trans "Need help accessing your account?" %}</strong>
+                <span>{% trans "Contact DevLayer Studio technical support." %}</span>
+              </div>
+              <button class="nj-support-button" type="button" data-support-open>
+                <i class="bi bi-whatsapp" aria-hidden="true"></i>
+                <span>{% trans "Support" %}</span>
+              </button>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <footer class="nj-auth-footer">
+      <span>{% trans "Developed by" %}</span>
+      <img src="{% static 'branding/devlayer-studio.png' %}" alt="DevLayer Studio">
+      <span class="nj-footer-separator" aria-hidden="true"></span>
+      <span>&copy; {% now "Y" %} NexxtJob CRM</span>
+    </footer>
+  </div>
+
+  <div
+    class="nj-support-modal"
+    id="njSupportModal"
+    aria-hidden="true"
+    data-default-message="{% trans 'I am having trouble signing in to my NexxtJob account.' %}"
+    data-greeting="{% trans 'Hello, I need technical support with NexxtJob CRM.' %}"
+    data-topic-label="{% trans 'Support topic:' %}"
+    data-name-label="{% trans 'Name:' %}"
+    data-email-label="{% trans 'Email:' %}"
+    data-company-label="{% trans 'Company:' %}"
+    data-message-label="{% trans 'Message:' %}"
+  >
+    <div class="nj-support-backdrop" data-support-close></div>
+
+    <div class="nj-support-dialog" role="dialog" aria-modal="true" aria-labelledby="njSupportTitle">
+      <div class="nj-support-head">
+        <div>
+          <h3 id="njSupportTitle">{% trans "Technical support" %}</h3>
+          <p>{% trans "Complete the information below and NexxtJob will prepare your WhatsApp support message." %}</p>
+        </div>
+
+        <button class="nj-support-close" type="button" data-support-close aria-label="{% trans 'Close support form' %}">
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <form class="nj-support-form" id="njSupportForm">
+        <label class="nj-support-field">
+          <span>{% trans "Name" %}</span>
+          <input class="nj-support-input" type="text" id="supportName" placeholder="{% trans 'Your name' %}">
+        </label>
+
+        <label class="nj-support-field">
+          <span>{% trans "Email" %}</span>
+          <input class="nj-support-input" type="email" id="supportEmail" placeholder="name@company.com">
+        </label>
+
+        <label class="nj-support-field">
+          <span>{% trans "Company" %}</span>
+          <input class="nj-support-input" type="text" id="supportCompany" placeholder="{% trans 'Company name' %}">
+        </label>
+
+        <label class="nj-support-field">
+          <span>{% trans "Support topic" %}</span>
+          <select class="nj-support-input" id="supportTopic">
+            <option value="Login issue">{% trans "Sign in issue" %}</option>
+            <option value="Password reset issue">{% trans "Password reset issue" %}</option>
+            <option value="Suspended or inactive account">{% trans "Suspended or inactive account" %}</option>
+            <option value="Company access issue">{% trans "Company access issue" %}</option>
+            <option value="Other CRM support request">{% trans "Other support request" %}</option>
+          </select>
+        </label>
+
+        <label class="nj-support-field nj-support-field-full">
+          <span>{% trans "Message" %}</span>
+          <textarea class="nj-support-input" id="supportMessage" placeholder="{% trans 'Briefly describe the issue' %}"></textarea>
+        </label>
+
+        <button class="nj-primary-button nj-support-submit" type="submit">
+          <i class="bi bi-whatsapp" aria-hidden="true"></i>
+          <span>{% trans "Open WhatsApp" %}</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const passwordInput = document.getElementById("{{ form.password.id_for_label }}");
+      const passwordToggle = document.querySelector("[data-password-toggle]");
+      const emailInput = document.getElementById("{{ form.username.id_for_label }}");
+
+      if (passwordToggle && passwordInput) {
+        passwordToggle.addEventListener("click", function () {
+          const isPassword = passwordInput.type === "password";
+          passwordInput.type = isPassword ? "text" : "password";
+          passwordToggle.innerHTML = isPassword
+            ? '<i class="bi bi-eye-slash" aria-hidden="true"></i>'
+            : '<i class="bi bi-eye" aria-hidden="true"></i>';
+          passwordToggle.setAttribute(
+            "aria-label",
+            isPassword ? "{% trans 'Hide password' %}" : "{% trans 'Show password' %}"
+          );
+        });
+      }
+
+      const modal = document.getElementById("njSupportModal");
+      const form = document.getElementById("njSupportForm");
+      const openButtons = document.querySelectorAll("[data-support-open]");
+      const closeButtons = document.querySelectorAll("[data-support-close]");
+      const supportName = document.getElementById("supportName");
+      const supportEmail = document.getElementById("supportEmail");
+      const supportCompany = document.getElementById("supportCompany");
+      const supportTopic = document.getElementById("supportTopic");
+      const supportMessage = document.getElementById("supportMessage");
+      const supportPhone = "18622136814";
+      const copy = modal ? modal.dataset : {};
+
+      function openModal() {
+        if (!modal) return;
+        modal.classList.add("is-open");
+        modal.setAttribute("aria-hidden", "false");
+        document.body.style.overflow = "hidden";
+
+        if (supportEmail && emailInput && emailInput.value) {
+          supportEmail.value = emailInput.value.trim();
+        }
+
+        if (supportMessage && !supportMessage.value) {
+          supportMessage.value = copy.defaultMessage || "I am having trouble signing in to my NexxtJob account.";
+        }
+
+        window.setTimeout(function () {
+          if (supportName) supportName.focus();
+        }, 80);
+      }
+
+      function closeModal() {
+        if (!modal) return;
+        modal.classList.remove("is-open");
+        modal.setAttribute("aria-hidden", "true");
+        document.body.style.overflow = "";
+      }
+
+      function valueOf(input) {
+        return input && input.value ? input.value.trim() : "";
+      }
+
+      openButtons.forEach(function (button) {
+        button.addEventListener("click", openModal);
+      });
+
+      closeButtons.forEach(function (button) {
+        button.addEventListener("click", closeModal);
+      });
+
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") closeModal();
+      });
+
+      if (form) {
+        form.addEventListener("submit", function (event) {
+          event.preventDefault();
+
+          const name = valueOf(supportName);
+          const email = valueOf(supportEmail);
+          const company = valueOf(supportCompany);
+          const topic = supportTopic && supportTopic.selectedOptions.length
+            ? supportTopic.selectedOptions[0].textContent.trim()
+            : "Sign in issue";
+          const message = valueOf(supportMessage) || copy.defaultMessage || "I am having trouble signing in to my NexxtJob account.";
+
+          let finalMessage = copy.greeting || "Hello, I need technical support with NexxtJob CRM.";
+          finalMessage += "\n\n" + (copy.topicLabel || "Support topic:") + " " + topic;
+
+          if (name) finalMessage += "\n" + (copy.nameLabel || "Name:") + " " + name;
+          if (email) finalMessage += "\n" + (copy.emailLabel || "Email:") + " " + email;
+          if (company) finalMessage += "\n" + (copy.companyLabel || "Company:") + " " + company;
+
+          finalMessage += "\n" + (copy.messageLabel || "Message:") + " " + message;
+
+          window.open(
+            "https://wa.me/" + supportPhone + "?text=" + encodeURIComponent(finalMessage),
+            "_blank",
+            "noopener,noreferrer"
+          );
+          closeModal();
+        });
+      }
+    });
+  </script>
+</body>
+</html>

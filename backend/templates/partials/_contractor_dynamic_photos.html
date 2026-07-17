@@ -1,0 +1,36 @@
+<div class="delivery-new-photos">
+  <div class="delivery-section-head">
+    <div>
+      <strong>Add photos</strong>
+      <small>Up to {{ contractor_photo_limit }} total. Every new upload is converted to lightweight WebP.</small>
+    </div>
+    <span>{{ contractor_photo_remaining }} available</span>
+  </div>
+
+  {% if contractor_photo_remaining > 0 %}
+    <div class="delivery-photo-rows" data-photo-rows data-max="{{ contractor_photo_remaining }}"></div>
+    <button class="delivery-add-photo" type="button" data-add-photo>
+      <i class="bi bi-plus-circle"></i> Add another photo
+    </button>
+    <template data-photo-template>
+      <article class="delivery-photo-row" data-photo-row>
+        <div class="delivery-photo-preview-wrap">
+          <img class="delivery-photo-preview" data-photo-preview hidden alt="Selected photo preview">
+          <div class="delivery-photo-placeholder"><i class="bi bi-image"></i><span data-photo-name>No photo selected</span></div>
+        </div>
+        <div class="delivery-photo-fields">
+          <div class="delivery-picker-actions">
+            <button type="button" data-open-camera><i class="bi bi-camera-fill"></i> Take photo</button>
+            <button type="button" data-open-gallery><i class="bi bi-images"></i> Choose photo</button>
+          </div>
+          <input class="delivery-file-input" type="file" name="photo___INDEX__" accept="image/*">
+          <label for="PhotoDescription__INDEX__">Description <span>optional</span></label>
+          <textarea id="PhotoDescription__INDEX__" name="description___INDEX__" rows="2" placeholder="Example: damaged flashing on the north side"></textarea>
+          <button class="delivery-remove-photo" type="button" data-remove-photo><i class="bi bi-x-lg"></i> Remove this space</button>
+        </div>
+      </article>
+    </template>
+  {% else %}
+    <div class="delivery-limit-note"><i class="bi bi-check-circle"></i> The five-photo limit has been reached.</div>
+  {% endif %}
+</div>

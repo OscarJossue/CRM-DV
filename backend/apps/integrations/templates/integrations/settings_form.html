@@ -1,0 +1,30 @@
+{% extends "layouts/base.html" %}
+{% block page_title %}Google Tool Settings{% endblock %}
+{% block page_subtitle %}Calendar, Drive and Analytics settings for this company.{% endblock %}
+{% block extra_head %}{% include "integrations/partials/_design_system.html" %}{% endblock %}
+{% block content %}
+<form class="account_theme integration_theme account_form" method="post" autocomplete="off">
+  {% csrf_token %}
+  <div class="account_toolbar">
+    <div class="account_toolbar_title"><h2>Google Tool Settings</h2><p>Only enabled integration IDs are editable here.</p></div>
+    <a class="integration_icon_action" href="../" data-tooltip="Cancel" aria-label="Cancel"><svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></a>
+  </div>
+  <section class="crm_card">
+    <div class="integration_form_grid">
+      {% for field in form %}
+        <div class="integration_form_field">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}<span class="account_muted">{{ field.help_text }}</span>{% endif %}
+          {% if field.errors %}<div class="integration_error">{{ field.errors }}</div>{% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+  <section class="crm_card">
+    <div class="integration_inline">
+      <button class="account_button" type="submit"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>Save Settings</button>
+    </div>
+  </section>
+</form>
+{% endblock %}

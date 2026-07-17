@@ -1,0 +1,545 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ page_title|default:"Estimate Review" }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+  <style>
+    :root {
+      --estimate-ink:#212227;
+      --estimate-muted:#637074;
+      --estimate-blue:#48658f;
+      --estimate-blue-soft:#bdd4e7;
+      --estimate-line:#d6dde8;
+      --estimate-bg:#eef3f8;
+      --estimate-card:#ffffff;
+      --estimate-success:#0f766e;
+      --estimate-success-bg:#dcfce7;
+      --estimate-danger:#b91c1c;
+      --estimate-danger-bg:#fee2e2;
+      --estimate-warning:#b45309;
+      --estimate-warning-bg:#fef3c7;
+    }
+
+    * { box-sizing:border-box; }
+
+    body {
+      margin:0;
+      min-height:100vh;
+      background: radial-gradient(circle at top left, rgba(189,212,231,.48), transparent 32%), var(--estimate-bg);
+      color:var(--estimate-ink);
+      font-family: Arial, sans-serif;
+    }
+
+    .public_estimate_shell {
+      width:100%;
+      min-height:100vh;
+      padding:36px 5%;
+    }
+
+    .public_estimate_container {
+      width:100%;
+      max-width:1120px;
+      margin:0 auto;
+      display:grid;
+      gap:18px;
+    }
+
+    .public_estimate_card {
+      background:var(--estimate-card);
+      border:1px solid var(--estimate-line);
+      border-radius:26px;
+      box-shadow:0 22px 70px rgba(33,34,39,.10);
+      overflow:hidden;
+    }
+
+    .public_estimate_header {
+      padding:30px;
+      background:linear-gradient(135deg, #212227 0%, #48658f 100%);
+      color:#ffffff;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:20px;
+      flex-wrap:wrap;
+    }
+
+    .public_estimate_kicker {
+      margin:0;
+      font-size:12px;
+      font-weight:900;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      opacity:.82;
+    }
+
+    .public_estimate_title {
+      margin:8px 0 0;
+      font-size:clamp(28px, 4vw, 44px);
+      font-weight:900;
+      line-height:1.04;
+      letter-spacing:-.04em;
+    }
+
+    .public_estimate_subtitle {
+      margin:10px 0 0;
+      max-width:680px;
+      font-size:15px;
+      line-height:1.65;
+      opacity:.92;
+    }
+
+    .public_status {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:34px;
+      padding:8px 14px;
+      border-radius:999px;
+      background:#e5e7eb;
+      color:#111827;
+      font-size:12px;
+      font-weight:900;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      white-space:nowrap;
+    }
+
+    .public_status_sent,
+    .public_status_viewed { background:#dbeafe;color:#1d4ed8; }
+    .public_status_approved { background:var(--estimate-success-bg);color:#166534; }
+    .public_status_rejected,
+    .public_status_cancelled,
+    .public_status_expired { background:var(--estimate-danger-bg);color:#991b1b; }
+    .public_status_pending,
+    .public_status_pending_send { background:var(--estimate-warning-bg);color:#92400e; }
+    .public_status_converted { background:#ede9fe;color:#6d28d9; }
+
+    .public_estimate_body {
+      padding:28px 30px 32px;
+      display:grid;
+      gap:20px;
+    }
+
+    .public_alert {
+      padding:15px 18px;
+      border-radius:18px;
+      border:1px solid var(--estimate-line);
+      background:#f8fafc;
+      color:var(--estimate-muted);
+      font-size:14px;
+      line-height:1.6;
+      font-weight:700;
+    }
+
+    .public_alert_success { background:var(--estimate-success-bg);border-color:#bbf7d0;color:#166534; }
+    .public_alert_danger { background:var(--estimate-danger-bg);border-color:#fecaca;color:#991b1b; }
+    .public_alert_warning { background:var(--estimate-warning-bg);border-color:#fde68a;color:#92400e; }
+
+    .public_grid {
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:16px;
+    }
+
+    .public_info_box {
+      border:1px solid var(--estimate-line);
+      border-radius:20px;
+      padding:18px;
+      background:linear-gradient(180deg,#fff 0%,#fbfdff 100%);
+      display:grid;
+      gap:10px;
+    }
+
+    .public_box_title {
+      margin:0 0 4px;
+      font-size:18px;
+      font-weight:900;
+      color:var(--estimate-ink);
+    }
+
+    .public_info_row {
+      display:flex;
+      justify-content:space-between;
+      gap:16px;
+      padding:9px 0;
+      border-bottom:1px solid rgba(214,221,232,.72);
+      font-size:14px;
+    }
+
+    .public_info_row:last-child { border-bottom:none; }
+    .public_info_row span:first-child { color:var(--estimate-muted);font-weight:800; }
+    .public_info_row span:last-child { color:var(--estimate-ink);font-weight:900;text-align:right; }
+
+    .public_section_title {
+      margin:0 0 10px;
+      font-size:22px;
+      font-weight:900;
+      color:var(--estimate-ink);
+      letter-spacing:-.02em;
+    }
+
+    .public_description {
+      margin:0;
+      white-space:pre-line;
+      color:#374151;
+      line-height:1.7;
+      font-size:15px;
+      font-weight:600;
+    }
+
+    .public_items_wrap { width:100%;overflow:auto; }
+
+    .public_items_table {
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0 10px;
+      min-width:740px;
+    }
+
+    .public_items_table th {
+      padding:0 14px 8px;
+      color:var(--estimate-muted);
+      font-size:11px;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    .public_items_table td {
+      padding:14px;
+      background:#ffffff;
+      border-top:1px solid var(--estimate-line);
+      border-bottom:1px solid var(--estimate-line);
+      font-size:14px;
+      font-weight:700;
+      vertical-align:middle;
+    }
+
+    .public_items_table td:first-child { border-left:1px solid var(--estimate-line);border-radius:16px 0 0 16px; }
+    .public_items_table td:last-child { border-right:1px solid var(--estimate-line);border-radius:0 16px 16px 0;text-align:right;font-weight:900; }
+    .money_cell { text-align:right;font-weight:900; }
+
+    .public_summary_grid {
+      display:grid;
+      grid-template-columns:repeat(4, minmax(0, 1fr));
+      gap:12px;
+    }
+
+    .public_summary_box {
+      border:1px solid var(--estimate-line);
+      border-radius:18px;
+      background:#ffffff;
+      padding:16px;
+    }
+
+    .public_summary_box span:first-child {
+      display:block;
+      color:var(--estimate-muted);
+      font-size:11px;
+      font-weight:900;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+
+    .public_summary_box span:last-child {
+      display:block;
+      margin-top:6px;
+      color:var(--estimate-ink);
+      font-size:18px;
+      font-weight:900;
+    }
+
+    .public_summary_total { background:linear-gradient(180deg,rgba(189,212,231,.58) 0%, #fff 100%); }
+
+    .public_actions {
+      display:flex;
+      justify-content:flex-end;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:12px;
+      padding:22px 30px;
+      border-top:1px solid var(--estimate-line);
+      background:#f8fafc;
+    }
+
+    .public_btn {
+      min-height:42px;
+      border:none;
+      border-radius:999px;
+      padding:11px 22px;
+      font-size:14px;
+      font-weight:900;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      transition:transform .18s ease, filter .18s ease;
+    }
+
+    .public_btn:hover { transform:translateY(-1px);filter:brightness(.96); }
+    .public_btn_success { background:var(--estimate-success);color:#ffffff; }
+    .public_btn_danger { background:#dc2626;color:#ffffff; }
+    .public_btn_secondary { background:#e5e7eb;color:#111827; }
+
+    .public_modal {
+      position:fixed;
+      inset:0;
+      z-index:9999;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:22px;
+      background:rgba(33,34,39,.64);
+    }
+
+    .public_modal.is_open { display:flex; }
+
+    .public_modal_card {
+      width:100%;
+      max-width:560px;
+      border-radius:24px;
+      background:#ffffff;
+      box-shadow:0 34px 90px rgba(15,23,42,.32);
+      overflow:hidden;
+    }
+
+    .public_modal_header {
+      padding:22px 24px;
+      border-bottom:1px solid var(--estimate-line);
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      align-items:center;
+    }
+
+    .public_modal_header h3 { margin:0;font-size:22px;font-weight:900; }
+    .public_modal_close { border:none;background:#e5e7eb;border-radius:999px;width:34px;height:34px;font-weight:900; }
+    .public_modal_body { padding:22px 24px;display:grid;gap:14px; }
+    .public_modal_body p { margin:0;color:var(--estimate-muted);line-height:1.6;font-weight:700; }
+    .public_modal_body textarea {
+      width:100%;
+      min-height:130px;
+      border:1px solid var(--estimate-line);
+      border-radius:16px;
+      padding:12px 14px;
+      font:inherit;
+      resize:vertical;
+    }
+
+    .public_modal_actions {
+      display:flex;
+      justify-content:flex-end;
+      flex-wrap:wrap;
+      gap:10px;
+      padding:18px 24px 24px;
+    }
+
+    @media (max-width:860px) {
+      .public_estimate_header,.public_estimate_body,.public_actions { padding:22px; }
+      .public_grid,.public_summary_grid { grid-template-columns:1fr; }
+      .public_actions { justify-content:stretch; }
+      .public_actions .public_btn { width:100%; }
+    }
+  </style>
+  {% include "components/_invoice_action_system.html" %}
+</head>
+<body>
+<div class="public_estimate_shell">
+  <div class="public_estimate_container">
+    <article class="public_estimate_card">
+      <header class="public_estimate_header">
+        <div>
+          <p class="public_estimate_kicker">Estimate {{ estimate.estimate_number|default:estimate.id_estimate }}</p>
+          <h1 class="public_estimate_title">
+            {% if estimate.project_name %}{{ estimate.project_name }}{% elif estimate.id_project %}{{ estimate.id_project.name }}{% else %}Project Estimate{% endif %}
+          </h1>
+          <p class="public_estimate_subtitle">
+            Please review the estimate information below. You may approve or reject this estimate while the review link is active.
+          </p>
+        </div>
+        <span class="public_status public_status_{{ estimate.status }}">
+          {% if estimate.status == "cancelled" %}Void{% elif estimate.status == "pending" %}Pending Send{% else %}{{ estimate.get_status_display }}{% endif %}
+        </span>
+      </header>
+
+      <div class="public_estimate_body">
+        {% if decision_error %}
+          <div class="public_alert public_alert_danger">{{ decision_error }}</div>
+        {% endif %}
+        {% if rejection_error %}
+          <div class="public_alert public_alert_danger">{{ rejection_error }}</div>
+        {% endif %}
+
+        {% if estimate.status == "approved" %}
+          <div class="public_alert public_alert_success">This estimate has already been approved. The review link is now view-only.</div>
+        {% elif estimate.status == "rejected" %}
+          <div class="public_alert public_alert_danger">This estimate has already been rejected. The review link is now view-only.</div>
+        {% elif estimate.status == "converted" %}
+          <div class="public_alert public_alert_success">This estimate has already been converted. The review link is now view-only.</div>
+        {% elif estimate.status == "cancelled" or estimate.status == "expired" %}
+          <div class="public_alert public_alert_warning">This estimate can no longer be approved or rejected.</div>
+        {% endif %}
+
+        <section class="public_grid">
+          <div class="public_info_box">
+            <h2 class="public_box_title">Client</h2>
+            <div class="public_info_row"><span>Name</span><span>{{ estimate.client_billing_name|default:estimate.id_client.name }}</span></div>
+            <div class="public_info_row"><span>Email</span><span>{{ estimate.client_billing_email|default:"-" }}</span></div>
+            <div class="public_info_row"><span>Phone</span><span>{{ estimate.client_billing_phone|default:"-" }}</span></div>
+            <div class="public_info_row"><span>Address</span><span>{{ estimate.client_billing_address|default:"-" }}</span></div>
+          </div>
+
+          <div class="public_info_box">
+            <h2 class="public_box_title">Estimate</h2>
+            <div class="public_info_row"><span>Issue Date</span><span>{{ estimate.issue_date|date:"Y-m-d" }}</span></div>
+            <div class="public_info_row"><span>Expiration</span><span>{{ estimate.expiration_date|date:"Y-m-d"|default:"-" }}</span></div>
+            <div class="public_info_row"><span>Project</span><span>{% if estimate.project_name %}{{ estimate.project_name }}{% elif estimate.id_project %}{{ estimate.id_project.name }}{% else %}-{% endif %}</span></div>
+            <div class="public_info_row"><span>Company</span><span>{{ estimate.id_company.name|default:"Company" }}</span></div>
+          </div>
+        </section>
+
+        {% if estimate.description %}
+          <section class="public_info_box">
+            <h2 class="public_section_title">Scope / Description</h2>
+            <p class="public_description">{{ estimate.description }}</p>
+          </section>
+        {% endif %}
+
+        <section>
+          <h2 class="public_section_title">Estimate Items</h2>
+          <div class="public_items_wrap">
+            <table class="public_items_table">
+              <thead>
+                <tr>
+                  <th>Description</th>
+                  <th>Quantity</th>
+                  <th>Unit Price</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in estimate.items.all %}
+                  <tr>
+                    <td>{{ item.description }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td class="money_cell">${{ item.unit_price }}</td>
+                    <td class="money_cell">${{ item.total }}</td>
+                  </tr>
+                {% empty %}
+                  {% for item in estimate.detail_items %}
+                    <tr>
+                      <td>{{ item.description }}</td>
+                      <td>{{ item.quantity }}</td>
+                      <td class="money_cell">${{ item.unit_price }}</td>
+                      <td class="money_cell">${{ item.total }}</td>
+                    </tr>
+                  {% empty %}
+                    <tr><td colspan="4">No items added.</td></tr>
+                  {% endfor %}
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="public_summary_grid">
+          <div class="public_summary_box"><span>Subtotal</span><span>${{ estimate.subtotal }}</span></div>
+          <div class="public_summary_box"><span>Discount</span><span>${{ estimate.discount_amount }}</span></div>
+          <div class="public_summary_box"><span>Tax</span><span>${{ estimate.tax }}</span></div>
+          <div class="public_summary_box public_summary_total"><span>Total</span><span>${{ estimate.total }}</span></div>
+        </section>
+
+        {% if estimate.notes %}
+          <section class="public_info_box">
+            <h2 class="public_section_title">Notes / Terms</h2>
+            <p class="public_description">{{ estimate.notes }}</p>
+          </section>
+        {% endif %}
+
+        {% if estimate.rejection_reason %}
+          <section class="public_alert public_alert_danger">
+            <strong>Rejection Reason:</strong><br>
+            {{ estimate.rejection_reason }}
+          </section>
+        {% endif %}
+      </div>
+
+      <footer class="public_actions">
+        {% if can_customer_decide %}
+          <button class="public_btn public_btn_danger" type="button" id="OpenRejectModal">Reject</button>
+          <form method="post" action="{{ public_approve_url }}" style="margin:0;">
+            {% csrf_token %}
+            <button class="public_btn public_btn_success" type="submit">Approve Estimate</button>
+          </form>
+        {% else %}
+          <span class="public_alert" style="margin:0;">This estimate is available for viewing only.</span>
+        {% endif %}
+      </footer>
+    </article>
+  </div>
+</div>
+
+{% if can_customer_decide %}
+  <div class="public_modal" id="RejectModal" aria-hidden="true">
+    <div class="public_modal_card" role="dialog" aria-modal="true" aria-labelledby="RejectModalTitle">
+      <form method="post" action="{{ public_reject_url }}">
+        {% csrf_token %}
+        <div class="public_modal_header">
+          <h3 id="RejectModalTitle">Reject Estimate</h3>
+          <button class="public_modal_close" type="button" id="CloseRejectModal">×</button>
+        </div>
+        <div class="public_modal_body">
+          <p>Please tell us why you are rejecting this estimate. The reason is required so the company can revise the proforma if needed.</p>
+          <textarea name="rejection_reason" required placeholder="Write the rejection reason here...">{{ rejection_reason|default:"" }}</textarea>
+        </div>
+        <div class="public_modal_actions">
+          <button class="public_btn public_btn_secondary" type="button" id="CancelRejectModal">Cancel</button>
+          <button class="public_btn public_btn_danger" type="submit">Submit Rejection</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const modal = document.getElementById("RejectModal");
+      const openBtn = document.getElementById("OpenRejectModal");
+      const closeBtn = document.getElementById("CloseRejectModal");
+      const cancelBtn = document.getElementById("CancelRejectModal");
+
+      function openModal() {
+        modal.classList.add("is_open");
+        modal.setAttribute("aria-hidden", "false");
+      }
+
+      function closeModal() {
+        modal.classList.remove("is_open");
+        modal.setAttribute("aria-hidden", "true");
+      }
+
+      if (openBtn) openBtn.addEventListener("click", openModal);
+      if (closeBtn) closeBtn.addEventListener("click", closeModal);
+      if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
+      if (modal) {
+        modal.addEventListener("click", function (event) {
+          if (event.target === modal) closeModal();
+        });
+      }
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") closeModal();
+      });
+
+      {% if rejection_error %}
+        openModal();
+      {% endif %}
+    });
+  </script>
+{% endif %}
+
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html>

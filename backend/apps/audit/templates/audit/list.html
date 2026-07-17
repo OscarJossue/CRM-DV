@@ -1,0 +1,169 @@
+{% extends "layouts/base.html" %}
+{% load core_i18n %}
+
+{% block page_title %}History{% endblock %}
+
+{% block page_subtitle %}
+Review the activity performed inside your company.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .history_page{display:grid;gap:12px}
+  .history_tools{display:grid;gap:9px;padding:12px;border:1px solid var(--crm_border);border-radius:14px;background:var(--crm_surface);box-shadow:var(--crm_shadow_soft)}
+  .history_filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .history_control{height:38px;min-width:132px;padding:7px 10px;border:1px solid var(--crm_border);border-radius:9px;background:var(--crm_surface);color:var(--crm_text);font-size:12px;outline:none}
+  .history_control.search{flex:1 1 260px;min-width:210px}
+  .history_control.user{flex:0 1 190px}
+  .history_control:focus{border-color:var(--crm_primary);box-shadow:0 0 0 3px rgba(31,58,138,.1)}
+  .history_button{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:38px;padding:0 12px;border:1px solid var(--crm_border);border-radius:9px;background:var(--crm_surface);color:var(--crm_text);font-size:12px;font-weight:800;text-decoration:none;white-space:nowrap;cursor:pointer}
+  .history_button.primary{border-color:var(--crm_primary);background:var(--crm_primary);color:#fff}
+  .history_tools_meta{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;color:var(--crm_muted);font-size:11px}
+  .history_tools_actions{display:flex;gap:7px;align-items:center}
+
+  .history_log{overflow:hidden;border:1px solid var(--crm_border);border-radius:14px;background:var(--crm_surface);box-shadow:var(--crm_shadow_soft)}
+  .history_log_header,.history_log_row{display:grid;grid-template-columns:142px 205px minmax(260px,1fr) 165px;gap:12px;align-items:start}
+  .history_log_header{padding:9px 12px;border-bottom:1px solid var(--crm_border);background:var(--crm_surface_soft,rgba(148,163,184,.08));color:var(--crm_muted);font-size:10px;font-weight:900;letter-spacing:.06em;text-transform:uppercase}
+  .history_log_row{padding:10px 12px;border-bottom:1px solid var(--crm_border)}
+  .history_log_row:last-child{border-bottom:0}
+  .history_log_row:hover{background:rgba(31,58,138,.025)}
+  .history_time{display:grid;gap:2px;font-size:11px;color:var(--crm_muted)}
+  .history_time strong{font-size:12px;color:var(--crm_text)}
+  .history_actor{display:grid;gap:2px;min-width:0;font-size:11px;color:var(--crm_muted)}
+  .history_actor strong{overflow:hidden;color:var(--crm_text);font-size:12px;text-overflow:ellipsis;white-space:nowrap}
+  .history_event{display:grid;gap:5px;min-width:0}
+  .history_event_top{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .history_badge{display:inline-flex;align-items:center;min-height:21px;padding:2px 7px;border:1px solid var(--crm_border);border-radius:999px;background:var(--crm_surface);color:var(--crm_muted);font-size:10px;font-weight:900;line-height:1}
+  .history_badge.critical,.history_badge.security{border-color:rgba(220,38,38,.24);background:rgba(220,38,38,.08);color:#b91c1c}
+  .history_badge.warning{border-color:rgba(217,119,6,.24);background:rgba(217,119,6,.08);color:#b45309}
+  .history_target{color:var(--crm_text);font-size:12px;font-weight:850;overflow-wrap:anywhere}
+  .history_action{color:var(--crm_muted);font-size:10px;overflow-wrap:anywhere}
+  .history_changes{display:grid;gap:2px;margin-top:1px}
+  .history_change{display:flex;gap:5px;align-items:baseline;min-width:0;color:var(--crm_muted);font-size:10px;line-height:1.35;overflow-wrap:anywhere}
+  .history_change b{flex:0 0 auto;color:var(--crm_text);font-weight:800}
+  .history_old{color:#b91c1c;text-decoration:line-through;text-decoration-thickness:1px}
+  .history_new{color:#047857;font-weight:750}
+  .history_arrow{color:var(--crm_muted)}
+  .history_meta{display:grid;justify-items:start;gap:4px;color:var(--crm_muted);font-size:10px}
+  .history_meta span{display:inline-flex;align-items:center;gap:5px;max-width:100%;overflow-wrap:anywhere}
+  .history_result{font-weight:850;text-transform:capitalize}
+  .history_empty{padding:34px 18px;text-align:center;color:var(--crm_muted)}
+  .history_empty i{display:block;margin-bottom:7px;font-size:26px}
+  .history_empty strong{display:block;margin-bottom:3px;color:var(--crm_text)}
+
+  .history_pagination{display:flex;justify-content:center;align-items:center;gap:6px;flex-wrap:wrap}
+  .history_page_link{display:grid;place-items:center;min-width:34px;height:34px;padding:0 8px;border:1px solid var(--crm_border);border-radius:8px;background:var(--crm_surface);color:var(--crm_text);font-size:11px;font-weight:900;text-decoration:none}
+  .history_page_link.active{border-color:var(--crm_primary);background:var(--crm_primary);color:#fff}
+
+  @media(max-width:1050px){
+    .history_log_header{display:none}
+    .history_log_row{grid-template-columns:125px minmax(150px,190px) minmax(0,1fr)}
+    .history_meta{grid-column:3}
+  }
+  @media(max-width:720px){
+    .history_log_row{grid-template-columns:1fr;gap:7px}
+    .history_meta{grid-column:auto;display:flex;flex-wrap:wrap;gap:7px 12px}
+    .history_actor strong{white-space:normal}
+    .history_control,.history_control.search,.history_control.user{flex:1 1 100%;width:100%}
+    .history_tools_actions{width:100%}.history_button{flex:1}
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="history_page">
+  <section class="history_tools">
+    <form class="history_filters" method="get">
+      <input class="history_control search" type="search" name="q" value="{{ request.GET.q }}" placeholder="Search user, record, module or IP">
+      <select class="history_control user" name="user" aria-label="User">
+        <option value="">All users</option>
+        {% for actor in history_filters.actors %}
+          <option value="{{ actor.id_user }}" {% if request.GET.user == actor.id_user|stringformat:'s' %}selected{% endif %}>{{ actor.actor_name|default:actor.actor_email|default:actor.id_user__email }}</option>
+        {% endfor %}
+      </select>
+      <select class="history_control" name="module" aria-label="Module">
+        <option value="">All modules</option>
+        {% for module in history_filters.modules %}<option value="{{ module }}" {% if request.GET.module == module %}selected{% endif %}>{{ module|title|ui_trans }}</option>{% endfor %}
+      </select>
+      <select class="history_control" name="action_type" aria-label="Action">
+        <option value="">All actions</option>
+        {% for value,label in action_type_choices %}<option value="{{ value }}" {% if request.GET.action_type == value %}selected{% endif %}>{{ label|ui_trans }}</option>{% endfor %}
+      </select>
+      <select class="history_control" name="severity" aria-label="Severity">
+        <option value="">All severities</option>
+        {% for value,label in severity_choices %}<option value="{{ value }}" {% if request.GET.severity == value %}selected{% endif %}>{{ label|ui_trans }}</option>{% endfor %}
+      </select>
+      <input class="history_control" type="date" name="date_from" value="{{ request.GET.date_from }}" aria-label="From date">
+      <input class="history_control" type="date" name="date_to" value="{{ request.GET.date_to }}" aria-label="To date">
+      <button class="history_button primary" type="submit"><i class="bi bi-funnel"></i> Filter</button>
+    </form>
+    <div class="history_tools_meta">
+      <span>{{ page_obj.paginator.count|default:0 }} record{{ page_obj.paginator.count|pluralize }} · Normal: {{ normal_retention_days }} days · Critical: {{ critical_retention_days }} days</span>
+      <div class="history_tools_actions">
+        <a class="history_button" href="{% if crm_current_company and crm_current_company.slug %}/{{ crm_current_company.slug }}/system-logs/{% else %}{% url 'audit:system_log_list' %}{% endif %}"><i class="bi bi-arrow-counterclockwise"></i> Clear</a>
+        <a class="history_button" href="{{ history_export_url }}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}{% endif %}"><i class="bi bi-download"></i> CSV</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="history_log">
+    <div class="history_log_header"><span>Date</span><span>User</span><span>Activity</span><span>Data</span></div>
+    {% for system_log in system_logs %}
+      <article class="history_log_row">
+        <div class="history_time">
+          <strong>{{ system_log.created_at|date:"M d, Y" }}</strong>
+          <span>{{ system_log.created_at|date:"H:i:s" }}</span>
+        </div>
+
+        <div class="history_actor">
+          <strong>{{ system_log.actor_name|default:"System" }}</strong>
+          <span>{{ system_log.actor_email|default:"—" }}</span>
+        </div>
+
+        <div class="history_event">
+          <div class="history_event_top">
+            <span class="history_badge {{ system_log.severity }}">{{ system_log.get_action_type_display|ui_trans }}</span>
+            <span class="history_badge">{{ system_log.module|default:"General"|title|ui_trans }}</span>
+          </div>
+          <div class="history_target">{{ system_log.target_display }}</div>
+          {% if system_log.action %}<div class="history_action">{{ system_log.action }}</div>{% endif %}
+          {% if system_log.change_lines %}
+            <div class="history_changes">
+              {% for line in system_log.change_lines %}
+                <div class="history_change">
+                  <b>{{ line.label }}:</b>
+                  {% if line.is_change %}
+                    <span class="history_old">{{ line.old }}</span><span class="history_arrow">→</span><span class="history_new">{{ line.new }}</span>
+                  {% else %}
+                    <span>{{ line.value }}</span>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="history_meta">
+          <span class="history_result"><i class="bi bi-check2-circle"></i>{{ system_log.get_result_display|ui_trans }}</span>
+          {% if system_log.object_id %}<span><i class="bi bi-hash"></i>{{ system_log.object_id }}</span>{% endif %}
+          {% if system_log.ip %}<span><i class="bi bi-router"></i>{{ system_log.ip }}</span>{% endif %}
+          {% if request.user.is_superuser %}<span><i class="bi bi-building"></i>{{ system_log.id_company.name }}</span>{% endif %}
+        </div>
+      </article>
+    {% empty %}
+      <div class="history_empty"><i class="bi bi-clock-history"></i><strong>No history records found</strong><span>There is no activity matching these filters.</span></div>
+    {% endfor %}
+  </section>
+
+  {% if is_paginated %}
+    <nav class="history_pagination" aria-label="History pagination">
+      {% if page_obj.has_previous %}<a class="history_page_link" href="?{% if query_without_page %}{{ query_without_page }}&{% endif %}page={{ page_obj.previous_page_number }}"><i class="bi bi-chevron-left"></i></a>{% endif %}
+      {% for page_number in paginator.page_range %}
+        {% if page_number == page_obj.number %}<span class="history_page_link active">{{ page_number }}</span>
+        {% elif page_number >= page_obj.number|add:'-2' and page_number <= page_obj.number|add:'2' %}<a class="history_page_link" href="?{% if query_without_page %}{{ query_without_page }}&{% endif %}page={{ page_number }}">{{ page_number }}</a>{% endif %}
+      {% endfor %}
+      {% if page_obj.has_next %}<a class="history_page_link" href="?{% if query_without_page %}{{ query_without_page }}&{% endif %}page={{ page_obj.next_page_number }}"><i class="bi bi-chevron-right"></i></a>{% endif %}
+    </nav>
+  {% endif %}
+</div>
+{% endblock %}

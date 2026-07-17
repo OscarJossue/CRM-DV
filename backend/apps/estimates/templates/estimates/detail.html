@@ -1,0 +1,1264 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}
+Estimate {{ estimate.estimate_number|default:estimate.id_estimate }}
+{% endblock %}
+
+{% block page_subtitle %}
+Estimate detail, client snapshot, project information, items, totals and workflow actions.
+{% endblock %}
+
+{% block extra_head %}
+{% include "estimates/partials/_design_system.html" %}
+<style>
+  .estimate_detail_page {
+    display: grid;
+    gap: 18px;
+  }
+
+  .estimate_detail_compact_card {
+    padding: 18px;
+  }
+
+  .estimate_detail_hero {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 20px;
+    border-radius: 24px;
+    background: linear-gradient(135deg, rgba(189,212,231,0.32) 0%, #ffffff 58%, rgba(170,185,207,0.18) 100%);
+  }
+
+  .estimate_detail_kicker {
+    margin: 0;
+    color: var(--estimate-blue);
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .estimate_detail_title {
+    margin: 8px 0 0;
+    color: var(--estimate-ink);
+    font-size: clamp(24px, 2.6vw, 34px);
+    line-height: 1.08;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+  }
+
+  .estimate_detail_subtitle {
+    margin: 7px 0 0;
+    font-size: 14px;
+    line-height: 1.65;
+    font-weight: 600;
+  }
+
+  .estimate_detail_top_actions {
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .estimate_detail_chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .estimate_chip {
+    min-height: 32px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    font-size: 12px;
+    line-height: 1.25;
+    max-width: 100%;
+  }
+
+  .estimate_chip span {
+    color: var(--estimate-blue);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 10px;
+  }
+
+  .estimate_actionbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px 18px;
+  }
+
+  .estimate_action_group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .estimate_inline_form {
+    margin: 0;
+    display: inline-flex;
+  }
+
+  .estimate_btn_sm {
+    min-height: 38px;
+    padding: 8px 14px;
+    border-radius: 14px;
+    font-size: 14px;
+    gap: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+
+  .estimate_modal_overlay {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(15, 23, 42, 0.58);
+    backdrop-filter: blur(6px);
+    z-index: 99999;
+  }
+
+  .estimate_modal_overlay.is_open {
+    display: flex;
+  }
+
+  .estimate_modal_overlay[aria-hidden="true"] {
+    display: none;
+  }
+
+  .estimate_modal_overlay[aria-hidden="false"] {
+    display: flex;
+  }
+
+  .estimate_modal_box {
+    width: min(620px, 100%);
+    max-height: min(86vh, 720px);
+    overflow-y: auto;
+    border-radius: 24px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    background: #ffffff;
+    box-shadow: 0 30px 80px rgba(15, 23, 42, 0.28);
+    padding: 24px;
+  }
+
+  .estimate_modal_title {
+    margin: 0;
+    color: var(--estimate-ink);
+    font-size: 22px;
+    line-height: 1.2;
+    font-weight: 900;
+  }
+
+
+  .estimate_modal_textarea {
+    width: 100%;
+    min-height: 120px;
+    resize: vertical;
+    border: 1px solid rgba(95, 113, 143, 0.24);
+    border-radius: 16px;
+    padding: 12px 14px;
+    color: var(--estimate-ink);
+    font-size: 14px;
+    font-weight: 650;
+    outline: none;
+  }
+
+  .estimate_modal_textarea:focus {
+    border-color: rgba(95, 113, 143, 0.65);
+    box-shadow: 0 0 0 4px rgba(170, 185, 207, 0.25);
+  }
+
+  .estimate_modal_error {
+    display: none;
+    color: #991b1b;
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .estimate_modal_error.is_visible {
+    display: block;
+  }
+
+  .estimate_modal_text {
+    margin: 10px 0 0;
+    color: var(--estimate-muted);
+    font-size: 14px;
+    line-height: 1.65;
+    font-weight: 650;
+  }
+
+  .estimate_modal_summary {
+    display: grid;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 14px;
+    border-radius: 18px;
+    border: 1px solid var(--estimate-line);
+    background: linear-gradient(180deg, rgba(189,212,231,0.22) 0%, #ffffff 100%);
+  }
+
+  .estimate_modal_summary span {
+    color: var(--estimate-ink);
+    font-size: 13px;
+    line-height: 1.45;
+    font-weight: 750;
+    overflow-wrap: anywhere;
+  }
+
+  .estimate_modal_actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+  }
+
+  .estimate_section_headline {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+
+  .estimate_section_headline h2 {
+    margin: 0;
+    color: var(--estimate-ink);
+    font-size: 21px;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+
+  .estimate_section_headline p {
+    margin: 4px 0 0;
+    color: var(--estimate-muted);
+    font-size: 13px;
+    line-height: 1.6;
+    font-weight: 600;
+  }
+
+
+  .estimate_detail_meta_card {
+    padding-top: 18px;
+    padding-bottom: 18px;
+  }
+
+  .estimate_meta_strip {
+    display: grid;
+    grid-template-columns: minmax(180px, 1.5fr) repeat(4, minmax(120px, 1fr));
+    gap: 10px;
+  }
+
+  .estimate_meta_item {
+    min-height: 64px;
+    display: grid;
+    align-content: center;
+    gap: 5px;
+    padding: 12px 14px;
+    border: 1px solid var(--estimate-line);
+    border-radius: 16px;
+    background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+  }
+
+  .estimate_meta_client {
+    background: linear-gradient(180deg, rgba(189,212,231,0.28) 0%, #ffffff 100%);
+  }
+
+  .estimate_description_box {
+    display: grid;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 12px 14px;
+    border: 1px solid var(--estimate-line);
+    border-radius: 16px;
+    background: #ffffff;
+  }
+
+  .estimate_info_grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .estimate_info_item {
+    min-width: 0;
+    min-height: 70px;
+    display: grid;
+    align-content: center;
+    gap: 6px;
+    padding: 12px;
+    border: 1px solid var(--estimate-line);
+    border-radius: 16px;
+    background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+  }
+
+  .estimate_info_item_full {
+    grid-column: 1 / -1;
+    min-height: 72px;
+    align-content: start;
+  }
+
+  .estimate_detail_label {
+    color: var(--estimate-muted);
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    line-height: 1.2;
+  }
+
+  .estimate_detail_value {
+    color: var(--estimate-ink);
+    font-size: 15px;
+    font-weight: 800;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .estimate_detail_value_muted {
+    color: var(--estimate-muted);
+  }
+
+  .estimate_detail_collapse {
+    border: 1px solid var(--estimate-line);
+    border-radius: 22px;
+    background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+    overflow: hidden;
+  }
+
+  .estimate_detail_collapse summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    user-select: none;
+  }
+
+  .estimate_detail_collapse summary::-webkit-details-marker { display: none; }
+
+  .estimate_detail_collapse_title {
+    display: grid;
+    gap: 4px;
+  }
+
+  .estimate_detail_collapse_title strong {
+    color: var(--estimate-ink);
+    font-size: 19px;
+    font-weight: 800;
+    line-height: 1.25;
+  }
+
+  .estimate_detail_collapse_title span {
+    color: var(--estimate-muted);
+    font-size: 12px;
+    line-height: 1.45;
+    font-weight: 600;
+  }
+
+  .estimate_detail_collapse_icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(189,212,231,.38) 0%, rgba(170,185,207,.22) 100%);
+    border: 1px solid rgba(72, 101, 143, 0.16);
+    color: var(--estimate-blue);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 900;
+    transition: transform 0.18s ease;
+  }
+
+  .estimate_detail_collapse[open] .estimate_detail_collapse_icon {
+    transform: rotate(180deg);
+  }
+
+  .estimate_detail_collapse_body {
+    padding: 0 18px 18px;
+  }
+
+
+  .estimate_collapse_text {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .estimate_collapse_text strong {
+    color: var(--estimate-ink);
+    font-size: 19px;
+    font-weight: 800;
+    line-height: 1.25;
+  }
+
+  .estimate_collapse_text span {
+    color: var(--estimate-muted);
+    font-size: 12px;
+    line-height: 1.45;
+    font-weight: 600;
+  }
+
+  .estimate_collapse_icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(189,212,231,.38) 0%, rgba(170,185,207,.22) 100%);
+    border: 1px solid rgba(72, 101, 143, 0.16);
+    color: var(--estimate-blue);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 900;
+    transition: transform 0.18s ease;
+  }
+
+  .estimate_detail_collapse[open] .estimate_collapse_icon {
+    transform: rotate(180deg);
+  }
+
+  .estimate_collapse_body,
+  .estimate_items_wrap {
+    min-width: 0;
+  }
+
+  .estimate_money_cell {
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    font-weight: 800;
+    color: var(--estimate-ink);
+  }
+
+  .estimate_billing_grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .estimate_billing_box {
+    min-height: 76px;
+    padding: 14px;
+    border: 1px solid var(--estimate-line);
+    border-radius: 16px;
+    background: var(--estimate-panel-soft);
+    display: grid;
+    align-content: start;
+    gap: 6px;
+  }
+
+  .estimate_billing_box strong {
+    font-size: 14px;
+    color: var(--estimate-ink);
+    font-weight: 800;
+  }
+
+  .estimate_billing_box span {
+    color: var(--estimate-muted);
+    font-size: 13px;
+    line-height: 1.55;
+    font-weight: 600;
+  }
+
+  .estimate_items_table {
+    width: 100%;
+    min-width: 760px;
+    border-collapse: separate;
+    border-spacing: 0 10px;
+  }
+
+  .estimate_items_table thead th {
+    padding: 0 12px 10px;
+    color: var(--estimate-muted);
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border: 0;
+  }
+
+  .estimate_items_table tbody td {
+    padding: 14px 12px;
+    background: #ffffff;
+    border-top: 1px solid var(--estimate-line);
+    border-bottom: 1px solid var(--estimate-line);
+    vertical-align: middle;
+  }
+
+  .estimate_items_table tbody td:first-child {
+    border-left: 1px solid var(--estimate-line);
+    border-radius: 16px 0 0 16px;
+  }
+
+  .estimate_items_table tbody td:last-child {
+    border-right: 1px solid var(--estimate-line);
+    border-radius: 0 16px 16px 0;
+  }
+
+  .estimate_items_table_image {
+    width: 54px;
+    height: 54px;
+    border-radius: 14px;
+    object-fit: cover;
+    border: 1px solid var(--estimate-line);
+  }
+
+  .estimate_summary_grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .estimate_summary_box {
+    border-radius: 16px;
+    padding: 16px;
+    border: 1px solid var(--estimate-line);
+    background: linear-gradient(180deg, #ffffff 0%, #fafcff 100%);
+  }
+
+  .estimate_summary_box_total {
+    background: linear-gradient(180deg, rgba(189,212,231,0.45) 0%, rgba(255,255,255,1) 100%);
+    border-color: rgba(72,101,143,0.18);
+  }
+
+  .estimate_public_link_card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 18px;
+  }
+
+  .estimate_public_link_text {
+    display: grid;
+    gap: 5px;
+    min-width: 0;
+  }
+
+  .estimate_public_link_text strong {
+    color: var(--estimate-ink);
+    font-size: 15px;
+    font-weight: 900;
+  }
+
+  .estimate_public_link_text span {
+    color: var(--estimate-muted);
+    font-size: 13px;
+    line-height: 1.55;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+
+  .estimate_rejection_reason_box {
+    padding: 16px 18px;
+    border-radius: 18px;
+    border: 1px solid rgba(185, 28, 28, .22);
+    background: rgba(254, 226, 226, .62);
+    color: #7f1d1d;
+    font-weight: 700;
+    line-height: 1.65;
+  }
+
+  @media (max-width: 1100px) {
+    .estimate_meta_strip {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .estimate_info_grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .estimate_summary_grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 860px) {
+    .estimate_detail_hero {
+      flex-direction: column;
+    }
+
+    .estimate_actionbar {
+      align-items: stretch;
+    }
+
+    .estimate_action_group {
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .estimate_detail_compact_card,
+    .estimate_detail_hero {
+      padding: 18px;
+      border-radius: 22px;
+    }
+
+    .estimate_meta_strip,
+    .estimate_info_grid,
+    .estimate_billing_grid,
+    .estimate_summary_grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% include "estimates/partials/_finance_standard.html" %}
+{% endblock %}
+
+{% block content %}
+  <div class="estimate_theme estimate_detail_page nj-invoice nj-page finance-standard">
+    <section class="crm_card estimate_detail_compact_card estimate_detail_hero">
+      <div class="min-w-0">
+        <p class="estimate_detail_kicker">{{ estimate.estimate_number|default:estimate.id_estimate }}</p>
+        <h2 class="estimate_detail_title">
+          {% if estimate.id_project %}
+            {{ estimate.id_project.name }}
+          {% elif estimate.project_name %}
+            {{ estimate.project_name }}
+          {% elif estimate.description %}
+            {{ estimate.description|truncatechars:70 }}
+          {% else %}
+            Estimate {{ estimate.estimate_number|default:estimate.id_estimate }}
+          {% endif %}
+        </h2>
+        <p class="estimate_detail_subtitle">
+          {% if estimate.id_client %}{{ estimate.id_client.name }}{% else %}No client{% endif %}
+        </p>
+
+        <div class="estimate_detail_chips">
+          <span class="estimate_status estimate_status_{{ estimate.status }}">{% if estimate.status == "cancelled" %}Void{% elif estimate.status == "pending" %}Pending Send{% else %}{{ estimate.get_status_display }}{% endif %}</span>
+          <span class="estimate_chip"><span>Total</span> ${{ estimate.total }}</span>
+          <span class="estimate_chip"><span>Validity</span> {% if estimate.validity_data %}{{ estimate.validity_data.label }}{% else %}{{ estimate.validity_days }} days{% endif %}</span>
+          <span class="estimate_chip"><span>Modified</span> {{ estimate.last_modified_at|date:"Y-m-d H:i"|default:"-" }}</span>
+        </div>
+      </div>
+
+      <div class="estimate_detail_top_actions">
+        <a class="crm_button crm_button_secondary estimate_btn_sm" href="{{ estimate_list_url }}">
+          <svg class="estimate_icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/></svg>
+          Back
+        </a>
+      </div>
+    </section>
+
+    <section class="finance-status-panel">
+      <div class="finance-status-copy"><strong>Proforma workflow</strong><span>Read-only status. It changes only after the corresponding generate, send, customer decision, conversion or void action succeeds.</span></div>
+      {% include "estimates/partials/_status_track.html" with estimate=estimate detail=True %}
+    </section>
+
+    <section class="crm_card estimate_actionbar">
+      <div class="estimate_action_group">
+        {% if estimate_can_edit %}
+          <a class="crm_button estimate_btn_sm" href="{{ estimate_urls.edit }}">
+            <svg class="estimate_icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M15.502 1.94a.5.5 0 0 1 0 .706l-1.043 1.043-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/><path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/></svg>
+            Edit
+          </a>
+        {% endif %}
+
+        <a class="crm_button crm_button_secondary estimate_btn_sm" href="{{ estimate_urls.pdf }}">
+          <i class="bi bi-file-earmark-pdf-fill" aria-hidden="true"></i>
+          PDF
+        </a>
+
+        {% if estimate_can_toggle_pdf_style %}
+          <form class="estimate_pdf_style_form" method="post" action="{{ estimate_urls.pdf_style }}">
+            {% csrf_token %}
+            <input type="hidden" name="pdf_header_dark" value="{% if estimate.pdf_header_dark %}0{% else %}1{% endif %}">
+            <button class="estimate_pdf_style_toggle" type="submit" title="Change only the logo background in the estimate PDF"><i class="bi bi-file-earmark-pdf-fill" aria-hidden="true"></i> <span class="estimate_style_switch {% if estimate.pdf_header_dark %}is_on{% endif %}" aria-hidden="true"></span>
+              <span>{% if estimate.pdf_header_dark %}Light logo background{% else %}Dark logo background{% endif %}</span>
+            </button>
+          </form>
+        {% endif %}
+
+        {% if estimate_can_send %}
+          <a class="crm_button estimate_btn_sm" href="{{ estimate_urls.send }}">
+            <svg class="estimate_icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576zm6.787-8.201L1.591 6.602l4.339 2.76z"/></svg>
+            Send
+          </a>
+        {% endif %}
+
+        {% if estimate_can_resend %}
+          <a class="crm_button crm_button_secondary estimate_btn_sm" href="{{ estimate_urls.send }}">
+            <svg class="estimate_icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576zm6.787-8.201L1.591 6.602l4.339 2.76z"/></svg>
+            Re-send
+          </a>
+        {% endif %}
+      </div>
+
+      <div class="estimate_action_group">
+        {% if estimate_can_decide %}
+          <form id="EstimateApproveForm" class="estimate_inline_form" method="post" action="{{ estimate_urls.approve }}">
+            {% csrf_token %}
+            <input id="EstimateCreateProjectInput" type="hidden" name="create_project" value="0">
+            <input id="EstimateUpdateProjectInput" type="hidden" name="update_project" value="0">
+            <button id="OpenApproveProjectModal" class="crm_button estimate_button_success estimate_btn_sm" type="button">
+              <svg class="estimate_icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M6.97 11.03a.75.75 0 0 0 1.07 0l3.992-3.992a.75.75 0 1 0-1.06-1.06L7.5 9.44 5.53 7.47a.75.75 0 0 0-1.06 1.06z"/></svg>
+              Approve
+            </button>
+            <noscript>
+              <button class="crm_button estimate_button_success estimate_btn_sm" type="submit">Approve Only</button>
+            </noscript>
+          </form>
+
+          <form id="EstimateRejectForm" class="estimate_inline_form" method="post" action="{{ estimate_urls.reject }}">
+            {% csrf_token %}
+            <input id="InternalRejectReasonInput" type="hidden" name="rejection_reason" value="">
+            <button id="OpenRejectReasonModal" class="crm_button estimate_button_danger estimate_btn_sm" type="button">
+              <svg class="estimate_icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/></svg>
+              Reject
+            </button>
+          </form>
+        {% endif %}
+
+        {% if estimate_can_create_project %}
+          <a class="crm_button estimate_button_success estimate_btn_sm" href="{{ estimate_urls.project_create }}">
+            <svg class="estimate_icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.825a2 2 0 0 1-1.991-1.819l-.637-7A2 2 0 0 1 2.19 3h3.982a2 2 0 0 0 1.414-.586l.828-.828A2 2 0 0 1 9.828 1h.344a2 2 0 0 1 1.414.586L12.414 2.414A2 2 0 0 0 13.828 3z"/></svg>
+            Create Project
+          </a>
+        {% endif %}
+
+        {% if estimate_can_update_project %}
+          <form class="estimate_inline_form" method="post" action="{{ estimate_urls.project_update }}">
+            {% csrf_token %}
+            <button class="crm_button estimate_button_success estimate_btn_sm" type="submit">
+              <svg class="estimate_icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/><path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.285 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/></svg>
+              Save Project Updates
+            </button>
+          </form>
+        {% endif %}
+
+        {% if estimate_has_project %}
+          {% if estimate_has_project_changes %}
+            <button id="OpenProjectWithChangesButton" class="crm_button estimate_button_success estimate_btn_sm" type="button">
+              <svg class="estimate_icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.825a2 2 0 0 1-1.991-1.819l-.637-7A2 2 0 0 1 2.19 3h3.982a2 2 0 0 0 1.414-.586l.828-.828A2 2 0 0 1 9.828 1h.344a2 2 0 0 1 1.414.586L12.414 2.414A2 2 0 0 0 13.828 3z"/></svg>
+              Open Project
+            </button>
+          {% else %}
+            <a class="crm_button estimate_button_success estimate_btn_sm" href="{{ open_project_url }}">
+              <svg class="estimate_icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.825a2 2 0 0 1-1.991-1.819l-.637-7A2 2 0 0 1 2.19 3h3.982a2 2 0 0 0 1.414-.586l.828-.828A2 2 0 0 1 9.828 1h.344a2 2 0 0 1 1.414.586L12.414 2.414A2 2 0 0 0 13.828 3z"/></svg>
+              Open Project
+            </a>
+          {% endif %}
+        {% endif %}
+
+        {% if estimate_can_delete %}
+          <form class="estimate_inline_form" method="post" action="{{ estimate_urls.delete }}">
+            {% csrf_token %}
+            <button class="crm_button estimate_button_danger estimate_btn_sm" type="submit">
+              <svg class="estimate_icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/><path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1 0-2H5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1h2.5a1 1 0 0 1 1 1M4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4z"/></svg>
+              Delete Draft
+            </button>
+          </form>
+        {% endif %}
+
+        {% if estimate_can_cancel %}
+          <form class="estimate_inline_form" method="post" action="{{ estimate_urls.cancel }}" onsubmit="return confirm('Void this estimate? After voiding it, no more workflow actions will be available.');">
+            {% csrf_token %}
+            <button class="crm_button estimate_button_danger estimate_btn_sm" type="submit">
+              <svg class="estimate_icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="m4.9 4.9 14.2 14.2"></path></svg>
+              Void
+            </button>
+          </form>
+        {% endif %}
+      </div>
+    </section>
+
+    {% if public_estimate_url %}
+      <section class="crm_card estimate_public_link_card">
+        <div class="estimate_public_link_text">
+          <strong>Customer Review Link</strong>
+          <span>
+            {% if estimate_public_can_decide %}
+              Active for client approval/rejection: {{ public_estimate_url }}
+            {% elif estimate.status == "approved" or estimate.status == "converted" %}
+              View only. This estimate is already approved/converted and no new decision links can be generated. {{ public_estimate_url }}
+            {% elif estimate.status == "rejected" %}
+              View only until you edit and resend this estimate. Editing a rejected estimate generates a new unique link. {{ public_estimate_url }}
+            {% else %}
+              Link available for preview. It becomes active for approval/rejection after sending. {{ public_estimate_url }}
+            {% endif %}
+          </span>
+        </div>
+        <a class="crm_button crm_button_secondary estimate_btn_sm" href="{{ public_estimate_url }}" target="_blank" rel="noopener">Open Public View</a>
+      </section>
+    {% endif %}
+
+    {% if estimate.rejection_reason %}
+      <section class="estimate_rejection_reason_box">
+        <strong>Rejection Reason</strong><br>
+        {{ estimate.rejection_reason }}
+      </section>
+    {% endif %}
+
+    <section class="crm_card estimate_detail_compact_card estimate_detail_meta_card">
+      <div class="estimate_section_headline">
+        <div>
+          <h2>Estimate Details</h2>
+          <p>Important dates and client information without repeating the header data.</p>
+        </div>
+      </div>
+
+      <div class="estimate_meta_strip">
+        <div class="estimate_meta_item estimate_meta_client">
+          <span class="estimate_detail_label">Client</span>
+          <span class="estimate_detail_value">{% if estimate.id_client %}{{ estimate.id_client.name }}{% else %}-{% endif %}</span>
+        </div>
+
+        {% if estimate_urls.inspection_open %}
+        <div class="estimate_meta_item">
+          <span class="estimate_detail_label">Source Inspection</span>
+          <span class="estimate_detail_value"><a href="{{ estimate_urls.inspection_open }}">INS-{{ estimate.id_inspection_assignment_id|stringformat:"05d" }}</a></span>
+        </div>
+        {% endif %}
+
+        <div class="estimate_meta_item">
+          <span class="estimate_detail_label">Issue</span>
+          <span class="estimate_detail_value">{{ estimate.issue_date|date:"Y-m-d" }}</span>
+        </div>
+
+        <div class="estimate_meta_item">
+          <span class="estimate_detail_label">Expiration</span>
+          <span class="estimate_detail_value">{{ estimate.expiration_date|date:"Y-m-d"|default:"-" }}</span>
+        </div>
+
+        <div class="estimate_meta_item">
+          <span class="estimate_detail_label">Validity</span>
+          <span class="estimate_detail_value">
+            {% if estimate.validity_data %}
+              {{ estimate.validity_data.label }}
+            {% else %}
+              {{ estimate.validity_days }} days
+            {% endif %}
+          </span>
+        </div>
+
+        <div class="estimate_meta_item">
+          <span class="estimate_detail_label">Modified</span>
+          <span class="estimate_detail_value">{{ estimate.last_modified_at|date:"Y-m-d H:i"|default:"-" }}</span>
+        </div>
+      </div>
+
+      <div class="estimate_description_box">
+        <span class="estimate_detail_label">Description</span>
+        <span class="estimate_detail_value {% if not estimate.description %}estimate_detail_value_muted{% endif %}">{{ estimate.description|default:"No description" }}</span>
+      </div>
+    </section>
+
+    <section class="crm_card estimate_detail_compact_card">
+      <details class="estimate_detail_collapse">
+        <summary>
+          <span class="estimate_collapse_text">
+            <strong>Client Billing Snapshot</strong>
+            <span>Billing information used on the proforma PDF. Expand only when needed.</span>
+          </span>
+          <span class="estimate_collapse_icon">
+            <svg class="estimate_icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/></svg>
+          </span>
+        </summary>
+
+        <div class="estimate_collapse_body">
+          <div class="estimate_info_grid">
+            <div class="estimate_info_item">
+              <span class="estimate_detail_label">Billing Name</span>
+              <span class="estimate_detail_value">{{ estimate.client_billing_name|default:"-" }}</span>
+            </div>
+
+            <div class="estimate_info_item">
+              <span class="estimate_detail_label">Billing Email</span>
+              <span class="estimate_detail_value">{{ estimate.client_billing_email|default:"-" }}</span>
+            </div>
+
+            <div class="estimate_info_item">
+              <span class="estimate_detail_label">Billing Phone</span>
+              <span class="estimate_detail_value">{{ estimate.client_billing_phone|default:"-" }}</span>
+            </div>
+
+            <div class="estimate_info_item estimate_info_item_full">
+              <span class="estimate_detail_label">Billing Address</span>
+              <span class="estimate_detail_value">{{ estimate.client_billing_address|default:"-" }}</span>
+            </div>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <section class="crm_card estimate_detail_compact_card">
+      <div class="estimate_section_headline">
+        <div>
+          <h2>Estimate Items</h2>
+          <p>Services, materials, labor, quantities and pricing.</p>
+        </div>
+      </div>
+
+      <div class="estimate_items_wrap">
+        <table class="estimate_items_table">
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th>Quantity</th>
+              <th>Unit Price</th>
+              <th>Subtotal</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for item in estimate.items.all %}
+              <tr>
+                <td>{{ item.description }}</td>
+                <td>{{ item.quantity }}</td>
+                <td class="estimate_money_cell">${{ item.unit_price }}</td>
+                <td class="estimate_money_cell">${{ item.subtotal }}</td>
+                <td class="estimate_money_cell">${{ item.total }}</td>
+              </tr>
+            {% empty %}
+              {% for item in estimate.detail_items %}
+                <tr>
+                  <td>{{ item.description }}</td>
+                  <td>{{ item.quantity }}</td>
+                  <td class="estimate_money_cell">${{ item.unit_price }}</td>
+                  <td class="estimate_money_cell">${{ item.total }}</td>
+                  <td class="estimate_money_cell">${{ item.total }}</td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="5">No items added.</td>
+                </tr>
+              {% endfor %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="estimate_summary_grid">
+        <div class="estimate_summary_box">
+          <span class="estimate_detail_label">Subtotal</span>
+          <span class="estimate_detail_value">${{ estimate.subtotal }}</span>
+        </div>
+
+        <div class="estimate_summary_box">
+          <span class="estimate_detail_label">Discount</span>
+          <span class="estimate_detail_value">${{ estimate.discount_amount }}</span>
+        </div>
+
+        <div class="estimate_summary_box">
+          <span class="estimate_detail_label">Tax</span>
+          <span class="estimate_detail_value">${{ estimate.tax }}</span>
+        </div>
+
+        <div class="estimate_summary_box estimate_summary_box_total">
+          <span class="estimate_detail_label">Total</span>
+          <span class="estimate_detail_value">${{ estimate.total }}</span>
+        </div>
+      </div>
+    </section>
+
+    {% if estimate.notes %}
+      <section class="crm_card estimate_detail_compact_card">
+        <div class="estimate_section_headline">
+          <div>
+            <h2>Notes</h2>
+            <p>Internal or PDF notes connected to this proforma.</p>
+          </div>
+        </div>
+        <p class="crm_page_text mb-0">{{ estimate.notes }}</p>
+      </section>
+    {% endif %}
+  </div>
+
+
+
+  {% if estimate_can_decide %}
+    <div id="EstimateRejectReasonModal" class="estimate_modal_overlay" aria-hidden="true">
+      <div class="estimate_modal_box" role="dialog" aria-modal="true" aria-labelledby="EstimateRejectReasonModalTitle">
+        <h3 id="EstimateRejectReasonModalTitle" class="estimate_modal_title">Reject estimate</h3>
+        <p class="estimate_modal_text">
+          Write the rejection reason. This reason will stay saved on the estimate record.
+        </p>
+        <div class="estimate_modal_summary">
+          <textarea id="InternalRejectReasonTextarea" class="estimate_modal_textarea" placeholder="Reason for rejection..." required></textarea>
+          <span id="InternalRejectReasonError" class="estimate_modal_error">Rejection reason is required.</span>
+        </div>
+        <div class="estimate_modal_actions">
+          <button id="CancelRejectReasonModal" class="crm_button crm_button_secondary estimate_btn_sm" type="button">Cancel</button>
+          <button id="SubmitRejectReasonButton" class="crm_button estimate_button_danger estimate_btn_sm" type="button">Reject estimate</button>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if estimate_can_decide %}
+    <div id="EstimateApproveProjectModal" class="estimate_modal_overlay" aria-hidden="true">
+      <div class="estimate_modal_box" role="dialog" aria-modal="true" aria-labelledby="EstimateApproveProjectModalTitle">
+        {% if estimate_has_project %}
+          <h3 id="EstimateApproveProjectModalTitle" class="estimate_modal_title">Update linked project?</h3>
+          <p class="estimate_modal_text">
+            This estimate is already linked to an existing project. A new project will not be created. You can approve only, or update the linked project with the changed estimate values.
+          </p>
+
+          <div class="estimate_modal_summary">
+            <span>Client: {{ estimate.id_client.name }}</span>
+            <span>Linked Project: {{ estimate.id_project.name }}</span>
+            <span>Estimate Total: ${{ estimate.total }}</span>
+            {% if estimate_project_sync_changes %}
+              {% for change in estimate_project_sync_changes %}
+                <span>{{ change.field }}: {{ change.from|truncatechars:45 }} → {{ change.to|truncatechars:45 }}</span>
+              {% endfor %}
+            {% else %}
+              <span>The linked project is already up to date.</span>
+            {% endif %}
+          </div>
+
+          <div class="estimate_modal_actions">
+            <button id="CancelApproveProjectModal" class="crm_button crm_button_secondary estimate_btn_sm" type="button">Cancel</button>
+            <button id="ApproveOnlyButton" class="crm_button crm_button_secondary estimate_btn_sm" type="button">Approve only</button>
+            {% if estimate_project_sync_changes %}
+              <button id="ApproveAndUpdateProjectButton" class="crm_button estimate_button_success estimate_btn_sm" type="button">Approve and update project</button>
+            {% endif %}
+          </div>
+        {% else %}
+          <h3 id="EstimateApproveProjectModalTitle" class="estimate_modal_title">Create a new project?</h3>
+          <p class="estimate_modal_text">
+            This estimate will be approved. Do you want to create a new project using this estimate information?
+          </p>
+
+          <div class="estimate_modal_summary">
+            <span>Client: {{ estimate.id_client.name }}</span>
+            <span>Project Name: {{ estimate.project_name|default:estimate.description|default:estimate.estimate_number|default:estimate.id_estimate }}</span>
+            <span>Total / Contract Amount: ${{ estimate.total }}</span>
+          </div>
+
+          <div class="estimate_modal_actions">
+            <button id="CancelApproveProjectModal" class="crm_button crm_button_secondary estimate_btn_sm" type="button">Cancel</button>
+            <button id="ApproveOnlyButton" class="crm_button crm_button_secondary estimate_btn_sm" type="button">No, approve only</button>
+            <button id="ApproveAndCreateProjectButton" class="crm_button estimate_button_success estimate_btn_sm" type="button">Yes, create project</button>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+
+  {% if estimate_has_project and estimate_has_project_changes %}
+    <div id="OpenProjectChangesModal" class="estimate_modal_overlay" aria-hidden="true">
+      <div class="estimate_modal_box" role="dialog" aria-modal="true" aria-labelledby="OpenProjectChangesModalTitle">
+        <h3 id="OpenProjectChangesModalTitle" class="estimate_modal_title">Apply changes to the linked project?</h3>
+        <p class="estimate_modal_text">
+          This estimate has values that are different from the linked project. Do you want to apply only these estimate values before opening the project? Other project fields will not be touched.
+        </p>
+
+        <div class="estimate_modal_summary">
+          <span>Linked Project: {{ estimate.id_project.name }}</span>
+          {% for change in estimate_project_sync_changes %}
+            <span>{{ change.field }}: {{ change.from|truncatechars:45 }} → {{ change.to|truncatechars:45 }}</span>
+          {% endfor %}
+        </div>
+
+        <div class="estimate_modal_actions">
+          <button id="CancelOpenProjectChangesModal" class="crm_button crm_button_secondary estimate_btn_sm" type="button">Cancel</button>
+          <a class="crm_button crm_button_secondary estimate_btn_sm" href="{{ open_project_url }}">Open without updating</a>
+          <form class="estimate_inline_form" method="post" action="{{ estimate_urls.project_update }}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="project">
+            <button class="crm_button estimate_button_success estimate_btn_sm" type="submit">Yes, apply and open project</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if estimate_has_project and estimate_has_project_changes %}
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const modal = document.getElementById("OpenProjectChangesModal");
+        const openButton = document.getElementById("OpenProjectWithChangesButton");
+        const cancelButton = document.getElementById("CancelOpenProjectChangesModal");
+
+        if (!modal || !openButton) {
+          return;
+        }
+
+        function openModal() {
+          modal.classList.add("is_open");
+          modal.setAttribute("aria-hidden", "false");
+        }
+
+        function closeModal() {
+          modal.classList.remove("is_open");
+          modal.setAttribute("aria-hidden", "true");
+        }
+
+        openButton.addEventListener("click", openModal);
+
+        if (cancelButton) {
+          cancelButton.addEventListener("click", closeModal);
+        }
+
+        modal.addEventListener("click", function (event) {
+          if (event.target === modal) {
+            closeModal();
+          }
+        });
+
+        document.addEventListener("keydown", function (event) {
+          if (event.key === "Escape") {
+            closeModal();
+          }
+        });
+      });
+    </script>
+  {% endif %}
+
+
+
+  {% if estimate_can_decide %}
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const modal = document.getElementById("EstimateRejectReasonModal");
+        const openButton = document.getElementById("OpenRejectReasonModal");
+        const cancelButton = document.getElementById("CancelRejectReasonModal");
+        const submitButton = document.getElementById("SubmitRejectReasonButton");
+        const rejectForm = document.getElementById("EstimateRejectForm");
+        const hiddenReason = document.getElementById("InternalRejectReasonInput");
+        const textarea = document.getElementById("InternalRejectReasonTextarea");
+        const error = document.getElementById("InternalRejectReasonError");
+
+        if (!modal || !openButton || !rejectForm || !hiddenReason || !textarea) {
+          return;
+        }
+
+        function openModal() {
+          if (error) { error.classList.remove("is_visible"); }
+          modal.classList.add("is_open");
+          modal.setAttribute("aria-hidden", "false");
+          setTimeout(function () { textarea.focus(); }, 80);
+        }
+
+        function closeModal() {
+          modal.classList.remove("is_open");
+          modal.setAttribute("aria-hidden", "true");
+        }
+
+        openButton.addEventListener("click", openModal);
+
+        if (cancelButton) {
+          cancelButton.addEventListener("click", closeModal);
+        }
+
+        if (submitButton) {
+          submitButton.addEventListener("click", function () {
+            const reason = textarea.value.trim();
+
+            if (!reason) {
+              if (error) { error.classList.add("is_visible"); }
+              textarea.focus();
+              return;
+            }
+
+            hiddenReason.value = reason;
+            rejectForm.submit();
+          });
+        }
+
+        modal.addEventListener("click", function (event) {
+          if (event.target === modal) {
+            closeModal();
+          }
+        });
+      });
+    </script>
+  {% endif %}
+
+  {% if estimate_can_decide %}
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const modal = document.getElementById("EstimateApproveProjectModal");
+        const openButton = document.getElementById("OpenApproveProjectModal");
+        const cancelButton = document.getElementById("CancelApproveProjectModal");
+        const approveOnlyButton = document.getElementById("ApproveOnlyButton");
+        const approveAndCreateButton = document.getElementById("ApproveAndCreateProjectButton");
+        const approveAndUpdateButton = document.getElementById("ApproveAndUpdateProjectButton");
+        const approveForm = document.getElementById("EstimateApproveForm");
+        const createProjectInput = document.getElementById("EstimateCreateProjectInput");
+        const updateProjectInput = document.getElementById("EstimateUpdateProjectInput");
+
+        if (!modal || !openButton || !approveForm || !createProjectInput || !updateProjectInput) {
+          return;
+        }
+
+        function openModal() {
+          modal.classList.add("is_open");
+          modal.setAttribute("aria-hidden", "false");
+        }
+
+        function closeModal() {
+          modal.classList.remove("is_open");
+          modal.setAttribute("aria-hidden", "true");
+        }
+
+        openButton.addEventListener("click", openModal);
+
+        if (cancelButton) {
+          cancelButton.addEventListener("click", closeModal);
+        }
+
+        if (approveOnlyButton) {
+          approveOnlyButton.addEventListener("click", function () {
+            createProjectInput.value = "0";
+            updateProjectInput.value = "0";
+            approveForm.submit();
+          });
+        }
+
+        if (approveAndCreateButton) {
+          approveAndCreateButton.addEventListener("click", function () {
+            createProjectInput.value = "1";
+            updateProjectInput.value = "0";
+            approveForm.submit();
+          });
+        }
+
+        if (approveAndUpdateButton) {
+          approveAndUpdateButton.addEventListener("click", function () {
+            createProjectInput.value = "0";
+            updateProjectInput.value = "1";
+            approveForm.submit();
+          });
+        }
+
+        modal.addEventListener("click", function (event) {
+          if (event.target === modal) {
+            closeModal();
+          }
+        });
+
+        document.addEventListener("keydown", function (event) {
+          if (event.key === "Escape") {
+            closeModal();
+          }
+        });
+      });
+    </script>
+  {% endif %}
+{% endblock %}

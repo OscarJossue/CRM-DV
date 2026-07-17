@@ -1,0 +1,63 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}{{ plan.name }}{% endblock %}
+{% block page_subtitle %}SaaS plan detail for CEO MARKETING administration.{% endblock %}
+
+{% block extra_head %}
+<style>
+  .platform_detail { display:grid; grid-template-columns:minmax(0,1fr) minmax(300px,.65fr); gap:18px; align-items:start; }
+  .platform_hero, .platform_panel { border:1px solid var(--crm_border); border-radius:22px; background:#fff; box-shadow:var(--crm_shadow); }
+  .platform_hero { display:grid; gap:16px; padding:24px; background:radial-gradient(circle at 0 0, rgba(155,120,72,.16), transparent 34%), #fff; }
+  .platform_kicker { width:fit-content; display:inline-flex; align-items:center; gap:7px; min-height:30px; padding:6px 10px; border:1px solid var(--crm_border); border-radius:999px; color:var(--crm_primary); background:rgba(155,120,72,.08); font-size:12px; font-weight:950; text-transform:uppercase; }
+  .platform_kicker.inactive { color:var(--crm_danger); background:rgba(185,28,28,.06); border-color:rgba(185,28,28,.22); }
+  .platform_title { margin:0; color:var(--crm_text); font-size:clamp(30px,4vw,46px); line-height:1.04; font-weight:950; letter-spacing:-.05em; overflow-wrap:anywhere; }
+  .platform_text { margin:0; color:var(--crm_muted); font-size:14px; line-height:1.7; font-weight:700; overflow-wrap:anywhere; }
+  .platform_stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+  .platform_stat { display:grid; gap:6px; padding:17px; border:1px solid var(--crm_border); border-radius:18px; background:#fff; }
+  .platform_stat span, .platform_panel span { color:var(--crm_muted); font-size:12px; font-weight:950; text-transform:uppercase; letter-spacing:.04em; }
+  .platform_stat strong { color:var(--crm_primary); font-size:22px; font-weight:950; overflow-wrap:anywhere; }
+  .platform_side { display:grid; gap:14px; }
+  .platform_panel { display:grid; gap:8px; padding:20px; }
+  .platform_panel strong, .platform_panel p { margin:0; color:var(--crm_text); font-size:14px; line-height:1.6; font-weight:850; overflow-wrap:anywhere; }
+  @media(max-width:980px){ .platform_detail{grid-template-columns:1fr;} .platform_stats{grid-template-columns:1fr;} }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="platform_detail">
+  <div class="platform_hero">
+    <span class="platform_kicker {% if plan.status != 'active' %}inactive{% endif %}"><i class="bi bi-gem"></i> {{ plan.get_status_display }}</span>
+    <h2 class="platform_title">{{ plan.name }}</h2>
+    <p class="platform_text">{{ plan.description|default:"This plan does not have an internal description yet." }}</p>
+
+    <div class="crm_actions">
+      <a class="crm_button" href="{% url 'platform_plans:update' plan.id_plan %}"><i class="bi bi-pencil" aria-hidden="true"></i>&nbsp; Edit Plan</a>
+      {% if plan.status != "active" %}
+      <form method="post" action="{% url 'platform_plans:activate' plan.id_plan %}" data-platform-confirm data-platform-confirm-title="Activate plan" data-platform-confirm-text="This plan will become available for company subscriptions." data-platform-confirm-button="Activate">
+        {% csrf_token %}<button class="crm_button crm_button_secondary" type="submit"><i class="bi bi-check2-circle"></i>&nbsp; Activate</button>
+      </form>
+      {% endif %}
+      {% if plan.status != "inactive" %}
+      <form method="post" action="{% url 'platform_plans:deactivate' plan.id_plan %}" data-platform-confirm data-platform-confirm-title="Deactivate plan" data-platform-confirm-text="The plan will not be available for new assignments. Existing subscriptions keep their record." data-platform-confirm-button="Deactivate">
+        {% csrf_token %}<button class="crm_button crm_button_secondary" type="submit"><i class="bi bi-slash-circle"></i>&nbsp; Deactivate</button>
+      </form>
+      {% endif %}
+      <a class="crm_button crm_button_secondary" href="{% url 'platform_plans:list' %}"><i class="bi bi-arrow-left"></i>&nbsp; Back</a>
+    </div>
+
+    <div class="platform_stats">
+      <article class="platform_stat"><span>Price</span><strong>${{ plan.price }}</strong></article>
+      <article class="platform_stat"><span>Billing</span><strong>{{ plan.billing_cycle_display_label }}</strong></article>
+      <article class="platform_stat"><span>Max Users</span><strong>{{ plan.max_users }}</strong></article>
+    </div>
+  </div>
+
+  <aside class="platform_side">
+    <div class="platform_panel"><span>Plan Code</span><strong>{{ plan.code }}</strong></div>
+    <div class="platform_panel"><span>Created</span><strong>{{ plan.created_at|date:"Y-m-d H:i" }}</strong></div>
+    <div class="platform_panel"><span>Connected Subscriptions</span><strong>{{ plan.subscriptions.count }}</strong></div>
+    <div class="platform_panel"><span>Important</span><p>Plans define price, billing cycle and user limit. Company modules are managed separately.</p></div>
+  </aside>
+</section>
+{% include "platform_core/partials/_action_confirm.html" %}
+{% endblock %}

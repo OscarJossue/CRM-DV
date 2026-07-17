@@ -1,0 +1,56 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}{{ client.name }}{% endblock %}
+{% block page_subtitle %}Client identity, contact information and linked CRM activity.{% endblock %}
+
+{% block extra_head %}
+  {% include "partials/_crm_design_system.html" %}
+  <style>
+    .client-detail-hero { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; padding:18px; background:linear-gradient(135deg,#fff,var(--nj-ice)); }
+    .client-detail-title { display:flex; align-items:center; gap:13px; }
+    .client-detail-title h1 { margin:0; color:var(--nj-ink); font-size:clamp(26px,3vw,38px); font-weight:950; letter-spacing:-.035em; }
+    .client-detail-meta { display:flex; flex-wrap:wrap; gap:7px; margin-top:8px; }
+    .client-info-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:11px; padding:16px; }
+    .client-info-item { padding:13px; border:1px solid var(--nj-line); border-radius:13px; background:#f8fbff; }
+    .client-info-item.is-wide { grid-column:span 2; }
+    .client-info-item.is-full { grid-column:1/-1; }
+    .client-info-item span { display:block; color:var(--nj-muted); font-size:10px; font-weight:850; letter-spacing:.04em; text-transform:uppercase; }
+    .client-info-item strong { display:block; margin-top:5px; color:var(--nj-ink); font-size:13px; font-weight:850; line-height:1.5; overflow-wrap:anywhere; }
+    .client-related-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:13px; }
+    .client-related-list { display:grid; gap:0; }
+    .client-related-item { display:grid; gap:3px; padding:11px 0; border-bottom:1px solid var(--nj-line); }
+    .client-related-item:last-child { border-bottom:0; }
+    .client-related-item a { color:var(--nj-navy); font-size:12px; font-weight:900; text-decoration:none; }
+    .client-related-item a:hover { color:var(--nj-blue); }
+    .client-related-item small { color:var(--nj-muted); font-size:10px; font-weight:650; }
+    @media(max-width:980px){ .client-info-grid,.client-related-grid{grid-template-columns:1fr;} .client-info-item.is-wide,.client-info-item.is-full{grid-column:auto;} }
+    @media(max-width:680px){ .client-detail-hero{flex-direction:column;} .client-detail-hero .nj-action-row,.client-detail-hero .nj-btn{width:100%;} }
+  </style>
+{% endblock %}
+
+{% block content %}
+<div class="nj-invoice nj-page">
+  <section class="nj-card client-detail-hero">
+    <div class="client-detail-title"><span class="nj-icon-box"><i class="bi bi-person-vcard" aria-hidden="true"></i></span><div><span class="nj-page-kicker">Client profile</span><h1>{{ client.name }}</h1><div class="client-detail-meta"><span class="nj-badge is-blue">{{ client.client_code|default:"Pending" }}</span>{% if client.dni %}<span class="nj-badge is-violet">DNI: {{ client.dni }}</span>{% endif %}</div></div></div>
+    <div class="nj-action-row"><a class="nj-btn nj-btn-secondary" href="{{ client_urls.list }}"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back</a>{% if can_edit_clients %}<a class="nj-btn" href="{{ client_urls.update }}"><i class="bi bi-pencil" aria-hidden="true"></i> Edit client</a>{% endif %}</div>
+  </section>
+
+  <section class="nj-card"><div class="nj-card-head"><h2 class="nj-card-title"><i class="bi bi-person-lines-fill" aria-hidden="true"></i> Client information</h2></div><div class="client-info-grid">
+    <div class="client-info-item"><span>Client code</span><strong>{{ client.client_code|default:"Pending" }}</strong></div>
+    <div class="client-info-item"><span>DNI / Tax ID</span><strong>{{ client.dni|default:"Not provided" }}</strong></div>
+    <div class="client-info-item"><span>Company</span><strong>{{ client.id_company.name }}</strong></div>
+    <div class="client-info-item"><span>Phone</span><strong>{{ client.phone|default:"Not provided" }}</strong></div>
+    <div class="client-info-item is-wide"><span>Email</span><strong>{{ client.email|default:"Not provided" }}</strong></div>
+    <div class="client-info-item is-full"><span>Address</span><strong>{{ client.address|default:"Not provided" }}</strong></div>
+    <div class="client-info-item is-full"><span>Internal notes</span><strong>{{ client.notes|default:"No notes"|linebreaksbr }}</strong></div>
+    <div class="client-info-item"><span>Created</span><strong>{{ client.created_at|date:"d M Y, H:i" }}</strong></div>
+    <div class="client-info-item"><span>Updated</span><strong>{{ client.updated_at|date:"d M Y, H:i" }}</strong></div>
+  </div></section>
+
+  <section class="client-related-grid">
+    <article class="nj-card"><div class="nj-card-head"><h2 class="nj-card-title"><i class="bi bi-briefcase" aria-hidden="true"></i> Recent projects</h2></div><div class="nj-card-body client-related-list">{% for project in client_projects %}<div class="client-related-item"><a href="{{ project.ui_detail_url }}">{{ project.project_name|default:project.id_project }}</a><small>{{ project.status }} · {{ project.created_at|date:"d M Y" }}</small></div>{% empty %}<span class="nj-help">No projects found.</span>{% endfor %}</div></article>
+    <article class="nj-card"><div class="nj-card-head"><h2 class="nj-card-title"><i class="bi bi-receipt" aria-hidden="true"></i> Recent invoices</h2></div><div class="nj-card-body client-related-list">{% for invoice in client_invoices %}<div class="client-related-item"><a href="{{ invoice.ui_detail_url }}">{{ invoice.invoice_number|default:invoice.id_invoice }}</a><small>${{ invoice.total }} · Balance ${{ invoice.balance_due }}</small></div>{% empty %}<span class="nj-help">No invoices found.</span>{% endfor %}</div></article>
+    <article class="nj-card"><div class="nj-card-head"><h2 class="nj-card-title"><i class="bi bi-wallet2" aria-hidden="true"></i> Recent payments</h2></div><div class="nj-card-body client-related-list">{% for payment in client_payments %}<div class="client-related-item"><a href="{{ payment.ui_detail_url }}">{{ payment.payment_number|default:payment.voucher_code|default:payment.id_payment }}</a><small>${{ payment.amount }} · {{ payment.status }}</small></div>{% empty %}<span class="nj-help">No payments found.</span>{% endfor %}</div></article>
+  </section>
+</div>
+{% endblock %}

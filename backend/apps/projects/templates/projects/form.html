@@ -1,0 +1,68 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+{% block page_title %}{{ form_title }}{% endblock %}
+{% block page_subtitle %}Create or update a project with automatic workflow status and a clean invoice-style layout.{% endblock %}
+{% block extra_head %}
+  {% include "projects/partials/_design_system.html" %}
+  <link rel="stylesheet" href="{% static 'vendor/tom-select/2.4.3/tom-select.css' %}">
+  <script src="{% static 'vendor/tom-select/2.4.3/tom-select.complete.min.js' %}"></script>
+  <style>
+    .operations-standard .ts-wrapper{width:100%}.operations-standard .ts-control{min-height:42px!important;border:1px solid #cfdbea!important;border-radius:11px!important;padding:8px 11px!important;box-shadow:none!important}.operations-standard .ts-dropdown{z-index:10030!important;border:1px solid #cfdbea;border-radius:11px;overflow:auto!important;max-height:min(320px,48vh)!important;box-shadow:0 18px 42px rgba(7,19,61,.18)!important}
+    .project-source-note{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border:1px solid rgba(8,104,232,.16);border-radius:13px;background:var(--nj-ice);color:var(--nj-navy);font-size:11px;font-weight:700;line-height:1.5}.project-source-note i{color:var(--nj-blue);font-size:17px}
+  </style>
+{% endblock %}
+{% block content %}
+<div class="nj-invoice operations-standard">
+  <header class="ops-head"><div><span class="ops-kicker"><i class="bi bi-kanban"></i> Project management</span><h1 class="ops-title">{{ form_title }}</h1><p class="ops-subtitle">Select the company client and supervisor, define the work, and save as Draft or Pending. Status and finalization date are managed automatically.</p></div><div class="ops-toolbar"><a class="ops-btn is-secondary" href="{{ cancel_url }}"><i class="bi bi-arrow-left"></i> Back</a></div></header>
+
+  <form class="ops-stack" method="post" novalidate>{% csrf_token %}
+    {% if form.non_field_errors %}<div class="ops-form-errors">{{ form.non_field_errors }}</div>{% endif %}
+    {% if inspection %}<div class="project-source-note"><i class="bi bi-clipboard2-check"></i><span>This project comes from inspection INS-{{ inspection.id_assignment }}. Only client and textual information are transferred; inspection photographs remain in the inspection and are not copied.</span></div>{% endif %}
+
+    <section class="ops-card">
+      <header class="ops-card-head"><div class="ops-card-heading"><i class="bi bi-people"></i><div><h2 class="ops-card-title">Client and supervision</h2><p class="ops-card-copy">The client and supervisor / inspector must belong to the active company.</p></div></div></header>
+      <div class="ops-card-body"><div class="ops-form-grid">
+        <div class="ops-field"><label for="{{ form.id_client.id_for_label }}">Client</label>{{ form.id_client }}{{ form.id_client.errors }}</div>
+        <div class="ops-field"><label for="{{ form.id_inspector.id_for_label }}">Supervisor / Inspector</label>{{ form.id_inspector }}{{ form.id_inspector.errors }}</div>
+      </div></div>
+    </section>
+
+    <section class="ops-card">
+      <header class="ops-card-head"><div class="ops-card-heading"><i class="bi bi-briefcase"></i><div><h2 class="ops-card-title">Project information</h2><p class="ops-card-copy">Core work information. The end date is recorded only when the project is approved and closed.</p></div></div></header>
+      <div class="ops-card-body"><div class="ops-form-grid is-three">
+        <div class="ops-field is-wide"><label for="{{ form.name.id_for_label }}">Project name</label>{{ form.name }}{{ form.name.errors }}</div>
+        <div class="ops-field"><label for="{{ form.contract_amount.id_for_label }}">Contract amount</label>{{ form.contract_amount }}{{ form.contract_amount.errors }}</div>
+        <div class="ops-field"><label for="{{ form.start_date.id_for_label }}">Start date</label>{{ form.start_date }}{{ form.start_date.errors }}</div>
+        <div class="ops-field is-full"><label>Finalization date</label><div class="project-source-note"><i class="bi bi-calendar-check"></i><span>Automatic. It will be set to the approval / closure date after the final confirmation window.</span></div></div>
+      </div></div>
+    </section>
+
+    <section class="ops-card">
+      <header class="ops-card-head"><div class="ops-card-heading"><i class="bi bi-geo-alt"></i><div><h2 class="ops-card-title">Location</h2><p class="ops-card-copy">Address and Google Maps are kept together for faster field access.</p></div></div></header>
+      <div class="ops-card-body"><div class="ops-form-grid">
+        <div class="ops-field"><label for="{{ form.project_address.id_for_label }}">Project address</label>{{ form.project_address }}{{ form.project_address.errors }}</div>
+        <div class="ops-field"><label for="{{ form.google_maps_url.id_for_label }}">Google Maps URL</label>{{ form.google_maps_url }}{{ form.google_maps_url.errors }}</div>
+      </div></div>
+    </section>
+
+    <section class="ops-card">
+      <header class="ops-card-head"><div class="ops-card-heading"><i class="bi bi-card-text"></i><div><h2 class="ops-card-title">Description and notes</h2><p class="ops-card-copy">Operational description and internal administrative notes.</p></div></div></header>
+      <div class="ops-card-body"><div class="ops-form-grid">
+        <div class="ops-field"><label for="{{ form.description.id_for_label }}">Description</label>{{ form.description }}{{ form.description.errors }}</div>
+        <div class="ops-field"><label for="{{ form.project_notes.id_for_label }}">Project notes</label>{{ form.project_notes }}{{ form.project_notes.errors }}</div>
+      </div></div>
+    </section>
+
+    <section class="ops-card"><div class="ops-card-body"><div class="ops-form-actions">
+      <a class="ops-btn is-secondary" href="{{ cancel_url }}"><i class="bi bi-x-lg"></i> Cancel</a>
+      {% if allow_save_draft %}<button class="ops-btn is-secondary" type="submit" name="save_mode" value="draft"><i class="bi bi-pencil-square"></i> Save draft</button>{% endif %}
+      <button class="ops-btn" type="submit" name="save_mode" value="pending"><i class="bi bi-check2"></i> {{ primary_submit_label|default:submit_label }}</button>
+    </div></div></section>
+  </form>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+  ["#id_id_client","#id_id_inspector"].forEach(function(selector){const field=document.querySelector(selector);if(field&&window.TomSelect&&!field.tomselect){new TomSelect(field,{create:false,maxOptions:500,searchField:["text"],allowEmptyOption:true,plugins:["clear_button"],placeholder:"Search..."});}});
+});
+</script>
+{% endblock %}

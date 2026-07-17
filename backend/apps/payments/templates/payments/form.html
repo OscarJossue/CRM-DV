@@ -1,0 +1,1176 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}{{ form_title }}{% endblock %}
+
+{% block page_subtitle %}
+Register one payment, select the client/project and apply it to unpaid invoices.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .payment_form {
+    display: grid;
+    gap: 10px;
+    font-family: Aptos, Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  }
+
+  .payment_form .crm_card {
+    border-radius: 17px;
+    padding: 14px;
+  }
+
+  .payment_compact_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .payment_compact_title {
+    display: grid;
+    gap: 3px;
+  }
+
+  .payment_compact_title h2 {
+    margin: 0;
+    color: var(--crm_text);
+    font-size: clamp(20px, 1.8vw, 27px);
+    font-weight: 950;
+    letter-spacing: -0.03em;
+  }
+
+  .payment_compact_title p {
+    margin: 0;
+    color: var(--crm_muted);
+    font-size: 12.5px;
+    line-height: 1.4;
+    font-weight: 750;
+  }
+
+  .payment_form_actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  .payment_create_layout {
+    display: grid;
+    grid-template-columns: minmax(520px, 1.05fr) minmax(400px, .95fr);
+    gap: 12px;
+    align-items: start;
+  }
+
+  .payment_fields_panel,
+  .payment_invoices_panel {
+    border: 1px solid var(--crm_border);
+    border-radius: 15px;
+    background: #ffffff;
+    padding: 12px;
+    min-width: 0;
+  }
+
+  .payment_panel_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .payment_panel_header h3 {
+    margin: 0;
+    color: var(--crm_text);
+    font-size: 16px;
+    font-weight: 950;
+    letter-spacing: -.02em;
+  }
+
+  .payment_panel_header p {
+    margin: 2px 0 0;
+    color: var(--crm_muted);
+    font-size: 11.5px;
+    font-weight: 750;
+    line-height: 1.35;
+  }
+
+  .payment_fields_grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 9px;
+    align-items: start;
+  }
+
+  .payment_fields_column {
+    display: grid;
+    gap: 9px;
+    min-width: 0;
+  }
+
+  .payment_bottom_grid {
+    display: grid;
+    grid-template-columns: minmax(170px, .35fr) minmax(280px, .65fr);
+    gap: 9px;
+    margin-top: 9px;
+    align-items: start;
+  }
+
+  .payment_form_field {
+    display: grid;
+    gap: 5px;
+    min-width: 0;
+  }
+
+  .payment_form_field label {
+    color: var(--crm_text);
+    font-size: 10.5px;
+    font-weight: 950;
+    text-transform: uppercase;
+    letter-spacing: 0.055em;
+    overflow-wrap: anywhere;
+  }
+
+  .crm_input,
+  .payment_form input[type="text"],
+  .payment_form input[type="number"],
+  .payment_form input[type="email"],
+  .payment_form input[type="date"],
+  .payment_form input[type="file"],
+  .payment_form select,
+  .payment_form textarea {
+    width: 100%;
+    height: 38px;
+    min-height: 38px;
+    border: 1px solid var(--crm_border);
+    border-radius: 10px;
+    padding: 7px 10px;
+    color: var(--crm_text);
+    background: #ffffff;
+    font-size: 13px;
+    font-weight: 750;
+    line-height: 1.25;
+    outline: none;
+    transition: border-color .16s ease, box-shadow .16s ease;
+  }
+
+  .payment_form input[type="file"] {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+
+  .payment_form input:focus,
+  .payment_form select:focus,
+  .payment_form textarea:focus {
+    border-color: var(--crm_primary);
+    box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.10);
+  }
+
+  textarea.crm_input,
+  .payment_form textarea {
+    min-height: 54px;
+    height: 54px;
+    resize: vertical;
+  }
+
+  .payment_error {
+    color: var(--crm_danger);
+    font-size: 12px;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+  }
+
+  .payment_selected_invoice {
+    display: grid;
+    gap: 9px;
+    border-radius: 17px;
+    background: var(--crm_text);
+    color: #ffffff;
+    padding: 13px;
+  }
+
+  .payment_selected_header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .payment_selected_header h2 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 17px;
+    font-weight: 950;
+    letter-spacing: -.02em;
+  }
+
+  .payment_selected_hint {
+    color: rgba(255,255,255,.64);
+    font-size: 11.5px;
+    font-weight: 800;
+  }
+
+  .payment_selected_grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .payment_selected_box {
+    background: rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 10px 11px;
+  }
+
+  .payment_selected_box span {
+    display: block;
+    font-size: 10.5px;
+    color: rgba(255,255,255,0.66);
+    margin-bottom: 4px;
+    font-weight: 950;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .payment_selected_box strong {
+    font-size: 17px;
+    color: #ffffff;
+    font-weight: 950;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+  }
+
+  .payment_credit_preview {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 10px;
+    border-radius: 14px;
+    background: var(--crm_text);
+    color: #ffffff;
+    padding: 11px 12px;
+  }
+
+  .payment_credit_preview span {
+    display: block;
+    color: rgba(255,255,255,.67);
+    font-size: 10.5px;
+    font-weight: 950;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+
+  .payment_credit_preview small {
+    display: block;
+    color: rgba(255,255,255,.62);
+    font-size: 11px;
+    font-weight: 750;
+    margin-top: 2px;
+  }
+
+  .payment_credit_preview strong {
+    color: #ffffff;
+    font-size: 19px;
+    font-weight: 950;
+    white-space: nowrap;
+  }
+
+  .payment_credit_stack {
+    display: grid;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .payment_existing_credit_block {
+    display: none;
+    gap: 8px;
+  }
+
+  .payment_existing_credit_block.payment_existing_credit_visible {
+    display: grid;
+  }
+
+  .payment_credit_toggle {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    border: 1px solid rgba(29, 78, 216, 0.18);
+    background: rgba(29, 78, 216, 0.05);
+    border-radius: 13px;
+    padding: 10px;
+    cursor: pointer;
+  }
+
+  .payment_credit_toggle input {
+    width: 15px !important;
+    height: 15px !important;
+    min-height: 15px !important;
+    margin-top: 2px;
+    padding: 0 !important;
+    accent-color: var(--crm_primary);
+    cursor: pointer;
+  }
+
+  .payment_credit_toggle strong {
+    display: block;
+    color: var(--crm_text);
+    font-size: 12.5px;
+    font-weight: 950;
+    line-height: 1.25;
+  }
+
+  .payment_credit_toggle small {
+    display: block;
+    margin-top: 2px;
+    color: var(--crm_muted);
+    font-size: 11px;
+    font-weight: 750;
+    line-height: 1.35;
+  }
+
+  .payment_credit_preview.payment_credit_available {
+    background: #212227;
+  }
+
+  .payment_invoice_list {
+    display: grid;
+    gap: 7px;
+  }
+
+  .payment_invoice_item {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr) minmax(96px, auto);
+    gap: 8px;
+    align-items: center;
+    border: 1px solid var(--crm_border);
+    border-radius: 12px;
+    background: #ffffff;
+    padding: 8px 9px;
+    transition: border-color .16s ease, background .16s ease, box-shadow .16s ease;
+  }
+
+  .payment_invoice_item.payment_allocation_selected {
+    border-color: var(--crm_primary);
+    background: rgba(29, 78, 216, 0.045);
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+  }
+
+  .payment_invoice_check {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .payment_invoice_check input {
+    width: 15px !important;
+    height: 15px !important;
+    min-height: 15px !important;
+    padding: 0 !important;
+    cursor: pointer;
+    accent-color: var(--crm_primary);
+  }
+
+  .payment_invoice_number {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .payment_invoice_number strong {
+    color: var(--crm_text);
+    font-size: 12.5px;
+    font-weight: 950;
+    line-height: 1.2;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: normal;
+  }
+
+  .payment_invoice_number small {
+    color: var(--crm_muted);
+    font-size: 10.5px;
+    font-weight: 850;
+    line-height: 1.2;
+  }
+
+  .payment_invoice_balance {
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .payment_invoice_balance span {
+    display: block;
+    color: var(--crm_muted);
+    font-size: 9.5px;
+    font-weight: 950;
+    text-transform: uppercase;
+    letter-spacing: .055em;
+    margin-bottom: 2px;
+  }
+
+  .payment_invoice_balance strong {
+    color: var(--crm_danger);
+    font-size: 12.5px;
+    font-weight: 950;
+  }
+
+
+
+  .payment_file_control {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 38px;
+    border: 1px solid var(--crm_border);
+    border-radius: 10px;
+    background: #ffffff;
+    padding: 5px 8px;
+    overflow: hidden;
+  }
+
+  .payment_file_control input[type="file"] {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 2;
+  }
+
+  .payment_file_button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 28px;
+    padding: 5px 10px;
+    border-radius: 8px;
+    background: var(--crm_primary);
+    color: #ffffff !important;
+    font-size: 12px !important;
+    font-weight: 900 !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+    white-space: nowrap;
+    margin: 0;
+  }
+
+  .payment_file_name {
+    color: var(--crm_muted);
+    font-size: 12px;
+    font-weight: 750;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .payment_invoice_empty_state {
+    padding: 12px;
+    border: 1px dashed rgba(29, 78, 216, 0.35);
+    border-radius: 14px;
+    background: rgba(29, 78, 216, 0.045);
+    color: var(--crm_text);
+    font-size: 12.5px;
+    line-height: 1.45;
+    font-weight: 800;
+  }
+
+  .payment_invoice_actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--crm_border);
+  }
+
+  .payment_invoice_actions .crm_button {
+    min-height: 38px;
+  }
+
+  .payment_notice {
+    padding: 8px 10px;
+    border-radius: 12px;
+    background: rgba(29, 78, 216, 0.07);
+    border: 1px solid rgba(29, 78, 216, 0.15);
+    color: var(--crm_text);
+    font-size: 12px;
+    line-height: 1.45;
+    font-weight: 750;
+  }
+
+  .payment_allocation_hidden {
+    display: none !important;
+  }
+
+  .payment_auto_amount,
+  .payment_allocation_order,
+  .payment_hidden_distribution {
+    display: none !important;
+  }
+
+  @media (max-width: 1180px) {
+    .payment_create_layout {
+      grid-template-columns: 1fr;
+    }
+
+    .payment_fields_grid,
+    .payment_selected_grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 720px) {
+    .payment_compact_header,
+    .payment_panel_header,
+    .payment_credit_preview {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .payment_form_actions,
+    .payment_form_actions .crm_button,
+    .payment_fields_grid,
+    .payment_bottom_grid,
+    .payment_selected_grid,
+    .payment_invoice_item {
+      grid-template-columns: 1fr;
+      width: 100%;
+    }
+
+    .payment_invoice_check {
+      justify-content: flex-start;
+    }
+
+    .payment_invoice_balance {
+      text-align: left;
+    }
+
+    .payment_invoice_actions,
+    .payment_invoice_actions .crm_button {
+      width: 100%;
+    }
+  }
+</style>
+{% include "payments/partials/_design_system.html" %}
+{% endblock %}
+
+{% block content %}
+  <form class="payment_theme payment_form nj-invoice nj-page finance-standard" method="post" enctype="multipart/form-data" novalidate id="PaymentForm">
+    {% csrf_token %}
+
+    <div class="finance-security-note"><i class="bi bi-shield-lock" aria-hidden="true"></i><span>Payment and invoice accounting states are controlled by registration, verification, confirmation, allocation and void validations. They cannot be changed from the status indicator.</span></div>
+
+    {{ form.id_invoice }}
+
+    {% if form.non_field_errors %}
+      <section class="crm_card">
+        <div class="payment_error">{{ form.non_field_errors }}</div>
+      </section>
+    {% endif %}
+
+    <section class="crm_card">
+      <div class="payment_compact_header">
+        <div class="payment_compact_title">
+          <h2>{{ form_title }}</h2>
+          <p>Choose the client, project, method and amount. Then select the unpaid invoices to apply the payment.</p>
+        </div>
+
+      </div>
+    </section>
+
+    {% if invoice %}
+      <section class="payment_selected_invoice">
+        <div class="payment_selected_header">
+          <h2>Selected Invoice</h2>
+          <span class="payment_selected_hint">Payment will start from this invoice</span>
+        </div>
+        <div class="payment_selected_grid">
+          <div class="payment_selected_box"><span>Invoice</span><strong>{{ invoice.invoice_number|default:invoice.id_invoice }}</strong></div>
+          <div class="payment_selected_box"><span>Total</span><strong>${{ invoice.total }}</strong></div>
+          <div class="payment_selected_box"><span>Paid</span><strong>${{ invoice.paid_amount }}</strong></div>
+          <div class="payment_selected_box"><span>Balance Due</span><strong>${{ invoice.balance_due }}</strong></div>
+        </div>
+      </section>
+    {% endif %}
+
+    <section class="crm_card">
+      <div class="payment_create_layout">
+        <div class="payment_fields_panel">
+          <div class="payment_panel_header">
+            <div>
+              <h3>Payment Details</h3>
+              <p>Compact registration fields.</p>
+            </div>
+          </div>
+
+          <div class="payment_fields_grid">
+            <div class="payment_fields_column">
+              <div class="payment_form_field">
+                <label for="{{ form.id_client.id_for_label }}">Client</label>
+                {{ form.id_client }}
+                {% if form.id_client.errors %}<div class="payment_error">{{ form.id_client.errors }}</div>{% endif %}
+              </div>
+
+              <div class="payment_form_field">
+                <label for="{{ form.id_project.id_for_label }}">Project</label>
+                {{ form.id_project }}
+                {% if form.id_project.errors %}<div class="payment_error">{{ form.id_project.errors }}</div>{% endif %}
+              </div>
+            </div>
+
+            <div class="payment_fields_column">
+              <div class="payment_form_field">
+                <label for="{{ form.payment_method.id_for_label }}">Method</label>
+                {{ form.payment_method }}
+                {% if form.payment_method.errors %}<div class="payment_error">{{ form.payment_method.errors }}</div>{% endif %}
+              </div>
+
+              <div class="payment_form_field">
+                <label for="{{ form.voucher_code.id_for_label }}">Voucher / Reference</label>
+                {{ form.voucher_code }}
+                {% if form.voucher_code.errors %}<div class="payment_error">{{ form.voucher_code.errors }}</div>{% endif %}
+              </div>
+            </div>
+
+            <div class="payment_fields_column">
+              <div class="payment_form_field">
+                <label for="{{ form.amount.id_for_label }}">Amount</label>
+                {{ form.amount }}
+                {% if form.amount.errors %}<div class="payment_error">{{ form.amount.errors }}</div>{% endif %}
+              </div>
+
+              <div class="payment_form_field">
+                <label for="{{ form.receipt_file.id_for_label }}">Receipt File</label>
+                <div class="payment_file_control">
+                  {{ form.receipt_file }}
+                  <span class="payment_file_button">Choose file</span>
+                  <span class="payment_file_name" id="ReceiptFileName">No file chosen</span>
+                </div>
+                {% if form.receipt_file.errors %}<div class="payment_error">{{ form.receipt_file.errors }}</div>{% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div class="payment_bottom_grid">
+            <div class="payment_form_field">
+              <label for="{{ form.payment_date.id_for_label }}">Payment Date</label>
+              {{ form.payment_date }}
+              {% if form.payment_date.errors %}<div class="payment_error">{{ form.payment_date.errors }}</div>{% endif %}
+            </div>
+
+            <div class="payment_form_field">
+              <label for="{{ form.notes.id_for_label }}">Notes</label>
+              {{ form.notes }}
+              {% if form.notes.errors %}<div class="payment_error">{{ form.notes.errors }}</div>{% endif %}
+            </div>
+          </div>
+
+          <div class="payment_credit_stack">
+            <div class="payment_existing_credit_block" id="ExistingCreditBlock">
+              <div class="payment_credit_preview payment_credit_available">
+                <div>
+                  <span>Available Client Credit</span>
+                  <small>Existing balance available for the selected client.</small>
+                </div>
+                <strong id="AvailableCreditOutput">$0.00</strong>
+              </div>
+
+              <label class="payment_credit_toggle" for="{{ form.use_client_credit.id_for_label }}">
+                {{ form.use_client_credit }}
+                <span>
+                  <strong>Use client credit balance</strong>
+                  <small id="CreditUseHint">Credit is used first when this option is checked.</small>
+                </span>
+              </label>
+              {% if form.use_client_credit.errors %}<div class="payment_error">{{ form.use_client_credit.errors }}</div>{% endif %}
+            </div>
+
+            <div class="payment_credit_preview">
+              <div>
+                <span>New Credit After Payment</span>
+                <small>Only if the payment amount is greater than selected invoice balances.</small>
+              </div>
+              <strong id="CreditOutput">$0.00</strong>
+            </div>
+          </div>
+
+          <div class="payment_hidden_distribution" aria-hidden="true">
+            <span id="PaymentAmountOutput">$0.00</span>
+            <span id="AllocatedOutput">$0.00</span>
+            <span id="ValidationOutput">Select invoice</span>
+          </div>
+        </div>
+
+        <div class="payment_invoices_panel">
+          <div class="payment_panel_header">
+            <div>
+              <h3>Unpaid Invoices</h3>
+              <p>Select invoices to apply the payment automatically.</p>
+            </div>
+          </div>
+
+          <div class="payment_invoice_empty_state" id="SelectClientProjectNotice">
+            Select a client and project to see the pending invoices for this payment.
+          </div>
+
+          <div class="payment_invoice_empty_state" id="NoMatchingInvoicesNotice" style="display:none;">
+            No unpaid invoices were found for the selected client and project.
+          </div>
+
+          <div class="payment_invoice_list" id="AllocationsContainer">
+            {% for item in allocation_fields %}
+              <div
+                class="payment_invoice_item payment_allocation_card payment_allocation_hidden"
+                data-client="{{ item.invoice.id_client_id }}"
+                data-project="{{ item.invoice.id_project_id|default:'' }}"
+                data-balance="{{ item.invoice.balance_due|default:'0.00' }}"
+              >
+                <div class="payment_invoice_check">
+                  {{ item.selected_field }}
+                  {{ item.order_field }}
+                </div>
+
+                <div class="payment_invoice_number">
+                  <span class="payment_allocation_order">Not selected</span>
+                  <strong>Invoice {{ item.invoice.invoice_number|default:item.invoice.id_invoice }}</strong>
+                  <small>Pending balance</small>
+                </div>
+
+                <div class="payment_invoice_balance">
+                  <span>Balance</span>
+                  <strong>${{ item.invoice.balance_due }}</strong>
+                  <div class="payment_auto_amount">$0.00</div>
+                </div>
+              </div>
+            {% empty %}
+              <div class="payment_notice">
+                No unpaid invoices were found. You must have at least one invoice with pending balance before registering a payment.
+              </div>
+            {% endfor %}
+          </div>
+
+          <div class="payment_invoice_actions">
+            {% if invoice %}
+              <a class="crm_button crm_button_secondary" href="{% url 'invoices:invoice_detail' invoice.id_invoice %}">Cancel</a>
+            {% else %}
+              <a class="crm_button crm_button_secondary" href="{% url 'payments:payment_list' %}">Cancel</a>
+            {% endif %}
+            <button class="crm_button" type="submit" id="SubmitPaymentButton">{{ submit_label }}</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </form>
+
+  <script>
+    (function () {
+      const form = document.getElementById("PaymentForm");
+      const clientSelect = document.querySelector('[name="id_client"]');
+      const projectSelect = document.querySelector('[name="id_project"]');
+      const amountInput = document.querySelector('[name="amount"]');
+      const useClientCreditInput = document.querySelector('[name="use_client_credit"]');
+      const existingCreditBlock = document.getElementById("ExistingCreditBlock");
+      const originalProjectOptions = projectSelect
+        ? Array.from(projectSelect.options).map(function (option) { return option.cloneNode(true); })
+        : [];
+
+      const allocationChecks = document.querySelectorAll(".allocation-checkbox");
+
+      const paymentAmountOutput = document.getElementById("PaymentAmountOutput");
+      const allocatedOutput = document.getElementById("AllocatedOutput");
+      const creditOutput = document.getElementById("CreditOutput");
+      const availableCreditOutput = document.getElementById("AvailableCreditOutput");
+      const creditUseHint = document.getElementById("CreditUseHint");
+      const validationOutput = document.getElementById("ValidationOutput");
+      const submitButton = document.getElementById("SubmitPaymentButton");
+      const selectClientProjectNotice = document.getElementById("SelectClientProjectNotice");
+      const noMatchingInvoicesNotice = document.getElementById("NoMatchingInvoicesNotice");
+      const receiptInput = document.querySelector('[name="receipt_file"]');
+      const receiptFileName = document.getElementById("ReceiptFileName");
+
+      let selectionCounter = 0;
+
+      function parseMoney(value) {
+        if (!value) {
+          return 0;
+        }
+
+        const normalized = String(value).replace(",", ".").replace(/[^0-9.-]/g, "");
+        const parsed = parseFloat(normalized);
+
+        return Number.isNaN(parsed) ? 0 : parsed;
+      }
+
+      function formatMoney(value) {
+        return "$" + Number(value || 0).toFixed(2);
+      }
+
+      function getSelectedClientCredit() {
+        if (!clientSelect || !clientSelect.options || clientSelect.selectedIndex < 0) {
+          return 0;
+        }
+
+        const option = clientSelect.options[clientSelect.selectedIndex];
+        return parseMoney(option ? option.getAttribute("data-credit") : 0);
+      }
+
+      function getUseClientCredit() {
+        return Boolean(useClientCreditInput && useClientCreditInput.checked);
+      }
+
+      function getOrderInput(check) {
+        const orderFieldName = check.getAttribute("data-order-field");
+
+        if (!orderFieldName) {
+          return null;
+        }
+
+        return document.querySelector('[name="' + orderFieldName + '"]');
+      }
+
+      function getVisibleSelectedRows() {
+        const rows = [];
+
+        document.querySelectorAll(".payment_allocation_card").forEach(function (row) {
+          if (row.classList.contains("payment_allocation_hidden")) {
+            return;
+          }
+
+          const check = row.querySelector(".allocation-checkbox");
+
+          if (!check || !check.checked) {
+            return;
+          }
+
+          const orderInput = getOrderInput(check);
+          const order = orderInput ? parseInt(orderInput.value || "999999", 10) : 999999;
+
+          rows.push({
+            row: row,
+            check: check,
+            order: Number.isNaN(order) ? 999999 : order
+          });
+        });
+
+        rows.sort(function (a, b) {
+          return a.order - b.order;
+        });
+
+        return rows;
+      }
+
+      function updateRowLabels() {
+        const rows = getVisibleSelectedRows();
+
+        document.querySelectorAll(".payment_allocation_card").forEach(function (row) {
+          const label = row.querySelector(".payment_allocation_order");
+          const autoAmount = row.querySelector(".payment_auto_amount");
+
+          if (label) {
+            label.textContent = "Not selected";
+          }
+
+          if (autoAmount) {
+            autoAmount.textContent = "$0.00";
+          }
+        });
+
+        rows.forEach(function (item, index) {
+          const label = item.row.querySelector(".payment_allocation_order");
+
+          if (label) {
+            label.textContent = "Pay order #" + (index + 1);
+          }
+        });
+      }
+
+      function filterProjectsByClient() {
+        if (!clientSelect || !projectSelect || !originalProjectOptions.length) {
+          return;
+        }
+
+        const selectedClient = String(clientSelect.value || "");
+        const currentProject = String(projectSelect.value || "");
+        const matchingValues = [];
+
+        projectSelect.innerHTML = "";
+
+        originalProjectOptions.forEach(function (sourceOption) {
+          const optionClient = String(sourceOption.getAttribute("data-client") || "");
+          const isBlank = !sourceOption.value;
+          const shouldShow = isBlank || (selectedClient && optionClient === selectedClient);
+
+          if (!shouldShow) {
+            return;
+          }
+
+          const newOption = sourceOption.cloneNode(true);
+          newOption.hidden = false;
+          newOption.disabled = false;
+          newOption.selected = false;
+          projectSelect.appendChild(newOption);
+
+          if (newOption.value) {
+            matchingValues.push(String(newOption.value));
+          }
+        });
+
+        if (currentProject && matchingValues.includes(currentProject)) {
+          projectSelect.value = currentProject;
+        } else {
+          projectSelect.value = "";
+        }
+      }
+
+
+      function filterAllocationRows() {
+        filterProjectsByClient();
+
+        const selectedClient = clientSelect ? String(clientSelect.value || "") : "";
+        const selectedProject = projectSelect ? String(projectSelect.value || "") : "";
+        const canShowInvoices = Boolean(selectedClient && selectedProject);
+        let visibleCount = 0;
+
+        document.querySelectorAll(".payment_allocation_card").forEach(function (row) {
+          const rowClient = String(row.getAttribute("data-client") || "");
+          const rowProject = String(row.getAttribute("data-project") || "");
+          const check = row.querySelector(".allocation-checkbox");
+          const orderInput = check ? getOrderInput(check) : null;
+
+          const visible = Boolean(
+            canShowInvoices &&
+            rowClient === selectedClient &&
+            rowProject === selectedProject
+          );
+
+          row.classList.toggle("payment_allocation_hidden", !visible);
+
+          if (visible) {
+            visibleCount += 1;
+          }
+
+          if (!visible && check) {
+            check.checked = false;
+            row.classList.remove("payment_allocation_selected");
+
+            if (orderInput) {
+              orderInput.value = "";
+            }
+          }
+        });
+
+        if (selectClientProjectNotice) {
+          selectClientProjectNotice.style.display = canShowInvoices ? "none" : "block";
+        }
+
+        if (noMatchingInvoicesNotice) {
+          noMatchingInvoicesNotice.style.display = canShowInvoices && visibleCount === 0 ? "block" : "none";
+        }
+      }
+
+      function calculateDistribution() {
+        const paymentAmount = parseMoney(amountInput ? amountInput.value : 0);
+        const availableCredit = getSelectedClientCredit();
+        let useClientCredit = getUseClientCredit();
+
+        if (existingCreditBlock) {
+          existingCreditBlock.classList.toggle("payment_existing_credit_visible", availableCredit > 0);
+        }
+
+        if (availableCredit <= 0 && useClientCreditInput) {
+          useClientCreditInput.checked = false;
+          useClientCredit = false;
+        }
+
+        let remaining = paymentAmount;
+        let remainingClientCredit = useClientCredit ? availableCredit : 0;
+        let allocated = 0;
+        let creditUsed = 0;
+        let selectedCount = 0;
+
+        const rows = getVisibleSelectedRows();
+
+        rows.forEach(function (item) {
+          const row = item.row;
+          const balance = parseMoney(row.getAttribute("data-balance"));
+          const autoAmount = row.querySelector(".payment_auto_amount");
+
+          selectedCount += 1;
+
+          let balanceAfterCredit = balance;
+          let creditApplied = 0;
+
+          if (useClientCredit && balanceAfterCredit > 0 && remainingClientCredit > 0) {
+            creditApplied = balanceAfterCredit;
+
+            if (creditApplied > remainingClientCredit) {
+              creditApplied = remainingClientCredit;
+            }
+
+            creditUsed += creditApplied;
+            remainingClientCredit -= creditApplied;
+            balanceAfterCredit -= creditApplied;
+          }
+
+          let applied = balanceAfterCredit;
+
+          if (applied > remaining) {
+            applied = remaining;
+          }
+
+          if (applied < 0) {
+            applied = 0;
+          }
+
+          allocated += applied;
+          remaining -= applied;
+
+          if (autoAmount) {
+            autoAmount.textContent = creditApplied > 0
+              ? "credit " + formatMoney(creditApplied) + " + " + formatMoney(applied)
+              : formatMoney(applied);
+          }
+        });
+
+        const newCredit = paymentAmount - allocated;
+
+        if (paymentAmountOutput) {
+          paymentAmountOutput.textContent = formatMoney(paymentAmount);
+        }
+
+        if (allocatedOutput) {
+          allocatedOutput.textContent = formatMoney(allocated);
+        }
+
+        if (availableCreditOutput) {
+          availableCreditOutput.textContent = formatMoney(availableCredit);
+        }
+
+        if (creditOutput) {
+          creditOutput.textContent = newCredit > 0 ? formatMoney(newCredit) : "$0.00";
+        }
+
+        if (creditUseHint) {
+          if (useClientCredit && creditUsed > 0) {
+            creditUseHint.textContent = formatMoney(creditUsed) + " will be consumed from the client credit balance.";
+          } else {
+            creditUseHint.textContent = "Credit is used first when this option is checked.";
+          }
+        }
+
+        const canUseCreditOnly = Boolean(useClientCredit && creditUsed > 0);
+
+        if (validationOutput) {
+          if (selectedCount === 0) {
+            validationOutput.textContent = "Select invoice";
+          } else if (paymentAmount <= 0 && !canUseCreditOnly) {
+            validationOutput.textContent = "Enter payment amount or use client credit";
+          } else {
+            validationOutput.textContent = "OK";
+          }
+        }
+
+        if (submitButton) {
+          const selectedClient = clientSelect ? String(clientSelect.value || "") : "";
+          const selectedProject = projectSelect ? String(projectSelect.value || "") : "";
+          submitButton.disabled = (
+            !selectedClient ||
+            !selectedProject ||
+            selectedCount === 0 ||
+            (paymentAmount <= 0 && !canUseCreditOnly)
+          );
+        }
+      }
+
+      function updateAll() {
+        filterAllocationRows();
+        updateRowLabels();
+        calculateDistribution();
+      }
+
+      function normalizeDecimals() {
+        if (amountInput && amountInput.value) {
+          amountInput.value = amountInput.value.replace(",", ".");
+        }
+      }
+
+      allocationChecks.forEach(function (check) {
+        const orderInput = getOrderInput(check);
+        const row = check.closest(".payment_allocation_card");
+
+        if (check.checked) {
+          selectionCounter += 1;
+
+          if (orderInput && !orderInput.value) {
+            orderInput.value = selectionCounter;
+          }
+
+          if (row) {
+            row.classList.add("payment_allocation_selected");
+          }
+        }
+
+        check.addEventListener("change", function () {
+          if (check.checked) {
+            selectionCounter += 1;
+
+            if (orderInput) {
+              orderInput.value = selectionCounter;
+            }
+
+            if (row) {
+              row.classList.add("payment_allocation_selected");
+            }
+          } else {
+            if (orderInput) {
+              orderInput.value = "";
+            }
+
+            if (row) {
+              row.classList.remove("payment_allocation_selected");
+            }
+          }
+
+          updateAll();
+        });
+      });
+
+      if (clientSelect) {
+        clientSelect.addEventListener("change", updateAll);
+      }
+
+      if (projectSelect) {
+        projectSelect.addEventListener("change", updateAll);
+      }
+
+      if (amountInput) {
+        amountInput.addEventListener("input", updateAll);
+        amountInput.addEventListener("change", updateAll);
+      }
+
+      if (useClientCreditInput) {
+        useClientCreditInput.addEventListener("change", updateAll);
+      }
+
+      if (receiptInput && receiptFileName) {
+        receiptInput.addEventListener("change", function () {
+          const file = receiptInput.files && receiptInput.files.length ? receiptInput.files[0] : null;
+          receiptFileName.textContent = file ? file.name : "No file chosen";
+        });
+      }
+
+      if (form) {
+        form.addEventListener("submit", normalizeDecimals);
+      }
+
+      updateAll();
+    })();
+  </script>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "layouts/base.html" %}
+{% block page_title %}Calendar / Meet{% endblock %}
+{% block page_subtitle %}Create Google Calendar events and Meet links from the CRM.{% endblock %}
+{% block extra_head %}{% include "integrations/partials/_design_system.html" %}{% endblock %}
+{% block content %}
+<div class="account_theme integration_theme account_page">
+  <div class="account_toolbar"><div class="account_toolbar_title"><h2>Calendar / Meet</h2><p>Schedule meetings, send invitations and save Google Meet links.</p></div>{% if can_create_integrations %}<a class="account_button" href="new/"><svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg> New Meeting</a>{% endif %}</div>
+  {% if not connection %}<section class="integration_status_bar"><span class="account_muted">Connect Google before creating meetings.</span><a class="account_button account_button_secondary" href="../connections/">Connections</a></section>{% endif %}
+  <section class="crm_card"><div class="account_table_wrap"><table class="account_table"><thead><tr><th>Meeting</th><th>Date</th><th>Status</th><th>Meet</th><th>Attendees</th></tr></thead><tbody>{% for event in calendar_events %}<tr><td><div class="account_main"><span class="account_strong">{{ event.title }}</span><span class="account_muted">{{ event.description|truncatechars:80 }}</span></div></td><td>{{ event.start_at|date:"Y-m-d H:i" }}<br><span class="account_muted">to {{ event.end_at|date:"H:i" }}</span></td><td><span class="account_pill {% if event.status == 'synced' %}success{% elif event.status == 'error' %}danger{% else %}warning{% endif %}">{{ event.get_status_display }}</span></td><td>{% if event.meet_url %}<a class="account_button account_button_secondary" href="{{ event.meet_url }}" target="_blank">Open Meet</a>{% else %}<span class="account_muted">Not generated</span>{% endif %}</td><td><span class="account_muted">{{ event.attendees|default:"No attendees"|truncatechars:80 }}</span></td></tr>{% empty %}<tr><td colspan="5" class="account_empty">No meetings yet.</td></tr>{% endfor %}</tbody></table></div></section>
+</div>
+{% endblock %}

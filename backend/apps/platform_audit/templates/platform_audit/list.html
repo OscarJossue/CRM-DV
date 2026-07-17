@@ -1,0 +1,297 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Platform Audit{% endblock %}
+
+{% block page_subtitle %}
+Review CEO MARKETING SaaS administration actions, affected companies, modules and timestamps.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .paudit_page {
+    display: grid;
+    gap: 20px;
+  }
+
+  .paudit_top {
+    padding: 22px;
+    border: 1px solid var(--crm_border);
+    border-radius: 22px;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(31, 58, 138, 0.12), transparent 32%),
+      #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .paudit_top h2 {
+    margin: 0;
+    color: var(--crm_text);
+    font-size: 24px;
+    font-weight: 900;
+  }
+
+  .paudit_top p {
+    margin: 6px 0 0;
+    color: var(--crm_muted);
+    font-size: 14px;
+    line-height: 1.65;
+  }
+
+  .paudit_stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .paudit_stat {
+    display: grid;
+    gap: 6px;
+    padding: 16px;
+    border: 1px solid var(--crm_border);
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .paudit_stat span {
+    color: var(--crm_muted);
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  .paudit_stat strong {
+    color: var(--crm_primary);
+    font-size: 28px;
+    font-weight: 900;
+  }
+
+  .paudit_filters {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) minmax(160px, .35fr) minmax(160px, .35fr) auto;
+    gap: 12px;
+    align-items: end;
+    padding: 18px;
+    border: 1px solid var(--crm_border);
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .paudit_field {
+    display: grid;
+    gap: 6px;
+  }
+
+  .paudit_label {
+    color: var(--crm_text);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  .paudit_table_wrap {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .paudit_table {
+    width: 100%;
+    min-width: 1100px;
+    border-collapse: collapse;
+  }
+
+  .paudit_table th,
+  .paudit_table td {
+    padding: 14px 12px;
+    border-bottom: 1px solid var(--crm_border);
+    text-align: left;
+    vertical-align: top;
+    font-size: 14px;
+  }
+
+  .paudit_table th {
+    color: var(--crm_muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  .paudit_title {
+    font-weight: 900;
+    color: var(--crm_text);
+    overflow-wrap: anywhere;
+  }
+
+  .paudit_muted {
+    color: var(--crm_muted);
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  .paudit_badge {
+    display: inline-flex;
+    width: fit-content;
+    min-height: 30px;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    border: 1px solid var(--crm_border);
+    color: var(--crm_primary);
+    background: rgba(31, 58, 138, .08);
+  }
+
+  .paudit_link {
+    color: var(--crm_primary);
+    font-weight: 900;
+  }
+
+  .paudit_empty {
+    padding: 28px;
+    text-align: center;
+    color: var(--crm_muted);
+  }
+
+  @media (max-width: 1050px) {
+    .paudit_stats,
+    .paudit_filters {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <section class="paudit_page">
+    <div class="paudit_top">
+      <h2>Platform Audit Trail</h2>
+      <p>
+        Track important SaaS administration actions across companies, plans, subscriptions,
+        documents, payments, notifications and platform settings.
+      </p>
+    </div>
+
+    <div class="paudit_stats">
+      <article class="paudit_stat">
+        <span>Total Logs</span>
+        <strong>{{ total_logs }}</strong>
+      </article>
+
+      <article class="paudit_stat">
+        <span>Company Logs</span>
+        <strong>{{ company_logs }}</strong>
+      </article>
+
+      <article class="paudit_stat">
+        <span>Payment Logs</span>
+        <strong>{{ payment_logs }}</strong>
+      </article>
+
+      <article class="paudit_stat">
+        <span>Document Logs</span>
+        <strong>{{ document_logs }}</strong>
+      </article>
+    </div>
+
+    <form class="paudit_filters" method="get">
+      <label class="paudit_field">
+        <span class="paudit_label">Search Description</span>
+        <input class="crm_input" type="search" name="q" value="{{ q }}" placeholder="Search audit description">
+      </label>
+
+      <label class="paudit_field">
+        <span class="paudit_label">Module</span>
+        <select class="crm_input" name="module">
+          <option value="">All Modules</option>
+          {% for module in modules %}
+            <option value="{{ module }}" {% if module_filter == module %}selected{% endif %}>{{ module }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <label class="paudit_field">
+        <span class="paudit_label">Action</span>
+        <select class="crm_input" name="action">
+          <option value="">All Actions</option>
+          {% for action_item in actions %}
+            <option value="{{ action_item }}" {% if action_filter == action_item %}selected{% endif %}>{{ action_item }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <button class="crm_button" type="submit">Apply Filters</button>
+    </form>
+
+    <section class="crm_card">
+      <div class="paudit_table_wrap">
+        <table class="paudit_table">
+          <thead>
+            <tr>
+              <th>Actor</th>
+              <th>Company</th>
+              <th>Module</th>
+              <th>Action</th>
+              <th>Object</th>
+              <th>Description</th>
+              <th>IP</th>
+              <th>Date</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for audit_log in audit_logs %}
+              <tr>
+                <td>
+                  {% if audit_log.actor_user %}
+                    <div class="paudit_title">{{ audit_log.actor_user.email }}</div>
+                  {% else %}
+                    <div class="paudit_title">System</div>
+                  {% endif %}
+                </td>
+
+                <td>
+                  {% if audit_log.id_company %}
+                    {{ audit_log.id_company.name }}
+                  {% else %}
+                    <span class="paudit_muted">No company</span>
+                  {% endif %}
+                </td>
+
+                <td>
+                  <span class="paudit_badge">{{ audit_log.module_name }}</span>
+                </td>
+
+                <td>{{ audit_log.get_action_display }}</td>
+
+                <td>
+                  <div class="paudit_title">{{ audit_log.object_label|default:"No object label" }}</div>
+                  <div class="paudit_muted">{{ audit_log.object_id|default:"No object ID" }}</div>
+                </td>
+
+                <td>{{ audit_log.description|default:"No description"|truncatechars:110 }}</td>
+                <td>{{ audit_log.ip_address|default:"No IP" }}</td>
+                <td>{{ audit_log.created_at|date:"Y-m-d H:i" }}</td>
+
+                <td>
+                  <a class="paudit_link" href="{% url 'platform_audit:detail' audit_log.id_audit %}">View</a>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td class="paudit_empty" colspan="9">No platform audit logs found.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </section>
+{% endblock %}

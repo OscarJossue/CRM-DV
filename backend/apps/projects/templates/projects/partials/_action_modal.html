@@ -1,0 +1,100 @@
+<div class="ops-modal-backdrop" id="ProjectActionModal" aria-hidden="true">
+  <form class="ops-modal project-action-modal" id="ProjectActionForm" method="post" novalidate>
+    {% csrf_token %}
+    <button class="project-modal-close" type="button" data-project-modal-close aria-label="Close action window"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+    <i class="bi bi-exclamation-triangle" id="ProjectActionIcon" aria-hidden="true"></i>
+    <h2 id="ProjectActionTitle">Confirm action</h2>
+    <p id="ProjectActionMessage">Review the information before continuing.</p>
+    <div class="project-modal-record" id="ProjectActionRecord"></div>
+    <div class="ops-field project-modal-reason" id="ProjectActionReasonWrap" hidden>
+      <label for="ProjectActionReason" id="ProjectActionReasonLabel">Reason</label>
+      <textarea id="ProjectActionReason" placeholder="Write the reason"></textarea>
+      <span class="project-modal-error" id="ProjectActionError" role="alert"></span>
+    </div>
+    <div class="ops-modal-actions">
+      <button class="ops-btn is-secondary" type="button" data-project-modal-close>Go back</button>
+      <button class="ops-btn is-danger" id="ProjectActionSubmit" type="submit">Confirm</button>
+    </div>
+  </form>
+</div>
+<script>
+(function(){
+  const modal=document.getElementById("ProjectActionModal");
+  const form=document.getElementById("ProjectActionForm");
+  if(!modal||!form)return;
+  const icon=document.getElementById("ProjectActionIcon");
+  const title=document.getElementById("ProjectActionTitle");
+  const message=document.getElementById("ProjectActionMessage");
+  const record=document.getElementById("ProjectActionRecord");
+  const reasonWrap=document.getElementById("ProjectActionReasonWrap");
+  const reason=document.getElementById("ProjectActionReason");
+  const reasonLabel=document.getElementById("ProjectActionReasonLabel");
+  const error=document.getElementById("ProjectActionError");
+  const submit=document.getElementById("ProjectActionSubmit");
+  let currentAction="";
+  let approvalStep=1;
+
+  const config={
+    delete:{title:"Delete project?",message:"This project has not received contractor evidence. Permanent deletion cannot be undone.",icon:"bi-trash3",button:"Delete project",buttonClass:"is-danger",reason:false},
+    cancel:{title:"Cancel and freeze project?",message:"The project and its submitted evidence will remain available in read-only mode. A cancellation reason is mandatory.",icon:"bi-slash-circle",button:"Cancel project",buttonClass:"is-danger",reason:true,label:"Cancellation reason",name:"cancel_reason",placeholder:"Explain why this project is being cancelled"},
+    approve:{title:"Approve project?",message:"Confirm that you reviewed the contractor evidence and all project information.",icon:"bi-check2-circle",button:"Continue",buttonClass:"is-success",reason:false},
+    corrections:{title:"Request corrections?",message:"The project will return to In Progress so the contractor can correct and resubmit the evidence.",icon:"bi-arrow-counterclockwise",button:"Request corrections",buttonClass:"is-warning",reason:true,label:"Correction reason",name:"correction_reason",placeholder:"Explain exactly what must be corrected"},
+    close:{title:"Close project?",message:"The project will be frozen, progress will become 100%, and today's date will be recorded as the finalization date.",icon:"bi-check2-circle",button:"Close project",buttonClass:"is-success",reason:false}
+  };
+
+  function setButtonClass(value){submit.className="ops-btn "+value;}
+  function openModal(button){
+    currentAction=button.dataset.projectAction;
+    approvalStep=1;
+    const item=config[currentAction];
+    if(!item)return;
+    form.action=button.dataset.actionUrl||"";
+    title.textContent=item.title;
+    message.textContent=item.message;
+    record.textContent=button.dataset.recordLabel||"";
+    icon.className="bi "+item.icon;
+    submit.textContent=item.button;
+    setButtonClass(item.buttonClass);
+    reasonWrap.hidden=!item.reason;
+    reason.value="";
+    reason.removeAttribute("name");
+    error.textContent="";
+    if(item.reason){
+      reason.name=item.name;
+      reasonLabel.textContent=item.label;
+      reason.placeholder=item.placeholder;
+    }
+    modal.classList.add("is-open");
+    modal.setAttribute("aria-hidden","false");
+    document.body.classList.add("ops-modal-open");
+    setTimeout(()=>item.reason?reason.focus():submit.focus(),30);
+  }
+  function closeModal(){
+    modal.classList.remove("is-open");
+    modal.setAttribute("aria-hidden","true");
+    document.body.classList.remove("ops-modal-open");
+    error.textContent="";
+  }
+  document.querySelectorAll("[data-project-action]").forEach(button=>button.addEventListener("click",()=>openModal(button)));
+  modal.querySelectorAll("[data-project-modal-close]").forEach(button=>button.addEventListener("click",closeModal));
+  modal.addEventListener("click",event=>{if(event.target===modal)closeModal();});
+  document.addEventListener("keydown",event=>{if(event.key==="Escape"&&modal.classList.contains("is-open"))closeModal();});
+  form.addEventListener("submit",event=>{
+    const item=config[currentAction];
+    if(item&&item.reason&&!reason.value.trim()){
+      event.preventDefault();
+      error.textContent="Write the reason before continuing.";
+      reason.focus();
+      return;
+    }
+    if(currentAction==="approve"&&approvalStep===1){
+      event.preventDefault();
+      approvalStep=2;
+      title.textContent="Close project now?";
+      message.textContent="Approval will close the project, set progress to 100% and record today's date as the finalization date.";
+      submit.textContent="Approve and close";
+      submit.focus();
+    }
+  });
+})();
+</script>

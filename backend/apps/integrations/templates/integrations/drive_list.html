@@ -1,0 +1,10 @@
+{% extends "layouts/base.html" %}
+{% block page_title %}Google Drive{% endblock %}
+{% block page_subtitle %}Upload CRM documents into the connected Google Drive account.{% endblock %}
+{% block extra_head %}{% include "integrations/partials/_design_system.html" %}{% endblock %}
+{% block content %}
+<div class="account_theme integration_theme account_page">
+  <div class="account_toolbar"><div class="account_toolbar_title"><h2>Google Drive</h2><p>Upload PDFs, images and documents. Use settings to define a destination folder ID.</p></div>{% if can_create_integrations %}<a class="account_button" href="upload/"><svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg> Upload File</a>{% endif %}</div>
+  <section class="crm_card"><div class="account_table_wrap"><table class="account_table"><thead><tr><th>File</th><th>Source</th><th>Status</th><th>Drive Link</th><th>Date</th></tr></thead><tbody>{% for upload in uploads %}<tr><td><span class="account_strong">{{ upload.title }}</span></td><td><span class="account_muted">{{ upload.source_module|default:"General" }}</span></td><td><span class="account_pill {% if upload.status == 'completed' %}success{% elif upload.status == 'error' %}danger{% else %}warning{% endif %}">{{ upload.get_status_display }}</span></td><td>{% if upload.drive_url %}<a class="account_button account_button_secondary" target="_blank" href="{{ upload.drive_url }}">Open</a>{% else %}<span class="account_muted">No link</span>{% endif %}</td><td>{{ upload.created_at|date:"Y-m-d H:i" }}</td></tr>{% empty %}<tr><td colspan="5" class="account_empty">No Drive uploads yet.</td></tr>{% endfor %}</tbody></table></div></section>
+</div>
+{% endblock %}

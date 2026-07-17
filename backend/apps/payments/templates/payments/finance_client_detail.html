@@ -1,0 +1,454 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}
+Client Financial Statement
+{% endblock %}
+
+{% block page_subtitle %}
+Detailed account statement with invoices, payments and financial movements.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .statement_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+    margin-bottom: 18px;
+  }
+
+  .statement_client_name {
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--crm_text);
+    margin: 0;
+  }
+
+  .statement_summary_grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .statement_summary_card {
+    min-width: 0;
+    border: 1px solid var(--crm_border);
+    border-radius: 16px;
+    background: #ffffff;
+  }
+
+  .client_financial_state {
+    --state-color: #0e9f6e;
+    --state-soft: #ecfdf5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 15px 17px;
+    border: 1px solid color-mix(in srgb, var(--state-color) 24%, var(--crm_border));
+    border-left: 4px solid var(--state-color);
+    border-radius: 17px;
+    background: linear-gradient(135deg, #ffffff 0%, var(--state-soft) 100%);
+    box-shadow: 0 12px 26px color-mix(in srgb, var(--state-color) 9%, transparent);
+  }
+  .client_financial_state.is-danger { --state-color: #dc3545; --state-soft: #fff1f2; }
+  .client_financial_state.is-blue { --state-color: #0868e8; --state-soft: #eef6ff; }
+  .client_financial_state.is-success { --state-color: #0e9f6e; --state-soft: #ecfdf5; }
+  .client_financial_state_main { display:flex; align-items:flex-start; gap:11px; min-width:0; }
+  .client_financial_state_icon { width:40px; height:40px; display:grid; place-items:center; flex:0 0 40px; border-radius:12px; background:color-mix(in srgb, var(--state-color) 11%, #fff); color:var(--state-color); font-size:18px; }
+  .client_financial_state strong { display:block; color:var(--state-color); font-size:14px; font-weight:950; }
+  .client_financial_state p { margin:4px 0 0; color:var(--crm_muted); font-size:11px; font-weight:650; line-height:1.45; }
+  .client_financial_state_amount { color:var(--state-color); font-size:22px; font-weight:950; white-space:nowrap; font-variant-numeric:tabular-nums; }
+
+  .statement_section {
+    margin-bottom: 18px;
+  }
+
+  .statement_table_wrap {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .statement_table {
+    width: 100%;
+    min-width: 1080px;
+    border-collapse: collapse;
+  }
+
+  .statement_table th,
+  .statement_table td {
+    padding: 14px 12px;
+    border-bottom: 1px solid var(--crm_border);
+    text-align: left;
+    vertical-align: top;
+    font-size: 14px;
+  }
+
+  .statement_table th {
+    color: var(--crm_muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .statement_name {
+    font-weight: 900;
+    color: var(--crm_text);
+    overflow-wrap: anywhere;
+  }
+
+  .statement_muted {
+    color: var(--crm_muted);
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  .statement_money {
+    font-weight: 900;
+    white-space: nowrap;
+  }
+
+  .statement_money_green {
+    color: var(--crm_success);
+  }
+
+  .statement_money_red {
+    color: var(--crm_danger);
+  }
+
+  .statement_link {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    color: var(--crm_primary);
+    font-weight: 900;
+    cursor: pointer;
+    font-size: 14px;
+    text-decoration: none;
+  }
+
+  .statement_empty {
+    padding: 24px;
+    text-align: center;
+    color: var(--crm_muted);
+  }
+
+  @media (max-width: 1180px) {
+    .statement_summary_grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 680px) {
+    .statement_header,
+    .client_financial_state {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .statement_summary_grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+
+  .statement_icon_svg { width: 15px; height: 15px; flex: 0 0 auto; }
+
+  .statement_icon_action {
+    position: relative;
+    width: 34px;
+    height: 34px;
+    border: 0;
+    border-radius: 999px;
+    display: inline-grid;
+    place-items: center;
+    background: rgba(29, 78, 216, 0.10);
+    color: var(--crm_primary);
+    font-size: 15px;
+    font-weight: 900;
+    text-decoration: none;
+  }
+
+  .statement_icon_action > span {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 104px;
+    padding: 7px 9px;
+    border-radius: 9px;
+    background: var(--crm_text);
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 900;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .15s ease;
+    text-align: center;
+    white-space: nowrap;
+    z-index: 5;
+  }
+
+  .statement_icon_action:hover > span { opacity: 1; }
+
+
+  /* Final UX polish: no floating tooltip overlap and no desktop internal scroll. */
+  .statement_icon_action > span { display: none !important; }
+  .statement_table_wrap { overflow: visible; }
+  .statement_table { min-width: 0; table-layout: auto; }
+  .statement_table th, .statement_table td { padding: 9px 8px; font-size: 12.5px; }
+  .statement_summary_grid { gap: 10px; margin-bottom: 12px; }
+  .statement_summary_card { padding: 13px 14px; border-radius: 15px; }
+  .statement_summary_card strong { font-size: 18px; }
+  @media (max-width: 1180px) { .statement_table_wrap { overflow-x: auto; } .statement_table { min-width: 960px; } }
+
+</style>
+{% include "payments/partials/_design_system.html" %}
+{% endblock %}
+
+{% block content %}
+  <div class="payment_theme nj-invoice nj-page finance-standard">
+  <div class="statement_header">
+    <div>
+      <span class="nj-page-kicker"><i class="bi bi-person-badge" aria-hidden="true"></i> Client financial statement</span>
+      <h2 class="statement_client_name">{{ client.name }}</h2>
+      <p class="crm_page_text">Client #{{ client.id_client }} · invoices, payments, credit and account movements.</p>
+    </div>
+
+    <a class="crm_button crm_button_secondary" href="{% url 'payments:finance_clients' %}"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to financial summary</a>
+  </div>
+
+  {% if summary.balance_due > 0 %}
+    <section class="client_financial_state is-danger" aria-label="Client financial status">
+      <div class="client_financial_state_main"><span class="client_financial_state_icon"><i class="bi bi-exclamation-circle" aria-hidden="true"></i></span><div><strong>Outstanding balance</strong><p>This client has invoices with an amount still due. The status changes only through validated payments or credit applications.</p></div></div>
+      <span class="client_financial_state_amount">${{ summary.balance_due }}</span>
+    </section>
+  {% elif summary.credit_balance > 0 %}
+    <section class="client_financial_state is-blue" aria-label="Client financial status">
+      <div class="client_financial_state_main"><span class="client_financial_state_icon"><i class="bi bi-piggy-bank" aria-hidden="true"></i></span><div><strong>Credit available</strong><p>The account has no pending balance and has unapplied credit available for future invoices.</p></div></div>
+      <span class="client_financial_state_amount">${{ summary.credit_balance }}</span>
+    </section>
+  {% else %}
+    <section class="client_financial_state is-success" aria-label="Client financial status">
+      <div class="client_financial_state_main"><span class="client_financial_state_icon"><i class="bi bi-check2-circle" aria-hidden="true"></i></span><div><strong>Account current</strong><p>No outstanding balance or unapplied credit is currently registered for this client.</p></div></div>
+      <span class="client_financial_state_amount">$0.00</span>
+    </section>
+  {% endif %}
+
+  <section class="statement_summary_grid" aria-label="Client financial totals">
+    <article class="statement_summary_card is-blue"><span class="statement-summary-icon"><i class="bi bi-receipt" aria-hidden="true"></i></span><div class="statement-summary-copy"><span>Total invoiced</span><strong>${{ summary.total_invoiced }}</strong><small>All client invoices</small></div></article>
+    <article class="statement_summary_card is-success"><span class="statement-summary-icon"><i class="bi bi-wallet2" aria-hidden="true"></i></span><div class="statement-summary-copy"><span>Total paid</span><strong>${{ summary.total_paid }}</strong><small>Confirmed payments and credits</small></div></article>
+    <article class="statement_summary_card is-danger"><span class="statement-summary-icon"><i class="bi bi-exclamation-circle" aria-hidden="true"></i></span><div class="statement-summary-copy"><span>Balance due</span><strong>${{ summary.balance_due }}</strong><small>Outstanding amount</small></div></article>
+    <article class="statement_summary_card is-warning"><span class="statement-summary-icon"><i class="bi bi-piggy-bank" aria-hidden="true"></i></span><div class="statement-summary-copy"><span>Credit balance</span><strong>${{ summary.credit_balance }}</strong><small>Available unapplied credit</small></div></article>
+    <article class="statement_summary_card is-violet"><span class="statement-summary-icon"><i class="bi bi-calendar-check" aria-hidden="true"></i></span><div class="statement-summary-copy"><span>Last payment</span>{% if summary.last_payment_date %}<strong>{{ summary.last_payment_date|date:"Y-m-d" }}</strong>{% else %}<strong>-</strong>{% endif %}<small>Most recent confirmed payment</small></div></article>
+  </section>
+
+  <section class="crm_card statement_section">
+    <h2 class="crm_section_title">Invoices</h2>
+
+    <div class="statement_table_wrap">
+      <table class="statement_table">
+        <thead>
+          <tr>
+            <th>Invoice</th>
+            <th>Project</th>
+            <th>Status</th>
+            <th>Payment</th>
+            <th>Total</th>
+            <th>Paid</th>
+            <th>Balance Due</th>
+            <th>Issue Date</th>
+            <th>Due Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for invoice in invoices %}
+            <tr>
+              <td>
+                <div class="statement_name">{{ invoice.invoice_number|default:invoice.id_invoice }}</div>
+              </td>
+
+              <td>
+                {% if invoice.id_project %}
+                  {{ invoice.id_project.name }}
+                {% elif invoice.project_name %}
+                  {{ invoice.project_name }}
+                {% else %}
+                  <span class="statement_muted">No project</span>
+                {% endif %}
+              </td>
+
+              <td>{{ invoice.get_status_display }}</td>
+              <td>{{ invoice.get_payment_status_display }}</td>
+
+              <td>
+                <span class="statement_money">${{ invoice.total }}</span>
+              </td>
+
+              <td>
+                <span class="statement_money statement_money_green">${{ invoice.paid_amount }}</span>
+              </td>
+
+              <td>
+                {% if invoice.balance_due > 0 %}
+                  <span class="statement_money statement_money_red">${{ invoice.balance_due }}</span>
+                {% else %}
+                  <span class="statement_money statement_money_green">${{ invoice.balance_due }}</span>
+                {% endif %}
+              </td>
+
+              <td>{{ invoice.issue_date|date:"Y-m-d" }}</td>
+              <td>{{ invoice.due_date|date:"Y-m-d"|default:"-" }}</td>
+
+              <td>
+                <a class="statement_icon_action" href="{% url 'invoices:invoice_detail' invoice.id_invoice %}" data-tooltip="View Invoice" aria-label="View Invoice"><svg class="statement_icon_svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg><span>View Invoice</span></a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td class="statement_empty" colspan="10">No invoices found for this client.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="crm_card statement_section">
+    <h2 class="crm_section_title">Payments</h2>
+
+    <div class="statement_table_wrap">
+      <table class="statement_table">
+        <thead>
+          <tr>
+            <th>Payment</th>
+            <th>Reference</th>
+            <th>Invoice</th>
+            <th>Project</th>
+            <th>Method</th>
+            <th>Status</th>
+            <th>Amount</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for payment in payments %}
+            <tr>
+              <td>
+                <div class="statement_name">
+                  {{ payment.payment_number|default:payment.voucher_code|default:payment.id_payment }}
+                </div>
+              </td>
+
+              <td>{{ payment.reference_code|default:"-" }}</td>
+
+              <td>
+                {% if payment.id_invoice %}
+                  {{ payment.id_invoice.invoice_number|default:payment.id_invoice.id_invoice }}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+
+              <td>
+                {% if payment.id_project %}
+                  {{ payment.id_project.name }}
+                {% else %}
+                  <span class="statement_muted">No project</span>
+                {% endif %}
+              </td>
+
+              <td>{{ payment.get_payment_method_display|default:payment.payment_method|default:"-" }}</td>
+              <td>{{ payment.get_status_display }}</td>
+
+              <td>
+                <span class="statement_money statement_money_green">${{ payment.amount }}</span>
+              </td>
+
+              <td>{{ payment.payment_date|date:"Y-m-d" }}</td>
+
+              <td>
+                <a class="statement_icon_action" href="{% url 'payments:payment_detail' payment.id_payment %}" data-tooltip="View Payment" aria-label="View Payment"><svg class="statement_icon_svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg><span>View Payment</span></a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td class="statement_empty" colspan="9">No payments found for this client.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="crm_card statement_section">
+    <h2 class="crm_section_title">Financial Movements</h2>
+
+    <div class="statement_table_wrap">
+      <table class="statement_table">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Invoice</th>
+            <th>Payment</th>
+            <th>Debit</th>
+            <th>Credit</th>
+            <th>Balance After</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for movement in movements %}
+            <tr>
+              <td>{{ movement.get_movement_type_display }}</td>
+              <td>{{ movement.description }}</td>
+
+              <td>
+                {% if movement.id_invoice %}
+                  {{ movement.id_invoice.invoice_number|default:movement.id_invoice.id_invoice }}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+
+              <td>
+                {% if movement.id_payment %}
+                  {{ movement.id_payment.payment_number|default:movement.id_payment.voucher_code|default:movement.id_payment.id_payment }}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+
+              <td>
+                <span class="statement_money statement_money_red">${{ movement.debit_amount }}</span>
+              </td>
+
+              <td>
+                <span class="statement_money statement_money_green">${{ movement.credit_amount }}</span>
+              </td>
+
+              <td>
+                <span class="statement_money">${{ movement.balance_after }}</span>
+              </td>
+
+              <td>{{ movement.movement_date|date:"Y-m-d" }}</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td class="statement_empty" colspan="8">No financial movements found for this client.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  </div>
+{% endblock %}

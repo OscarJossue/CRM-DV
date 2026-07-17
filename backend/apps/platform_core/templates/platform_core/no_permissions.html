@@ -1,0 +1,147 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}No Modules Assigned{% endblock %}
+
+{% block page_subtitle %}
+Your account is active, but your role does not currently have access to any CRM module.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .no_permissions_page {
+    max-width: 920px;
+    margin: 0 auto;
+  }
+
+  .no_permissions_card {
+    display: grid;
+    gap: 18px;
+    padding: 28px;
+    border: 1px solid var(--crm_border);
+    border-radius: 24px;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(37, 99, 235, 0.12), transparent 32%),
+      #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .no_permissions_badge {
+    display: inline-flex;
+    width: fit-content;
+    min-height: 32px;
+    align-items: center;
+    justify-content: center;
+    padding: 7px 11px;
+    border: 1px solid rgba(37, 99, 235, 0.22);
+    border-radius: 12px;
+    background: rgba(37, 99, 235, 0.08);
+    color: #1d4ed8;
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .no_permissions_title {
+    margin: 0;
+    color: var(--crm_text);
+    font-size: clamp(28px, 4vw, 44px);
+    line-height: 1.08;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+  }
+
+  .no_permissions_text {
+    margin: 0;
+    color: var(--crm_muted);
+    font-size: 15px;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+  }
+
+  .no_permissions_info_grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .no_permissions_info {
+    display: grid;
+    gap: 7px;
+    padding: 16px;
+    border: 1px solid var(--crm_border);
+    border-radius: 16px;
+    background: #f8fafc;
+  }
+
+  .no_permissions_label {
+    color: var(--crm_muted);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .no_permissions_value {
+    color: var(--crm_text);
+    font-size: 15px;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+  }
+
+  .no_permissions_actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .no_permissions_actions form {
+    margin: 0;
+  }
+
+  @media (max-width: 680px) {
+    .no_permissions_info_grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="no_permissions_page">
+  <div class="no_permissions_card">
+    <span class="no_permissions_badge">Account Active</span>
+
+    <h2 class="no_permissions_title">No CRM modules assigned to this role</h2>
+
+    <p class="no_permissions_text">
+      Your login is valid and the company account is active. The assigned role does not currently
+      have permission to open any module. Ask your company administrator to enable at least one
+      module from Roles and Permissions.
+    </p>
+
+    <div class="no_permissions_info_grid">
+      <article class="no_permissions_info">
+        <span class="no_permissions_label">Company</span>
+        <strong class="no_permissions_value">
+          {% if company %}{{ company.name }}{% else %}No company assigned{% endif %}
+        </strong>
+      </article>
+
+      <article class="no_permissions_info">
+        <span class="no_permissions_label">Assigned Role</span>
+        <strong class="no_permissions_value">
+          {% if role %}{{ role.name }}{% else %}No role assigned{% endif %}
+        </strong>
+      </article>
+    </div>
+
+    <div class="no_permissions_actions">
+      <form method="post" action="{% url 'accounts:logout' %}">
+        {% csrf_token %}
+        <button class="crm_button" type="submit">Logout</button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

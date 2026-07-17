@@ -1,0 +1,952 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block page_title %}{{ form_title }}{% endblock %}
+
+{% block page_subtitle %}
+Create a structured contract document. Data is stored in the database and the PDF is generated on demand.
+{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'vendor/tom-select/2.4.3/tom-select.css' %}">
+<style>
+  .contract_form {
+    display: grid;
+    gap: 18px;
+  }
+
+  .contract_form_grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .contract_form_field {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .contract_form_field_full {
+    grid-column: 1 / -1;
+  }
+
+  .contract_form_field label {
+    color: var(--crm_text);
+    font-size: 13px;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+  }
+
+  .crm_input {
+    width: 100%;
+    min-height: 44px;
+    border: 1px solid var(--crm_border);
+    border-radius: 12px;
+    padding: 10px 12px;
+    color: var(--crm_text);
+    background: #ffffff;
+    font: inherit;
+  }
+
+  textarea.crm_input {
+    min-height: 120px;
+    resize: vertical;
+  }
+
+  .contract_error {
+    color: var(--crm_danger);
+    font-size: 13px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+
+  .contract_form_actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .contract_check_option {
+    padding: 14px;
+    border: 1px solid var(--crm_border);
+    border-radius: 14px;
+    background: #ffffff;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    font-weight: 800;
+  }
+
+  .contract_notice {
+    padding: 14px;
+    border-radius: 14px;
+    background: rgba(29, 78, 216, 0.08);
+    border: 1px solid rgba(29, 78, 216, 0.18);
+    color: var(--crm_text);
+    font-size: 14px;
+    line-height: 1.6;
+    font-weight: 700;
+  }
+
+  @media (max-width: 980px) {
+    .contract_form_grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+
+    .contract_readonly_section {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    opacity: 0.92;
+  }
+
+  .contract_readonly_notice {
+    margin: 0 0 16px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #eef2ff;
+    border: 1px solid #c7d2fe;
+    color: #334155;
+    font-size: 14px;
+    line-height: 1.5;
+    font-weight: 700;
+  }
+
+  .contract_readonly_section input,
+  .contract_readonly_section textarea,
+  .contract_readonly_section select {
+    background: #f1f5f9 !important;
+    color: #64748b !important;
+    border-color: #e2e8f0 !important;
+    cursor: not-allowed;
+  }
+
+  .contract_readonly_section textarea[name="company_address"] {
+  min-height: 44px;
+  height: 44px;
+  resize: none;
+}
+
+.contract_readonly_section textarea[name="client_street_address"],
+.contract_readonly_section textarea[name="company_address"] {
+  min-height: 44px;
+  height: 44px;
+  resize: none;
+}
+.contract_readonly_section textarea[name="project_address"] {
+  min-height: 44px;
+  height: 44px;
+  resize: none;
+}
+
+.contract_readonly_section textarea[name="project_description"] {
+  background: #ffffff !important;
+  color: var(--crm_text) !important;
+  border-color: var(--crm_border) !important;
+  cursor: text !important;
+  min-height: 120px;
+  resize: vertical;
+}
+
+.contract_readonly_section textarea[name="project_description"]:focus {
+  outline: none;
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+.contract_required {
+  color: #dc2626;
+  font-weight: 900;
+  margin-left: 4px;
+}
+.contract_evidence_preview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.contract_evidence_item {
+  border: 1px solid var(--crm_border);
+  border-radius: 16px;
+  background: #ffffff;
+  padding: 10px;
+  overflow: hidden;
+}
+
+.contract_evidence_item img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 12px;
+  display: block;
+}
+
+.contract_evidence_name {
+  margin-top: 8px;
+  color: var(--crm_text);
+  font-size: 12px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.contract_evidence_pager {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+#EvidencePageInfo {
+  font-weight: 900;
+  color: var(--crm_text);
+}
+
+@media (max-width: 780px) {
+  .contract_evidence_preview {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .contract_evidence_item img {
+    height: 120px;
+  }
+}
+.contract_terms_header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.contract_terms_input[readonly] {
+  background: #f8fafc !important;
+  color: #64748b !important;
+  cursor: not-allowed;
+}
+
+@media (max-width: 780px) {
+  .contract_terms_header {
+    display: grid;
+  }
+
+  .contract_terms_header .crm_button {
+    width: 100%;
+  }
+}
+</style>
+{% include "contracts/partials/_finance_standard.html" %}
+{% endblock %}
+
+{% block content %}
+  <form enctype="multipart/form-data" class="contract_form nj-invoice nj-page finance-standard" method="post" novalidate id="ContractForm">
+    {% csrf_token %}
+
+    <div class="finance-security-note"><i class="bi bi-shield-lock" aria-hidden="true"></i><span>Contract states are read-only. Draft, generated, sent, customer decision, signature and void are updated only by their dedicated actions.</span></div>
+
+    {% if form.non_field_errors %}
+      <section class="crm_card">
+        <div class="contract_error">{{ form.non_field_errors }}</div>
+      </section>
+    {% endif %}
+
+    {% if project %}
+      <section class="crm_card">
+        <div class="contract_notice">
+          This contract is being created from project: {{ project.name }}.
+        </div>
+      </section>
+    {% endif %}
+
+    <section class="crm_card">
+      <h2 class="crm_section_title">Contract Information</h2>
+
+      <div class="contract_form_grid">
+        <div class="contract_form_field">
+          <label for="{{ form.id_client.id_for_label }}">Client</label>
+          {{ form.id_client }}
+          {% if form.id_client.errors %}<div class="contract_error">{{ form.id_client.errors }}</div>{% endif %}
+        </div>
+
+        <div class="contract_form_field">
+          <label for="{{ form.id_project.id_for_label }}">Project</label>
+          {{ form.id_project }}
+          {% if form.id_project.errors %}<div class="contract_error">{{ form.id_project.errors }}</div>{% endif %}
+        </div>
+
+        <div class="contract_form_field">
+          <label for="{{ form.contract_title.id_for_label }}">Contract Title</label>
+          {{ form.contract_title }}
+          {% if form.contract_title.errors %}<div class="contract_error">{{ form.contract_title.errors }}</div>{% endif %}
+        </div>
+
+        <div class="contract_form_field">
+          <label for="{{ form.contract_date.id_for_label }}">Contract Date</label>
+          {{ form.contract_date }}
+          {% if form.contract_date.errors %}<div class="contract_error">{{ form.contract_date.errors }}</div>{% endif %}
+        </div>
+
+        <div class="contract_form_field">
+          <label for="{{ form.expiration_date.id_for_label }}">Expiration Date</label>
+          {{ form.expiration_date }}
+          {% if form.expiration_date.errors %}<div class="contract_error">{{ form.expiration_date.errors }}</div>{% endif %}
+        </div>
+      </div>
+    </section>
+
+  <section class="crm_card contract_readonly_section">
+  <h2 class="crm_section_title">Company</h2>
+
+  <p class="contract_readonly_notice">
+    This company information is loaded automatically from the current company profile and is used for the contract and PDF.
+  </p>
+
+  <div class="contract_form_grid">
+    <div class="contract_form_field">
+      <label for="{{ form.company_name.id_for_label }}">Company Name</label>
+      {{ form.company_name }}
+      {% if form.company_name.errors %}<div class="contract_error">{{ form.company_name.errors }}</div>{% endif %}
+    </div>
+
+    <div class="contract_form_field">
+      <label for="{{ form.company_phone.id_for_label }}">Company Phone</label>
+      {{ form.company_phone }}
+      {% if form.company_phone.errors %}<div class="contract_error">{{ form.company_phone.errors }}</div>{% endif %}
+    </div>
+
+    <div class="contract_form_field">
+      <label for="{{ form.company_email.id_for_label }}">Company Email</label>
+      {{ form.company_email }}
+      {% if form.company_email.errors %}<div class="contract_error">{{ form.company_email.errors }}</div>{% endif %}
+    </div>
+
+    <div class="contract_form_field">
+      <label for="{{ form.company_address.id_for_label }}">Company Address</label>
+      {{ form.company_address }}
+      {% if form.company_address.errors %}<div class="contract_error">{{ form.company_address.errors }}</div>{% endif %}
+    </div>
+  </div>
+
+  <div style="display:none;">
+    {{ form.company_license }}
+  </div>
+</section>
+
+<section class="crm_card contract_readonly_section">
+  <h2 class="crm_section_title">Customer Information</h2>
+
+  <p class="contract_readonly_notice">
+    This customer information is loaded automatically from the selected client and is used for the contract and PDF.
+  </p>
+
+  <div class="contract_form_grid">
+    <div class="contract_form_field">
+      <label for="{{ form.client_name.id_for_label }}">Customer Name</label>
+      {{ form.client_name }}
+      {% if form.client_name.errors %}<div class="contract_error">{{ form.client_name.errors }}</div>{% endif %}
+    </div>
+
+    <div class="contract_form_field">
+      <label for="{{ form.client_phone.id_for_label }}">Phone</label>
+      {{ form.client_phone }}
+      {% if form.client_phone.errors %}<div class="contract_error">{{ form.client_phone.errors }}</div>{% endif %}
+    </div>
+
+    <div class="contract_form_field">
+      <label for="{{ form.client_email.id_for_label }}">Email</label>
+      {{ form.client_email }}
+      {% if form.client_email.errors %}<div class="contract_error">{{ form.client_email.errors }}</div>{% endif %}
+    </div>
+
+    <div class="contract_form_field">
+      <label for="{{ form.client_street_address.id_for_label }}">Address</label>
+      {{ form.client_street_address }}
+      {% if form.client_street_address.errors %}<div class="contract_error">{{ form.client_street_address.errors }}</div>{% endif %}
+    </div>
+  </div>
+
+  <div style="display:none;">
+    {{ form.client_alt_phone }}
+    {{ form.client_city }}
+    {{ form.client_state }}
+    {{ form.client_zip_code }}
+  </div>
+</section>
+
+    <section class="crm_card contract_readonly_section">
+  <h2 class="crm_section_title">Project Information</h2>
+
+  <p class="contract_readonly_notice">
+    This project information is loaded automatically from the selected project. The project description can be edited before saving the contract.
+  </p>
+
+  <div class="contract_form_grid">
+    <div class="contract_form_field">
+      <label for="{{ form.project_name.id_for_label }}">Project Name</label>
+      {{ form.project_name }}
+      {% if form.project_name.errors %}<div class="contract_error">{{ form.project_name.errors }}</div>{% endif %}
+    </div>
+
+    <div class="contract_form_field">
+      <label for="{{ form.project_address.id_for_label }}">Project Address</label>
+      {{ form.project_address }}
+      {% if form.project_address.errors %}<div class="contract_error">{{ form.project_address.errors }}</div>{% endif %}
+    </div>
+
+    <div class="contract_form_field contract_form_field_full">
+      <label for="{{ form.project_description.id_for_label }}">Project Description</label>
+      {{ form.project_description }}
+      {% if form.project_description.errors %}<div class="contract_error">{{ form.project_description.errors }}</div>{% endif %}
+    </div>
+  </div>
+
+  <div style="display:none;">
+    {{ form.project_photo }}
+    {{ form.pdf_header_dark }}
+  </div>
+</section>
+
+    <section class="crm_card">
+      <h2 class="crm_section_title">Scope of Work</h2>
+
+      <div class="contract_form_grid">
+        <div class="contract_form_field contract_form_field_full">
+          <label for="{{ form.work_to_be_done.id_for_label }}">
+            Work To Be Done <span class="contract_required">*</span>
+          </label>
+          {{ form.work_to_be_done }}
+          {% if form.work_to_be_done.errors %}<div class="contract_error">{{ form.work_to_be_done.errors }}</div>{% endif %}
+        </div>
+
+        <div class="contract_form_field contract_form_field_full">
+          <label for="{{ form.additional_work.id_for_label }}">Additional Work</label>
+          {{ form.additional_work }}
+          {% if form.additional_work.errors %}<div class="contract_error">{{ form.additional_work.errors }}</div>{% endif %}
+        </div>
+
+        <div class="contract_form_field contract_form_field_full">
+          <label for="{{ form.work_not_to_be_done.id_for_label }}">Work NOT To Be Done</label>
+          {{ form.work_not_to_be_done }}
+          {% if form.work_not_to_be_done.errors %}<div class="contract_error">{{ form.work_not_to_be_done.errors }}</div>{% endif %}
+        </div>
+
+        <div class="contract_form_field contract_form_field_full">
+          <label for="{{ form.special_instructions.id_for_label }}">Special Instructions</label>
+          {{ form.special_instructions }}
+          {% if form.special_instructions.errors %}<div class="contract_error">{{ form.special_instructions.errors }}</div>{% endif %}
+        </div>
+      </div>
+    </section>
+
+    <section class="crm_card">
+  <h2 class="crm_section_title">Evidence Photos</h2>
+
+  <p class="contract_notice">
+    Upload one or more evidence photos. The preview shows up to 6 photos per page.
+  </p>
+
+  <div class="contract_form_field contract_form_field_full">
+    <label for="{{ form.evidence_images.id_for_label }}">Evidence Photos</label>
+    {{ form.evidence_images }}
+
+    {% if form.evidence_images.errors %}
+      <div class="contract_error">{{ form.evidence_images.errors }}</div>
+    {% endif %}
+  </div>
+
+  <div id="ContractEvidencePreview" class="contract_evidence_preview"></div>
+
+  <div class="contract_evidence_pager">
+    <button type="button" class="crm_button crm_button_secondary" id="EvidencePrevBtn">Previous</button>
+    <span id="EvidencePageInfo">Page 1</span>
+    <button type="button" class="crm_button crm_button_secondary" id="EvidenceNextBtn">Next</button>
+  </div>
+</section>
+
+    <section class="crm_card">
+      <h2 class="crm_section_title">Legal Notice</h2>
+
+      <div class="contract_form_grid">
+        <div class="contract_form_field contract_form_field_full">
+          <label for="{{ form.consumer_notice.id_for_label }}">Notice To Consumer</label>
+          {{ form.consumer_notice }}
+          {% if form.consumer_notice.errors %}<div class="contract_error">{{ form.consumer_notice.errors }}</div>{% endif %}
+        </div>
+
+        <div class="contract_form_field contract_form_field_full">
+          <label for="{{ form.cancellation_notice.id_for_label }}">Cancellation Notice</label>
+          {{ form.cancellation_notice }}
+          {% if form.cancellation_notice.errors %}<div class="contract_error">{{ form.cancellation_notice.errors }}</div>{% endif %}
+        </div>
+      </div>
+    </section>
+    <section class="crm_card">
+  <div class="contract_terms_header">
+    <div>
+      <h2 class="crm_section_title">Second Page Contract Terms</h2>
+      <p class="contract_notice">
+        These terms will always appear as the second page of the contract PDF. You can edit them before saving.
+      </p>
+    </div>
+
+    <button type="button" class="crm_button crm_button_secondary" id="EditContractTermsBtn">
+      Edit Terms
+    </button>
+  </div>
+
+  <div class="contract_form_grid">
+    <div class="contract_form_field contract_form_field_full">
+      <label for="{{ form.payment_terms.id_for_label }}">Payment Terms And Conditions</label>
+      {{ form.payment_terms }}
+      {% if form.payment_terms.errors %}<div class="contract_error">{{ form.payment_terms.errors }}</div>{% endif %}
+    </div>
+
+    <div class="contract_form_field contract_form_field_full">
+      <label for="{{ form.cancellation_terms.id_for_label }}">Cancellation</label>
+      {{ form.cancellation_terms }}
+      {% if form.cancellation_terms.errors %}<div class="contract_error">{{ form.cancellation_terms.errors }}</div>{% endif %}
+    </div>
+
+    <div class="contract_form_field contract_form_field_full">
+      <label for="{{ form.guarantee_terms.id_for_label }}">Guarantee</label>
+      {{ form.guarantee_terms }}
+      {% if form.guarantee_terms.errors %}<div class="contract_error">{{ form.guarantee_terms.errors }}</div>{% endif %}
+    </div>
+
+    <div class="contract_form_field contract_form_field_full">
+      <label for="{{ form.miscellaneous_terms.id_for_label }}">Miscellaneous Terms</label>
+      {{ form.miscellaneous_terms }}
+      {% if form.miscellaneous_terms.errors %}<div class="contract_error">{{ form.miscellaneous_terms.errors }}</div>{% endif %}
+    </div>
+  </div>
+</section>
+
+   <section class="crm_card contract_readonly_section">
+    <h2 class="crm_section_title">Signatures</h2>
+
+    <p class="contract_readonly_notice">
+      Customer signature information is completed automatically when the customer approves and signs the contract from the public link.
+    </p>
+
+    <div class="contract_form_grid">
+      <div class="contract_form_field">
+        <label for="{{ form.customer_signature_name.id_for_label }}">Customer Signature Name</label>
+        {{ form.customer_signature_name }}
+        {% if form.customer_signature_name.errors %}<div class="contract_error">{{ form.customer_signature_name.errors }}</div>{% endif %}
+      </div>
+
+      <div class="contract_form_field">
+        <label for="{{ form.signed_date.id_for_label }}">Signed Date</label>
+        {{ form.signed_date }}
+        {% if form.signed_date.errors %}<div class="contract_error">{{ form.signed_date.errors }}</div>{% endif %}
+      </div>
+    </div>
+
+    <div style="display:none;">
+      {{ form.company_representative_name }}
+      {{ form.company_representative_title }}
+    </div>
+  </section>
+
+    <section class="crm_card">
+      <div class="contract_form_actions">
+        <button class="crm_button crm_button_secondary" type="submit" name="contract_action" value="draft">
+          Save Draft
+        </button>
+
+        <button class="crm_button" type="submit" name="contract_action" value="generate">
+          Save & Generate
+        </button>
+
+        {% if contract.id_contract %}
+          <a class="crm_button crm_button_secondary" href="{% url 'contracts:contract_detail' contract.id_contract %}">Cancel</a>
+        {% else %}
+          <a class="crm_button crm_button_secondary" href="{% url 'contracts:contract_list' %}">Cancel</a>
+        {% endif %}
+      </div>
+    </section>
+  </form>
+{{ client_snapshot_data|json_script:"clientSnapshotData" }}
+{{ project_snapshot_data|json_script:"projectSnapshotData" }}
+ <script src="{% static 'vendor/tom-select/2.4.3/tom-select.complete.min.js' %}"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const clientSelect = document.querySelector('select[name="id_client"]');
+  const projectSelect = document.querySelector('select[name="id_project"]');
+
+  const clientNameInput = document.querySelector('[name="client_name"]');
+  const clientPhoneInput = document.querySelector('[name="client_phone"]');
+  const clientAltPhoneInput = document.querySelector('[name="client_alt_phone"]');
+  const clientEmailInput = document.querySelector('[name="client_email"]');
+  const clientAddressInput = document.querySelector('[name="client_street_address"]');
+  const clientCityInput = document.querySelector('[name="client_city"]');
+  const clientStateInput = document.querySelector('[name="client_state"]');
+  const clientZipInput = document.querySelector('[name="client_zip_code"]');
+
+  const projectNameInput = document.querySelector('[name="project_name"]');
+  const projectAddressInput = document.querySelector('[name="project_address"]');
+  const projectDescriptionInput = document.querySelector('[name="project_description"]');
+
+  let clientSnapshotData = {};
+  let projectSnapshotData = {};
+
+  const clientSnapshotElement = document.getElementById("clientSnapshotData");
+  const projectSnapshotElement = document.getElementById("projectSnapshotData");
+
+  try {
+    clientSnapshotData = clientSnapshotElement ? JSON.parse(clientSnapshotElement.textContent) : {};
+  } catch (error) {
+    clientSnapshotData = {};
+  }
+
+  try {
+    projectSnapshotData = projectSnapshotElement ? JSON.parse(projectSnapshotElement.textContent) : {};
+  } catch (error) {
+    projectSnapshotData = {};
+  }
+
+  if (!clientSelect || !projectSelect) {
+    return;
+  }
+
+  function setValue(input, value) {
+    if (!input) return;
+    input.value = value || "";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  function applyClientSnapshot() {
+    const clientId = String(clientSelect.value || "");
+    const data = clientSnapshotData[clientId] || {};
+
+    setValue(clientNameInput, data.customer_name || "");
+    setValue(clientPhoneInput, data.phone || "");
+    setValue(clientAltPhoneInput, data.alt_phone || "");
+    setValue(clientEmailInput, data.email || "");
+    setValue(clientAddressInput, data.address || "");
+    setValue(clientCityInput, data.city || "");
+    setValue(clientStateInput, data.state || "");
+    setValue(clientZipInput, data.zip_code || "");
+  }
+
+  let lastProjectIdLoaded = "";
+
+  function applyProjectSnapshot(fillDescription) {
+    const projectId = String(projectSelect.value || "");
+    const data = projectSnapshotData[projectId] || {};
+
+    setValue(projectNameInput, data.project_name || "");
+    setValue(projectAddressInput, data.project_address || "");
+
+    if (fillDescription && projectId && projectId !== lastProjectIdLoaded) {
+      setValue(projectDescriptionInput, data.project_description || "");
+      lastProjectIdLoaded = projectId;
+    }
+
+    if (!projectId) {
+      lastProjectIdLoaded = "";
+    }
+  }
+  const originalProjectOptions = Array.from(projectSelect.options).map(function (option) {
+  return {
+    value: option.value,
+    text: option.textContent,
+    client: option.getAttribute("data-client") || "",
+    projectName: option.getAttribute("data-project-name") || "",
+    projectAddress: option.getAttribute("data-project-address") || "",
+    projectDescription: option.getAttribute("data-project-description") || "",
+  };
+});
+
+function filterProjectsByClient() {
+  const clientId = String(clientSelect.value || "");
+  const currentProjectId = String(projectSelect.value || "");
+
+  if (projectSelect.tomselect) {
+    const tom = projectSelect.tomselect;
+
+    tom.clearOptions();
+
+    originalProjectOptions.forEach(function (item) {
+      if (!item.value) {
+        tom.addOption({
+          value: "",
+          text: item.text,
+          client: "",
+        });
+        return;
+      }
+
+      if (!clientId || String(item.client) === clientId) {
+        tom.addOption({
+          value: item.value,
+          text: item.text,
+          client: item.client,
+          projectName: item.projectName,
+          projectAddress: item.projectAddress,
+          projectDescription: item.projectDescription,
+        });
+      }
+    });
+
+    tom.refreshOptions(false);
+
+    const optionStillExists = originalProjectOptions.some(function (item) {
+      return (
+        String(item.value) === currentProjectId &&
+        (!clientId || String(item.client) === clientId)
+      );
+    });
+
+    if (optionStillExists) {
+      tom.setValue(currentProjectId, true);
+    } else {
+      tom.clear(true);
+      projectSelect.value = "";
+    }
+
+    return;
+  }
+
+  projectSelect.innerHTML = "";
+
+  originalProjectOptions.forEach(function (item) {
+    if (!item.value) {
+      const option = new Option(item.text, item.value);
+      projectSelect.appendChild(option);
+      return;
+    }
+
+    if (!clientId || String(item.client) === clientId) {
+      const option = new Option(item.text, item.value);
+      option.setAttribute("data-client", item.client);
+      option.setAttribute("data-project-name", item.projectName);
+      option.setAttribute("data-project-address", item.projectAddress);
+      option.setAttribute("data-project-description", item.projectDescription);
+      projectSelect.appendChild(option);
+    }
+  });
+
+  const optionStillExists = Array.from(projectSelect.options).some(function (option) {
+    return String(option.value) === currentProjectId;
+  });
+
+  if (optionStillExists) {
+    projectSelect.value = currentProjectId;
+  } else {
+    projectSelect.value = "";
+  }
+}
+
+  if (typeof TomSelect !== "undefined") {
+    new TomSelect(clientSelect, {
+      create: false,
+      allowEmptyOption: true,
+      maxOptions: 150,
+      placeholder: "Search client...",
+      searchField: ["text"]
+    });
+
+    new TomSelect(projectSelect, {
+      create: false,
+      allowEmptyOption: true,
+      maxOptions: 150,
+      placeholder: "Search project...",
+      searchField: ["text"]
+    });
+  }
+
+clientSelect.addEventListener("change", function () {
+  applyClientSnapshot();
+  filterProjectsByClient();
+  applyProjectSnapshot(false);
+});
+
+  projectSelect.addEventListener("change", function () {
+    applyProjectSnapshot(true);
+  });
+
+  if (clientSelect.tomselect) {
+  clientSelect.tomselect.on("change", function () {
+    applyClientSnapshot();
+    filterProjectsByClient();
+    applyProjectSnapshot(false);
+  });
+}
+
+  if (projectSelect.tomselect) {
+    projectSelect.tomselect.on("change", function () {
+      applyProjectSnapshot(true);
+    });
+  }
+applyClientSnapshot();
+filterProjectsByClient();
+applyProjectSnapshot(false);
+const evidenceInput = document.querySelector('input[name="evidence_images"]');
+const evidencePreview = document.getElementById("ContractEvidencePreview");
+const evidencePager = document.querySelector(".contract_evidence_pager");
+const evidencePrevBtn = document.getElementById("EvidencePrevBtn");
+const evidenceNextBtn = document.getElementById("EvidenceNextBtn");
+const evidencePageInfo = document.getElementById("EvidencePageInfo");
+
+let evidenceFiles = [];
+let evidencePage = 1;
+const evidencePerPage = 6;
+
+function syncEvidenceInputFiles() {
+  if (!evidenceInput) return;
+
+  const dataTransfer = new DataTransfer();
+
+  evidenceFiles.forEach(function (file) {
+    dataTransfer.items.add(file);
+  });
+
+  evidenceInput.files = dataTransfer.files;
+}
+
+function addEvidenceFiles(newFiles) {
+  newFiles.forEach(function (file) {
+    const fileKey = file.name + "_" + file.size + "_" + file.lastModified;
+
+    const alreadyExists = evidenceFiles.some(function (existingFile) {
+      const existingKey = existingFile.name + "_" + existingFile.size + "_" + existingFile.lastModified;
+      return existingKey === fileKey;
+    });
+
+    if (!alreadyExists) {
+      evidenceFiles.push(file);
+    }
+  });
+
+  syncEvidenceInputFiles();
+}
+
+function renderEvidencePreview() {
+  if (!evidencePreview) return;
+
+  evidencePreview.innerHTML = "";
+
+  const totalPages = Math.max(1, Math.ceil(evidenceFiles.length / evidencePerPage));
+  evidencePage = Math.min(evidencePage, totalPages);
+
+  const start = (evidencePage - 1) * evidencePerPage;
+  const pageFiles = evidenceFiles.slice(start, start + evidencePerPage);
+
+  pageFiles.forEach(function (file, index) {
+    const realIndex = start + index;
+
+    const item = document.createElement("div");
+    item.className = "contract_evidence_item";
+
+    const image = document.createElement("img");
+    image.src = URL.createObjectURL(file);
+    image.alt = file.name;
+
+    const name = document.createElement("div");
+    name.className = "contract_evidence_name";
+    name.textContent = file.name;
+
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.className = "crm_button crm_button_secondary";
+    removeBtn.style.marginTop = "8px";
+    removeBtn.style.width = "100%";
+    removeBtn.textContent = "Remove";
+
+    removeBtn.addEventListener("click", function () {
+      evidenceFiles.splice(realIndex, 1);
+      syncEvidenceInputFiles();
+      renderEvidencePreview();
+    });
+
+    item.appendChild(image);
+    item.appendChild(name);
+    item.appendChild(removeBtn);
+    evidencePreview.appendChild(item);
+  });
+
+  if (evidencePager) {
+    evidencePager.style.display = evidenceFiles.length > evidencePerPage ? "flex" : "none";
+  }
+
+  if (evidencePageInfo) {
+    evidencePageInfo.textContent = "Page " + evidencePage + " of " + totalPages;
+  }
+
+  if (evidencePrevBtn) {
+    evidencePrevBtn.disabled = evidencePage <= 1;
+  }
+
+  if (evidenceNextBtn) {
+    evidenceNextBtn.disabled = evidencePage >= totalPages;
+  }
+}
+
+if (evidenceInput) {
+  evidenceInput.addEventListener("change", function () {
+    addEvidenceFiles(Array.from(evidenceInput.files || []));
+    evidencePage = Math.max(1, Math.ceil(evidenceFiles.length / evidencePerPage));
+    renderEvidencePreview();
+  });
+}
+
+if (evidencePrevBtn) {
+  evidencePrevBtn.addEventListener("click", function () {
+    if (evidencePage > 1) {
+      evidencePage -= 1;
+      renderEvidencePreview();
+    }
+  });
+}
+
+if (evidenceNextBtn) {
+  evidenceNextBtn.addEventListener("click", function () {
+    const totalPages = Math.max(1, Math.ceil(evidenceFiles.length / evidencePerPage));
+
+    if (evidencePage < totalPages) {
+      evidencePage += 1;
+      renderEvidencePreview();
+    }
+  });
+}
+
+const editContractTermsBtn = document.getElementById("EditContractTermsBtn");
+const contractTermsInputs = document.querySelectorAll(".contract_terms_input");
+
+contractTermsInputs.forEach(function (input) {
+  input.setAttribute("readonly", "readonly");
+});
+
+if (editContractTermsBtn) {
+  editContractTermsBtn.addEventListener("click", function () {
+    contractTermsInputs.forEach(function (input) {
+      input.removeAttribute("readonly");
+    });
+
+    editContractTermsBtn.textContent = "Terms Editable";
+    editContractTermsBtn.disabled = true;
+  });
+}
+const contractForm = document.getElementById("ContractForm");
+
+if (contractForm) {
+  contractForm.addEventListener("submit", function () {
+    syncEvidenceInputFiles();
+
+    if (projectSelect && projectSelect.tomselect) {
+      projectSelect.tomselect.sync();
+    }
+
+    if (clientSelect && clientSelect.tomselect) {
+      clientSelect.tomselect.sync();
+    }
+  });
+}
+
+});
+</script>
+{% endblock %}

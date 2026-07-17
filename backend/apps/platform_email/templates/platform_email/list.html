@@ -1,0 +1,261 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Platform Email{% endblock %}
+
+{% block page_subtitle %}
+Administrative email logs sent from CEO MARKETING platform email settings.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .email_page {
+    display: grid;
+    gap: 22px;
+  }
+
+  .email_status_grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 0.65fr);
+    gap: 18px;
+  }
+
+  .email_info_card {
+    display: grid;
+    gap: 12px;
+    min-width: 0;
+    padding: 22px;
+    border: 1px solid var(--crm_border);
+    border-radius: 22px;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(31, 58, 138, 0.13), transparent 30%),
+      #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .email_info_card h2 {
+    margin: 0;
+    color: var(--crm_text);
+    font-size: 22px;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+  }
+
+  .email_info_card p {
+    margin: 0;
+    color: var(--crm_muted);
+    font-size: 14px;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+  }
+
+  .email_meta {
+    display: grid;
+    gap: 10px;
+  }
+
+  .email_meta_item {
+    display: grid;
+    gap: 4px;
+    padding: 14px;
+    border: 1px solid var(--crm_border);
+    border-radius: 16px;
+    background: #ffffff;
+  }
+
+  .email_meta_label {
+    color: var(--crm_muted);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .email_meta_value {
+    color: var(--crm_text);
+    font-size: 13px;
+    font-weight: 900;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+
+  .email_warning {
+    padding: 14px 16px;
+    border: 1px solid rgba(180, 83, 9, 0.28);
+    border-radius: 16px;
+    background: rgba(180, 83, 9, 0.08);
+    color: var(--crm_warning);
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.6;
+  }
+
+  .email_table_wrap {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .email_table {
+    width: 100%;
+    min-width: 920px;
+    border-collapse: collapse;
+  }
+
+  .email_table th,
+  .email_table td {
+    padding: 13px 12px;
+    border-bottom: 1px solid var(--crm_border);
+    text-align: left;
+    vertical-align: top;
+    font-size: 14px;
+  }
+
+  .email_table th {
+    color: var(--crm_muted);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .email_subject {
+    font-weight: 900;
+    color: var(--crm_text);
+    overflow-wrap: anywhere;
+  }
+
+  .email_muted {
+    color: var(--crm_muted);
+    font-size: 13px;
+    overflow-wrap: anywhere;
+  }
+
+  .email_badge {
+    display: inline-flex;
+    width: fit-content;
+    align-items: center;
+    justify-content: center;
+    min-height: 28px;
+    padding: 5px 9px;
+    border: 1px solid var(--crm_border);
+    border-radius: 10px;
+    background: #ffffff;
+    color: var(--crm_primary);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .email_empty {
+    padding: 18px;
+    color: var(--crm_muted);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 980px) {
+    .email_status_grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <section class="email_page">
+    <div class="email_status_grid">
+      <div class="email_info_card">
+        <h2>CEO MARKETING Platform Email</h2>
+        <p>
+          This module is only for SaaS administration emails such as subscription renewals,
+          payment reminders, SaaS invoices, proformas and account status notifications.
+          It does not use company SMTP settings and it does not send operational CRM notifications.
+        </p>
+
+        {% if is_console_backend %}
+          <div class="email_warning">
+            The platform email backend is currently using console mode. Emails are printed in Docker logs and are not delivered to real inboxes.
+          </div>
+        {% endif %}
+
+        <div class="crm_actions">
+          <a class="crm_button" href="{% url 'platform_email:compose' %}">Compose Email</a>
+        </div>
+      </div>
+
+      <aside class="email_meta">
+        <div class="email_meta_item">
+          <span class="email_meta_label">Backend</span>
+          <strong class="email_meta_value">{{ platform_email_backend }}</strong>
+        </div>
+
+        <div class="email_meta_item">
+          <span class="email_meta_label">From Email</span>
+          <strong class="email_meta_value">{{ platform_from_email|default:"Not configured" }}</strong>
+        </div>
+
+        <div class="email_meta_item">
+          <span class="email_meta_label">Delivery Mode</span>
+          <strong class="email_meta_value">
+            {% if is_console_backend %}
+              Console logs only
+            {% else %}
+              SMTP delivery
+            {% endif %}
+          </strong>
+        </div>
+      </aside>
+    </div>
+
+    <div class="crm_card">
+      <div class="email_table_wrap">
+        <table class="email_table">
+          <thead>
+            <tr>
+              <th>Recipient</th>
+              <th>Subject</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>Company</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for log in email_logs %}
+              <tr>
+                <td>
+                  <div class="email_subject">{{ log.recipient_email }}</div>
+                </td>
+
+                <td>
+                  <div class="email_subject">{{ log.subject }}</div>
+                  {% if log.error_message %}
+                    <div class="email_muted">{{ log.error_message|truncatechars:120 }}</div>
+                  {% endif %}
+                </td>
+
+                <td>
+                  <span class="email_badge">{{ log.get_email_type_display }}</span>
+                </td>
+
+                <td>
+                  <span class="email_badge">{{ log.get_status_display }}</span>
+                </td>
+
+                <td>{{ log.id_company.name|default:"Platform" }}</td>
+
+                <td>{{ log.created_at|date:"Y-m-d H:i" }}</td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td class="email_empty" colspan="6">
+                  No platform email logs found.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+{% endblock %}

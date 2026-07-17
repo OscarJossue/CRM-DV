@@ -1,0 +1,147 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Account Suspended{% endblock %}
+
+{% block page_subtitle %}
+Your company workspace is currently unavailable because the subscription is not active.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .suspended_page {
+    max-width: 920px;
+    margin: 0 auto;
+  }
+
+  .suspended_card {
+    display: grid;
+    gap: 18px;
+    padding: 28px;
+    border: 1px solid var(--crm_border);
+    border-radius: 24px;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(185, 28, 28, 0.12), transparent 32%),
+      #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .suspended_badge {
+    display: inline-flex;
+    width: fit-content;
+    min-height: 32px;
+    align-items: center;
+    justify-content: center;
+    padding: 7px 11px;
+    border: 1px solid rgba(185, 28, 28, 0.22);
+    border-radius: 12px;
+    background: rgba(185, 28, 28, 0.08);
+    color: var(--crm_danger);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .suspended_title {
+    margin: 0;
+    color: var(--crm_text);
+    font-size: clamp(28px, 4vw, 44px);
+    line-height: 1.08;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+  }
+
+  .suspended_text {
+    margin: 0;
+    color: var(--crm_muted);
+    font-size: 15px;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+  }
+
+  .suspended_info_grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .suspended_info {
+    display: grid;
+    gap: 7px;
+    padding: 16px;
+    border: 1px solid var(--crm_border);
+    border-radius: 16px;
+    background: #f8fafc;
+  }
+
+  .suspended_label {
+    color: var(--crm_muted);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .suspended_value {
+    color: var(--crm_text);
+    font-size: 15px;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+  }
+
+  .suspended_actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .suspended_logout_form {
+    margin: 0;
+  }
+
+  @media (max-width: 680px) {
+    .suspended_info_grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <section class="suspended_page">
+    <div class="suspended_card">
+      <span class="suspended_badge">Subscription Required</span>
+
+      <h2 class="suspended_title">Company Workspace Suspended</h2>
+
+      <p class="suspended_text">
+        This company workspace is currently unavailable because the SaaS subscription is expired,
+        suspended, canceled, or does not have a valid renewal date. Please contact CEO Marketing USA
+        to review the subscription and restore access.
+      </p>
+
+      <div class="suspended_info_grid">
+        <article class="suspended_info">
+          <span class="suspended_label">Company</span>
+          <strong class="suspended_value">
+            {% if company %}{{ company.name }}{% else %}No company assigned{% endif %}
+          </strong>
+        </article>
+
+        <article class="suspended_info">
+          <span class="suspended_label">Current Status</span>
+          <strong class="suspended_value">
+            {% if company %}{{ company.get_status_display }}{% else %}Unavailable{% endif %}
+          </strong>
+        </article>
+      </div>
+
+      <div class="suspended_actions">
+        <form class="suspended_logout_form" method="post" action="{% url 'accounts:logout' %}">
+          {% csrf_token %}
+          <button class="crm_button" type="submit">Logout</button>
+        </form>
+      </div>
+    </div>
+  </section>
+{% endblock %}

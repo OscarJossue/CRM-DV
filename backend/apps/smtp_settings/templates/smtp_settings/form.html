@@ -1,0 +1,359 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Email Settings{% endblock %}
+
+{% block page_subtitle %}
+Configure the company SMTP account used to send invoices, estimates, receipts and client statements.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .smtp_grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: 18px;
+    align-items: start;
+  }
+
+  .smtp_form {
+    display: grid;
+    gap: 18px;
+  }
+
+  .smtp_form_grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .smtp_field {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .smtp_field_full {
+    grid-column: 1 / -1;
+  }
+
+  .smtp_field label {
+    color: var(--crm_text);
+    font-size: 13px;
+    font-weight: 900;
+  }
+
+  .crm_input {
+    width: 100%;
+    min-height: 44px;
+    border: 1px solid var(--crm_border);
+    border-radius: 12px;
+    padding: 10px 12px;
+    color: var(--crm_text);
+    background: #ffffff;
+    font: inherit;
+  }
+
+  .smtp_checkbox_box {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--crm_border);
+    border-radius: 12px;
+    padding: 10px 12px;
+    background: #ffffff;
+    color: var(--crm_text);
+    font-size: 14px;
+    font-weight: 800;
+  }
+
+  .smtp_error {
+    color: var(--crm_danger);
+    font-size: 13px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+
+  .smtp_help {
+    color: var(--crm_muted);
+    font-size: 13px;
+    line-height: 1.6;
+    font-weight: 700;
+  }
+
+  .smtp_actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .smtp_status_grid {
+    display: grid;
+    gap: 12px;
+  }
+
+  .smtp_status_item {
+    padding: 14px;
+    border: 1px solid var(--crm_border);
+    border-radius: 14px;
+    background: #ffffff;
+  }
+
+  .smtp_status_item span {
+    display: block;
+    color: var(--crm_muted);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 6px;
+  }
+
+  .smtp_status_item strong {
+    color: var(--crm_text);
+    font-size: 15px;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+  }
+
+  .smtp_test_form {
+    display: grid;
+    gap: 14px;
+  }
+
+  .smtp_notice {
+    padding: 16px;
+    border-radius: 14px;
+    background: rgba(29, 78, 216, 0.08);
+    color: var(--crm_text);
+    border: 1px solid rgba(29, 78, 216, 0.18);
+    font-size: 14px;
+    line-height: 1.7;
+    font-weight: 700;
+  }
+
+  .smtp_success {
+    color: var(--crm_success) !important;
+  }
+
+  .smtp_failed {
+    color: var(--crm_danger) !important;
+  }
+
+  @media (max-width: 980px) {
+    .smtp_grid,
+    .smtp_form_grid {
+      grid-template-columns: 1fr;
+    }
+
+    .smtp_actions .crm_button {
+      width: 100%;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  {% if can_manage_company_language and language_form %}
+    <section class="crm_card" id="language-settings" style="margin-bottom:18px;">
+      <h2 class="crm_section_title">Company Language</h2>
+      <p class="crm_page_text">
+        Choose the default interface language for this company workspace.
+      </p>
+
+      <form class="smtp_form" method="post" action="{{ smtp_form_url }}" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="settings_action" value="save_language">
+
+        <div class="smtp_form_grid">
+          <div class="smtp_field smtp_field_full">
+            <label for="{{ language_form.default_language.id_for_label }}">Default Language</label>
+            {{ language_form.default_language }}
+            {% if language_form.default_language.errors %}
+              <div class="smtp_error">{{ language_form.default_language.errors }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="smtp_actions">
+          <button class="crm_button" type="submit">Save Language</button>
+        </div>
+      </form>
+    </section>
+  {% endif %}
+
+  <div class="smtp_grid">
+    <section class="crm_card">
+      <h2 class="crm_section_title">SMTP Configuration</h2>
+      <p class="crm_page_text">
+        Configure the email account that this company will use to send documents from the CRM.
+      </p>
+
+      <form class="smtp_form" method="post" action="{{ smtp_form_url }}" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="smtp_error">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="smtp_form_grid">
+          <div class="smtp_field">
+            <label for="{{ form.smtp_host.id_for_label }}">SMTP Host</label>
+            {{ form.smtp_host }}
+            {% if form.smtp_host.errors %}
+              <div class="smtp_error">{{ form.smtp_host.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="smtp_field">
+            <label for="{{ form.smtp_port.id_for_label }}">SMTP Port</label>
+            {{ form.smtp_port }}
+            {% if form.smtp_port.errors %}
+              <div class="smtp_error">{{ form.smtp_port.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="smtp_field">
+            <label for="{{ form.smtp_username.id_for_label }}">SMTP Username</label>
+            {{ form.smtp_username }}
+            {% if form.smtp_username.errors %}
+              <div class="smtp_error">{{ form.smtp_username.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="smtp_field">
+            <label for="{{ form.default_from_email.id_for_label }}">Default From Email</label>
+            {{ form.default_from_email }}
+            {% if form.default_from_email.errors %}
+              <div class="smtp_error">{{ form.default_from_email.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="smtp_field">
+            <label for="{{ form.from_name.id_for_label }}">From Name</label>
+            {{ form.from_name }}
+            {% if form.from_name.errors %}
+              <div class="smtp_error">{{ form.from_name.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="smtp_field">
+            <label for="{{ form.smtp_password.id_for_label }}">SMTP Password / App Password</label>
+            {{ form.smtp_password }}
+
+            {% if form.smtp_password.help_text %}
+              <div class="smtp_help">{{ form.smtp_password.help_text }}</div>
+            {% endif %}
+
+            {% if form.smtp_password.errors %}
+              <div class="smtp_error">{{ form.smtp_password.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="smtp_field">
+            <label>Secure Connection</label>
+            <div class="smtp_checkbox_box">
+              {{ form.use_tls }}
+              <span>Use TLS</span>
+            </div>
+            {% if form.use_tls.errors %}
+              <div class="smtp_error">{{ form.use_tls.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="smtp_field">
+            <label>SSL Connection</label>
+            <div class="smtp_checkbox_box">
+              {{ form.use_ssl }}
+              <span>Use SSL</span>
+            </div>
+            {% if form.use_ssl.errors %}
+              <div class="smtp_error">{{ form.use_ssl.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="smtp_field smtp_field_full">
+            <label>Status</label>
+            <div class="smtp_checkbox_box">
+              {{ form.is_active }}
+              <span>Activate SMTP for this company</span>
+            </div>
+            {% if form.is_active.errors %}
+              <div class="smtp_error">{{ form.is_active.errors }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="smtp_actions">
+          <button class="crm_button" type="submit">Save Email Settings</button>
+          <a class="crm_button crm_button_secondary" href="{{ dashboard_url }}">Back to Dashboard</a>
+        </div>
+      </form>
+    </section>
+
+    <aside class="crm_card">
+      <h2 class="crm_section_title">SMTP Test</h2>
+      <p class="crm_page_text">
+        Send a test email to verify that the SMTP configuration is working.
+      </p>
+
+      <div class="smtp_notice">
+        Use the real SMTP server for this company. For cPanel/SiteGround type mailboxes usually use <b>mail.yourdomain.com</b>, port <b>465</b> with SSL or port <b>587</b> with TLS. Do not use port <b>443</b>.
+      </div>
+
+      <form class="smtp_test_form" method="post" action="{{ smtp_test_url }}" style="margin-top:16px;">
+        {% csrf_token %}
+
+        <div class="smtp_field">
+          <label for="test_email">Send Test To</label>
+          <input
+            class="crm_input"
+            type="email"
+            id="test_email"
+            name="test_email"
+            placeholder="test@example.com"
+          >
+        </div>
+
+        <button class="crm_button" type="submit">Send Test Email</button>
+      </form>
+
+      <div class="smtp_status_grid" style="margin-top:18px;">
+        <div class="smtp_status_item">
+          <span>Company</span>
+          <strong>{{ company.name|default:"-" }}</strong>
+        </div>
+
+        <div class="smtp_status_item">
+          <span>Status</span>
+          {% if smtp_setting.is_active %}
+            <strong class="smtp_success">Active</strong>
+          {% else %}
+            <strong class="smtp_failed">Inactive</strong>
+          {% endif %}
+        </div>
+
+        <div class="smtp_status_item">
+          <span>Last Test Status</span>
+          {% if smtp_setting.last_test_status == "success" %}
+            <strong class="smtp_success">{{ smtp_setting.last_test_status }}</strong>
+          {% elif smtp_setting.last_test_status == "failed" %}
+            <strong class="smtp_failed">{{ smtp_setting.last_test_status }}</strong>
+          {% else %}
+            <strong>Not tested yet</strong>
+          {% endif %}
+        </div>
+
+        <div class="smtp_status_item">
+          <span>Last Message</span>
+          <strong>{{ smtp_setting.last_test_message|default:"-" }}</strong>
+        </div>
+
+        <div class="smtp_status_item">
+          <span>Last Tested At</span>
+          <strong>{{ smtp_setting.last_tested_at|date:"Y-m-d H:i"|default:"-" }}</strong>
+        </div>
+      </div>
+    </aside>
+  </div>
+{% endblock %}

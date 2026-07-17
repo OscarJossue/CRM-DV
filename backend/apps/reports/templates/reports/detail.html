@@ -1,0 +1,41 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Financial Summary{% endblock %}
+
+{% block page_subtitle %}
+Detailed overview for billing, payments, projects and balances.
+{% endblock %}
+
+{% block content %}
+  <section class="crm_card">
+    <h2 class="crm_section_title">Financial Summary Detail</h2>
+
+    <div class="crm_grid">
+      <div class="crm_stat">
+        <span class="crm_stat_label">Total Billed</span>
+        <span class="crm_stat_value">${{ financial_summary.total_billed }}</span>
+      </div>
+
+      <div class="crm_stat">
+        <span class="crm_stat_label">Total Paid</span>
+        <span class="crm_stat_value">${{ financial_summary.total_paid }}</span>
+      </div>
+
+      <div class="crm_stat">
+        <span class="crm_stat_label">Total Balance</span>
+        <span class="crm_stat_value">${{ financial_summary.total_balance }}</span>
+      </div>
+
+      <div class="crm_stat">
+        <span class="crm_stat_label">Active Projects</span>
+        <span class="crm_stat_value">{{ project_summary.active_projects }}</span>
+      </div>
+    </div>
+
+    <div class="crm_actions" style="margin-top:18px;">
+      <a class="crm_button" href="{% url 'reports:financial_summary_csv' %}">Export CSV</a>
+      <a class="crm_button crm_button_secondary" href="{% url 'reports:financial_summary_pdf' %}"><i class="bi bi-file-earmark-pdf-fill" aria-hidden="true"></i> Export PDF</a>
+      <a class="crm_button crm_button_secondary" href="{% url 'reports:reports_home' %}">Back</a>
+    </div>
+  </section>
+{% endblock %}

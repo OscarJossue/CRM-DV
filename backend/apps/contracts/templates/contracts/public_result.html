@@ -1,0 +1,150 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ result_title|default:"Contract Result" }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #f3f6fb;
+            color: #111827;
+            font-family: Arial, sans-serif;
+        }
+
+        .result-shell {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5%;
+        }
+
+        .result-card {
+            width: 100%;
+            max-width: 720px;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 26px;
+            box-shadow: 0 24px 70px rgba(15, 23, 42, .12);
+            padding: 42px;
+            text-align: center;
+        }
+
+        .icon {
+            width: 76px;
+            height: 76px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 22px;
+            font-size: 34px;
+            font-weight: 900;
+        }
+
+        .icon-success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .icon-error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        h1 {
+            margin: 0 0 14px;
+            font-size: clamp(30px, 5vw, 46px);
+            font-weight: 900;
+            letter-spacing: -0.04em;
+            color: #0f172a;
+        }
+
+        p {
+            margin: 0 auto;
+            max-width: 580px;
+            color: #4b5563;
+            font-size: 17px;
+            line-height: 1.7;
+        }
+
+        .meta {
+            margin-top: 24px;
+            padding: 18px;
+            border-radius: 18px;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            color: #374151;
+        }
+
+        .meta strong {
+            color: #111827;
+        }
+
+        .actions {
+            margin-top: 30px;
+        }
+
+        .btn-main {
+            border-radius: 999px;
+            padding: 12px 24px;
+            font-weight: 800;
+        }
+
+        @media (max-width: 640px) {
+            .result-card {
+                padding: 30px 22px;
+            }
+        }
+    </style>
+  {% include "components/_invoice_action_system.html" %}
+</head>
+
+<body>
+<div class="result-shell">
+    <div class="result-card">
+
+        {% if result_type == "success" %}
+            <div class="icon icon-success">✓</div>
+        {% elif result_type == "danger" %}
+            <div class="icon icon-error">!</div>
+        {% else %}
+            <div class="icon icon-success">✓</div>
+        {% endif %}
+
+        <h1>{{ result_title|default:"Contract Result" }}</h1>
+        <p>{{ result_message|default:"Your contract response has been submitted." }}</p>
+
+        <div class="meta">
+            Contract:
+            <strong>{{ contract.contract_number|default:contract.id_contract }}</strong>
+            <br>
+            Customer:
+            <strong>{{ contract.client_name|default:"Client" }}</strong>
+            <br>
+            Status:
+            <strong>{{ contract.status }}</strong>
+        </div>
+
+        <div class="actions">
+            <a href="../" class="btn btn-primary btn-main">
+                View Contract
+            </a>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html>

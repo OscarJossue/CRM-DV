@@ -1,0 +1,176 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Compose Platform Email{% endblock %}
+
+{% block page_subtitle %}
+Send administrative SaaS emails from CEO MARKETING to company owners or billing contacts.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .compose_layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(310px, 0.68fr);
+    gap: 18px;
+    align-items: start;
+  }
+
+  .compose_card {
+    display: grid;
+    gap: 18px;
+  }
+
+  .compose_field {
+    display: grid;
+    gap: 7px;
+    min-width: 0;
+  }
+
+  .compose_label {
+    color: var(--crm_text);
+    font-size: 13px;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+  }
+
+  .compose_error {
+    color: var(--crm_danger);
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+
+  .compose_side {
+    display: grid;
+    gap: 14px;
+  }
+
+  .compose_panel {
+    display: grid;
+    gap: 8px;
+    padding: 18px;
+    border: 1px solid var(--crm_border);
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .compose_panel span {
+    color: var(--crm_muted);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .compose_panel strong {
+    color: var(--crm_text);
+    font-size: 13px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+
+  .compose_rules {
+    display: grid;
+    gap: 10px;
+    padding: 20px;
+    border: 1px solid var(--crm_border);
+    border-radius: 20px;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(31, 58, 138, 0.12), transparent 34%),
+      #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .compose_rules h2 {
+    margin: 0;
+    color: var(--crm_text);
+    font-size: 18px;
+    font-weight: 900;
+  }
+
+  .compose_rules p {
+    margin: 0;
+    color: var(--crm_muted);
+    font-size: 14px;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+  }
+
+  .compose_warning {
+    padding: 14px 16px;
+    border: 1px solid rgba(180, 83, 9, 0.28);
+    border-radius: 16px;
+    background: rgba(180, 83, 9, 0.08);
+    color: var(--crm_warning);
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 920px) {
+    .compose_layout {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <section class="compose_layout">
+    <form class="crm_card compose_card" method="post">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="crm_message">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      {% for field in form %}
+        <label class="compose_field">
+          <span class="compose_label">{{ field.label }}</span>
+          {{ field }}
+
+          {% if field.errors %}
+            <span class="compose_error">{{ field.errors }}</span>
+          {% endif %}
+        </label>
+      {% endfor %}
+
+      <div class="crm_actions">
+        <button class="crm_button" type="submit">Send Platform Email</button>
+        <a class="crm_button crm_button_secondary" href="{% url 'platform_email:list' %}">Cancel</a>
+      </div>
+    </form>
+
+    <aside class="compose_side">
+      <div class="compose_rules">
+        <h2>Platform Email Usage</h2>
+        <p>
+          Use this screen for SaaS administration emails only: renewal reminders,
+          payment notices, subscription status updates, SaaS invoices and platform account messages.
+        </p>
+        <p>
+          Do not use this module for operational CRM notifications such as inspections,
+          estimates, project tasks or company customer messages.
+        </p>
+      </div>
+
+      <div class="compose_panel">
+        <span>From Email</span>
+        <strong>{{ platform_from_email|default:"Not configured" }}</strong>
+      </div>
+
+      <div class="compose_panel">
+        <span>Backend</span>
+        <strong>{{ platform_email_backend }}</strong>
+      </div>
+
+      {% if is_console_backend %}
+        <div class="compose_warning">
+          Current mode is console backend. The message will appear in Docker logs but will not arrive to the inbox.
+        </div>
+      {% endif %}
+    </aside>
+  </section>
+{% endblock %}

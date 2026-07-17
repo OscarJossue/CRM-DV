@@ -1,0 +1,155 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}{{ form_title }}{% endblock %}
+{% block page_subtitle %}Schedule work, assign responsibility and connect the activity to the correct company record.{% endblock %}
+
+{% block extra_head %}
+  {% include "partials/_crm_design_system.html" %}
+  <style>
+    .calendar-form-page { max-width: 1120px; margin: 0 auto; }
+    .calendar-form-hero { position: relative; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 18px; padding: 19px; background: linear-gradient(135deg, #fff, var(--nj-ice)); }
+    .calendar-form-hero::after { content: ""; position: absolute; top: -70px; right: -54px; width: 180px; height: 180px; border-radius: 50%; background: rgba(8,104,232,.08); }
+    .calendar-form-hero > * { position: relative; z-index: 1; }
+    .calendar-form-title-row { display: flex; align-items: center; gap: 13px; }
+    .calendar-form-title-row .nj-icon-box { width: 48px; height: 48px; flex-basis: 48px; }
+    .calendar-form-hero h2 { margin: 0; color: var(--nj-ink); font-size: clamp(27px, 3vw, 38px); font-weight: 950; letter-spacing: -.04em; }
+    .calendar-form-hero p { max-width: 760px; margin: 7px 0 0; color: var(--nj-muted); font-size: 13px; font-weight: 650; line-height: 1.55; }
+
+    .calendar-form-layout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(280px, .65fr); gap: 14px; align-items: start; }
+    .calendar-form-card { overflow: hidden; }
+    .calendar-form-body { display: grid; gap: 18px; padding: 18px; }
+    .calendar-form-section { display: grid; gap: 12px; }
+    .calendar-form-section-head { display: flex; align-items: flex-start; gap: 10px; padding-bottom: 9px; border-bottom: 1px solid var(--nj-line); }
+    .calendar-form-section-head i { margin-top: 1px; color: var(--nj-blue); }
+    .calendar-form-section-head strong { display: block; color: var(--nj-ink); font-size: 13px; font-weight: 900; }
+    .calendar-form-section-head small { display: block; margin-top: 2px; color: var(--nj-muted); font-size: 10.5px; font-weight: 650; line-height: 1.4; }
+    .calendar-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .calendar-form-field-full { grid-column: 1 / -1; }
+    .calendar-form-related[hidden] { display: none; }
+    .calendar-form-related { grid-column: 1 / -1; }
+    .calendar-form-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; padding: 14px 18px; border-top: 1px solid var(--nj-line); background: #fbfdff; }
+
+    .calendar-form-guide { display: grid; gap: 10px; padding: 15px; }
+    .calendar-form-guide-item { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 10px; padding: 11px; border: 1px solid var(--nj-line); border-radius: 13px; background: linear-gradient(180deg, #fff, #fbfdff); }
+    .calendar-form-guide-item > span { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px; background: var(--nj-ice); color: var(--nj-blue); font-size: 14px; }
+    .calendar-form-guide-item strong { display: block; color: var(--nj-ink); font-size: 11.5px; font-weight: 900; }
+    .calendar-form-guide-item small { display: block; margin-top: 3px; color: var(--nj-muted); font-size: 10px; font-weight: 650; line-height: 1.45; }
+    .calendar-form-linked-note { display: flex; align-items: flex-start; gap: 9px; padding: 11px; border: 1px solid rgba(8,104,232,.16); border-radius: 12px; background: var(--nj-ice); color: var(--nj-ink); font-size: 11px; font-weight: 700; line-height: 1.45; }
+    .calendar-form-linked-note i { color: var(--nj-blue); }
+
+    @media (max-width: 940px) {
+      .calendar-form-layout, .calendar-form-hero { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 680px) {
+      .calendar-form-grid { grid-template-columns: 1fr; }
+      .calendar-form-field-full, .calendar-form-related { grid-column: auto; }
+      .calendar-form-actions, .calendar-form-actions .nj-btn { width: 100%; }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+<section class="nj-invoice nj-page calendar-form-page">
+  <header class="nj-card calendar-form-hero">
+    <div class="calendar-form-title-row">
+      <span class="nj-icon-box"><i class="bi bi-calendar-plus"></i></span>
+      <div>
+        <span class="nj-page-kicker"><i class="bi bi-link-45deg"></i> Connected scheduling</span>
+        <h2>{{ form_title }}</h2>
+        <p>Create a real activity with responsible user, schedule, instructions and a direct connection to the operational record.</p>
+      </div>
+    </div>
+    <a class="nj-btn nj-btn-secondary" href="../"><i class="bi bi-arrow-left"></i> Back</a>
+  </header>
+
+  <div class="calendar-form-layout">
+    <form class="nj-card calendar-form-card" method="post" novalidate>
+      {% csrf_token %}
+      {% if not form.show_company_selector %}{{ form.id_company }}{% endif %}
+
+      {% if form.non_field_errors %}
+        <div class="nj-alert" style="margin:18px 18px 0;border-color:rgba(239,51,64,.18);background:var(--nj-danger-soft);"><i class="bi bi-exclamation-circle" style="color:var(--nj-danger);"></i><div>{{ form.non_field_errors }}</div></div>
+      {% endif %}
+
+      <div class="calendar-form-body">
+        {% if form.show_company_selector %}
+          <section class="calendar-form-section">
+            <div class="calendar-form-section-head"><i class="bi bi-building"></i><div><strong>Company</strong><small>Select the workspace that owns this event.</small></div></div>
+            <label class="nj-field"><span class="nj-label nj-required">Company</span>{{ form.id_company }}{{ form.id_company.errors }}</label>
+          </section>
+        {% endif %}
+
+        <section class="calendar-form-section">
+          <div class="calendar-form-section-head"><i class="bi bi-card-checklist"></i><div><strong>Activity information</strong><small>Use a clear title and explain what must be completed.</small></div></div>
+          <div class="calendar-form-grid">
+            <label class="nj-field calendar-form-field-full"><span class="nj-label nj-required">Title</span>{{ form.title }}{{ form.title.errors }}</label>
+            <label class="nj-field"><span class="nj-label">Category</span>{{ form.category }}{{ form.category.errors }}</label>
+            <label class="nj-field"><span class="nj-label">Priority</span>{{ form.priority }}{{ form.priority.errors }}</label>
+            <label class="nj-field"><span class="nj-label">Assigned user</span>{{ form.id_assigned_user }}{{ form.id_assigned_user.errors }}<span class="nj-help">The event will appear in this user's assigned activity.</span></label>
+            <label class="nj-field"><span class="nj-label">Status</span>{{ form.status }}{{ form.status.errors }}</label>
+            <label class="nj-field calendar-form-field-full"><span class="nj-label">Description and instructions</span>{{ form.description }}{{ form.description.errors }}</label>
+          </div>
+        </section>
+
+        <section class="calendar-form-section">
+          <div class="calendar-form-section-head"><i class="bi bi-link-45deg"></i><div><strong>Connected record</strong><small>Link the event so the user can open the project, inspection or financial document directly.</small></div></div>
+          {% if project %}<div class="calendar-form-linked-note"><i class="bi bi-pin-angle"></i><span>This event is being created from project <strong>{{ project }}</strong> and will remain connected to it.</span></div>{% endif %}
+          <div class="calendar-form-grid">
+            <label class="nj-field calendar-form-field-full"><span class="nj-label">Record type</span>{{ form.related_type }}{{ form.related_type.errors }}</label>
+            <label class="nj-field calendar-form-related" data-related-panel="project"><span class="nj-label">Project</span>{{ form.id_project }}{{ form.id_project.errors }}</label>
+            <label class="nj-field calendar-form-related" data-related-panel="inspection"><span class="nj-label">Inspection</span>{{ form.id_inspection_assignment }}{{ form.id_inspection_assignment.errors }}</label>
+            <label class="nj-field calendar-form-related" data-related-panel="estimate"><span class="nj-label">Estimate</span>{{ form.id_estimate }}{{ form.id_estimate.errors }}</label>
+            <label class="nj-field calendar-form-related" data-related-panel="invoice"><span class="nj-label">Invoice</span>{{ form.id_invoice }}{{ form.id_invoice.errors }}</label>
+            <label class="nj-field calendar-form-related" data-related-panel="payment"><span class="nj-label">Payment</span>{{ form.id_payment }}{{ form.id_payment.errors }}</label>
+            <label class="nj-field calendar-form-related" data-related-panel="client"><span class="nj-label">Client</span>{{ form.id_client }}{{ form.id_client.errors }}</label>
+            <label class="nj-field calendar-form-related" data-related-panel="opportunity"><span class="nj-label">Opportunity</span>{{ form.id_opportunity }}{{ form.id_opportunity.errors }}</label>
+          </div>
+        </section>
+
+        <section class="calendar-form-section">
+          <div class="calendar-form-section-head"><i class="bi bi-clock"></i><div><strong>Schedule and location</strong><small>Set the day, working hours and where the activity takes place.</small></div></div>
+          <div class="calendar-form-grid">
+            <label class="nj-field"><span class="nj-label nj-required">Date</span>{{ form.event_date }}{{ form.event_date.errors }}</label>
+            <label class="nj-field"><span class="nj-label">Start time</span>{{ form.start_time }}{{ form.start_time.errors }}</label>
+            <label class="nj-field"><span class="nj-label">End time</span>{{ form.end_time }}{{ form.end_time.errors }}</label>
+            <label class="nj-field calendar-form-field-full"><span class="nj-label">Location or meeting link</span>{{ form.location }}{{ form.location.errors }}</label>
+          </div>
+        </section>
+      </div>
+
+      <footer class="calendar-form-actions">
+        <a class="nj-btn nj-btn-secondary" href="../">Cancel</a>
+        <button class="nj-btn" type="submit"><i class="bi bi-check2-circle"></i> {{ submit_label }}</button>
+      </footer>
+    </form>
+
+    <aside class="nj-card">
+      <div class="nj-card-head"><h2 class="nj-card-title"><i class="bi bi-lightbulb"></i> Create a useful event</h2></div>
+      <div class="calendar-form-guide">
+        <div class="calendar-form-guide-item"><span><i class="bi bi-type"></i></span><div><strong>Use an actionable title</strong><small>Example: Call client to approve estimate instead of General reminder.</small></div></div>
+        <div class="calendar-form-guide-item"><span><i class="bi bi-person-check"></i></span><div><strong>Assign responsibility</strong><small>The assigned user will understand who owns the next action.</small></div></div>
+        <div class="calendar-form-guide-item"><span><i class="bi bi-diagram-3"></i></span><div><strong>Connect the record</strong><small>Linking avoids duplicate information and gives direct access to the source module.</small></div></div>
+        <div class="calendar-form-guide-item"><span><i class="bi bi-card-text"></i></span><div><strong>Add instructions</strong><small>Include preparation, expected result and important client details.</small></div></div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var typeSelect = document.querySelector("[data-related-type]");
+    var panels = Array.prototype.slice.call(document.querySelectorAll("[data-related-panel]"));
+    if (!typeSelect) return;
+
+    function syncRelatedPanels() {
+      var selected = typeSelect.value || "";
+      panels.forEach(function (panel) {
+        panel.hidden = panel.getAttribute("data-related-panel") !== selected;
+      });
+    }
+
+    typeSelect.addEventListener("change", syncRelatedPanels);
+    syncRelatedPanels();
+  })();
+</script>
+{% endblock %}

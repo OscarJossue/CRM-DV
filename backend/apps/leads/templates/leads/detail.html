@@ -1,0 +1,62 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}{{ lead.name }}{% endblock %}
+
+{% block page_subtitle %}
+Lead profile, source, status and conversion information.
+{% endblock %}
+
+{% block extra_head %}
+{% include "leads/partials/_module_design.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="crm_module_theme module_page">
+  <section class="crm_card module_detail_hero">
+    <div>
+      <span class="module_kicker"><i class="bi bi-broadcast-pin"></i> Lead #{{ lead.id_lead }}</span>
+      <h2 class="module_detail_title">{{ lead.name }}</h2>
+      <p class="module_copy">{{ lead.address|default:"No address registered" }}</p>
+      <div class="module_chips">
+        <span class="module_status module_status_{{ lead.status }}">{{ lead.status|default:"No status"|title }}</span>
+        <span class="module_chip"><span>Phone</span>{{ lead.phone|default:"No phone" }}</span>
+        <span class="module_chip"><span>Email</span>{{ lead.email|default:"No email" }}</span>
+        <span class="module_chip"><span>Created</span>{{ lead.created_at|date:"Y-m-d" }}</span>
+      </div>
+    </div>
+
+    <div class="module_actions">
+      <a class="module_icon_action" href="{% url 'leads:lead_list' %}" data-tooltip="Back" aria-label="Back"><i class="bi bi-arrow-left"></i></a>
+      {% if can_edit_leads %}
+        <a class="module_icon_action" href="{% url 'leads:lead_update' lead.id_lead %}" data-tooltip="Edit" aria-label="Edit lead"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+      {% endif %}
+      {% if can_approve_leads and not lead.id_converted_client_id %}
+        <form class="module_inline_form" method="post" action="{% url 'leads:lead_convert' lead.id_lead %}">
+          {% csrf_token %}
+          <button class="module_icon_action module_icon_success" type="submit" data-tooltip="Convert" aria-label="Convert to client"><i class="bi bi-arrow-repeat"></i></button>
+        </form>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="crm_card">
+    <div class="module_table_header">
+      <div>
+        <h3>Lead Information</h3>
+        <span>Main lead data in a compact layout.</span>
+      </div>
+    </div>
+
+    <div class="module_detail_grid">
+      <div class="module_detail_item"><span class="module_detail_label">Name</span><span class="module_detail_value">{{ lead.name }}</span></div>
+      <div class="module_detail_item"><span class="module_detail_label">Phone</span><span class="module_detail_value">{{ lead.phone|default:"No phone" }}</span></div>
+      <div class="module_detail_item"><span class="module_detail_label">Email</span><span class="module_detail_value">{{ lead.email|default:"No email" }}</span></div>
+      <div class="module_detail_item"><span class="module_detail_label">Source</span><span class="module_detail_value">{{ lead.source|default:"No source" }}</span></div>
+      <div class="module_detail_item"><span class="module_detail_label">Assigned User</span><span class="module_detail_value">{{ lead.id_assigned_user.email|default:"Unassigned" }}</span></div>
+      <div class="module_detail_item"><span class="module_detail_label">Converted Client</span><span class="module_detail_value">{% if lead.id_converted_client %}<a href="{% url 'clients:client_detail' lead.id_converted_client.id_client %}">{{ lead.id_converted_client.name }}</a>{% else %}Not converted{% endif %}</span></div>
+      <div class="module_detail_item module_detail_item_full"><span class="module_detail_label">Address</span><span class="module_detail_value">{{ lead.address|default:"No address" }}</span></div>
+      <div class="module_detail_item module_detail_item_full"><span class="module_detail_label">Notes</span><span class="module_detail_value">{{ lead.notes|default:"No notes" }}</span></div>
+    </div>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,228 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}403 Forbidden{% endblock %}
+
+{% block page_subtitle %}
+You do not have permission to access this section.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .crm_403_shell {
+    min-height: calc(100vh - 140px);
+    display: flex;
+    align-items: center;
+    padding: 42px 0;
+    background:
+      radial-gradient(circle at 12% 18%, rgba(220, 53, 69, .13), transparent 32%),
+      radial-gradient(circle at 88% 82%, rgba(13, 110, 253, .12), transparent 34%),
+      #f8fafc;
+  }
+
+  .crm_403_card {
+    border: 1px solid rgba(15, 23, 42, .08);
+    border-radius: 30px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 28px 80px rgba(15, 23, 42, .14);
+  }
+
+  .crm_403_content {
+    padding: clamp(28px, 5vw, 56px);
+  }
+
+  .crm_403_badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    width: fit-content;
+    padding: 9px 14px;
+    border-radius: 999px;
+    background: rgba(220, 53, 69, .1);
+    color: #b42318;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+
+  .crm_403_badge::before {
+    content: "";
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #dc3545;
+    box-shadow: 0 0 0 6px rgba(220, 53, 69, .14);
+  }
+
+  .crm_403_title {
+    margin: 22px 0 14px;
+    color: #0f172a;
+    font-size: clamp(38px, 6vw, 72px);
+    line-height: .95;
+    font-weight: 900;
+    letter-spacing: -.05em;
+  }
+
+  .crm_403_text {
+    max-width: 610px;
+    margin: 0;
+    color: #64748b;
+    font-size: 16px;
+    line-height: 1.75;
+  }
+
+  .crm_403_note {
+    margin-top: 22px;
+    padding: 15px 17px;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.65;
+  }
+
+  .crm_403_visual {
+    min-height: 100%;
+    display: grid;
+    place-items: center;
+    padding: 42px 24px;
+    background:
+      radial-gradient(circle at top right, rgba(220, 53, 69, .32), transparent 35%),
+      linear-gradient(135deg, #111827, #1f2937);
+  }
+
+  .crm_403_lock_wrap {
+    width: min(78%, 280px);
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    border-radius: 42px;
+    background: rgba(255, 255, 255, .08);
+    border: 1px solid rgba(255, 255, 255, .16);
+    box-shadow: 0 28px 70px rgba(0, 0, 0, .34);
+    backdrop-filter: blur(18px);
+  }
+
+  .crm_403_lock {
+    position: relative;
+    width: 124px;
+    height: 100px;
+    border-radius: 22px;
+    background: #fff;
+  }
+
+  .crm_403_lock::before {
+    content: "";
+    position: absolute;
+    width: 76px;
+    height: 68px;
+    left: 50%;
+    top: -50px;
+    transform: translateX(-50%);
+    border: 15px solid #fff;
+    border-bottom: 0;
+    border-radius: 42px 42px 0 0;
+  }
+
+  .crm_403_lock::after {
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 38px;
+    left: 50%;
+    top: 33px;
+    transform: translateX(-50%);
+    border-radius: 999px;
+    background: #dc3545;
+  }
+
+  @media (max-width: 991px) {
+    .crm_403_visual {
+      min-height: 280px;
+    }
+
+    .crm_403_lock_wrap {
+      width: 220px;
+      border-radius: 34px;
+    }
+
+    .crm_403_lock {
+      transform: scale(.8);
+    }
+  }
+
+  @media (max-width: 575px) {
+    .crm_403_shell {
+      padding: 24px 0;
+    }
+
+    .crm_403_content {
+      padding: 26px 20px;
+    }
+
+    .crm_403_actions .btn {
+      width: 100%;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="crm_403_shell">
+  <div class="container">
+    <div class="crm_403_card">
+      <div class="row g-0 align-items-stretch">
+
+        <div class="col-lg-7">
+          <div class="crm_403_content">
+            <span class="crm_403_badge">403 Forbidden</span>
+
+            <h1 class="crm_403_title">
+              Access Denied
+            </h1>
+
+            <p class="crm_403_text">
+              Your account does not have permission to open this CRM module. This section may be restricted by role, company access, or administrator permissions.
+            </p>
+
+            <div class="crm_403_note">
+              If you believe this is a mistake, contact the main administrator and request access to this module.
+            </div>
+
+            <div class="crm_403_actions d-flex flex-wrap gap-3 mt-4">
+              {% if request.user.is_authenticated and request.user.is_superuser %}
+                <a class="btn btn-danger btn-lg fw-bold px-4" href="{% url 'platform_core:dashboard' %}">
+                  Go to Admin Dashboard
+                </a>
+              {% elif request.user.is_authenticated and request.user.id_company %}
+                <a class="btn btn-danger btn-lg fw-bold px-4" href="/{{ request.user.id_company.slug }}/dashboard/">
+                  Go to Dashboard
+                </a>
+              {% else %}
+                <a class="btn btn-danger btn-lg fw-bold px-4" href="/login/">
+                  Go to Login
+                </a>
+              {% endif %}
+
+              <a class="btn btn-outline-dark btn-lg fw-bold px-4" href="javascript:history.back()">
+                Go Back
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-5">
+          <div class="crm_403_visual">
+            <div class="crm_403_lock_wrap" aria-hidden="true">
+              <div class="crm_403_lock"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

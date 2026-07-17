@@ -1,0 +1,68 @@
+{% extends "layouts/base.html" %}
+{% block page_title %}Projects{% endblock %}
+{% block page_subtitle %}Track project delivery, clients, supervisors, invoices, dates and automatic workflow status.{% endblock %}
+
+{% block extra_head %}
+  {% include "projects/partials/_design_system.html" %}
+  {% include "projects/partials/_status_track_styles.html" %}
+  <style>
+    .project-list-summary{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,.34fr);gap:10px}
+    .project-list-summary .ops-card-body{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:90px}
+    .project-list-summary-copy{display:flex;align-items:center;gap:11px}.project-list-summary-copy .nj-icon-box{width:42px;height:42px}
+    .project-list-summary-copy strong{display:block;color:var(--nj-ink);font-size:15px;font-weight:950}.project-list-summary-copy span{display:block;margin-top:3px;color:var(--nj-muted);font-size:11px;font-weight:650}
+    .project-list-money{text-align:right}.project-list-money strong{display:block;color:var(--nj-blue);font-size:23px;font-weight:950;line-height:1}.project-list-money span{display:block;margin-top:5px;color:var(--nj-muted);font-size:9px;font-weight:900;letter-spacing:.06em;text-transform:uppercase}
+    .project-status-cell{min-width:315px}.project-name-line{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    @media(max-width:760px){.project-list-summary{grid-template-columns:1fr}.project-list-money{text-align:left}}
+  </style>
+{% endblock %}
+
+{% block content %}
+<div class="nj-invoice operations-standard crm-unified">
+  <header class="ops-head">
+    <div><span class="ops-kicker"><i class="bi bi-kanban" aria-hidden="true"></i> Project management</span><h1 class="ops-title">Projects</h1><p class="ops-subtitle">Search by project code, client, DNI or supervisor. Workflow status is automatic and contractor evidence controls whether a record can be deleted or only cancelled.</p></div>
+    {% if can_create_projects %}<div class="ops-toolbar"><a class="ops-btn" href="{{ project_create_url }}"><i class="bi bi-plus-lg" aria-hidden="true"></i> Create project</a></div>{% endif %}
+  </header>
+
+  <section class="project-list-summary">
+    <article class="ops-card"><div class="ops-card-body"><div class="project-list-summary-copy"><span class="nj-icon-box"><i class="bi bi-folder2-open" aria-hidden="true"></i></span><div><strong>{{ project_total_count }} projects</strong><span>Projects available for the active company and current permissions.</span></div></div></div></article>
+    <article class="ops-card"><div class="ops-card-body"><div class="project-list-money"><strong>${{ project_total_value|floatformat:2 }}</strong><span>Total contract value</span></div></div></article>
+  </section>
+
+  <section class="crm-status-grid" aria-label="Project statuses">
+    {% for item in project_dashboard_items %}<a class="crm-status-card {% if item.is_active %}is-active{% endif %}" style="--crm-status-color:{{ item.color }}" href="?{{ item.query_string }}"><div class="crm-status-card-top"><span class="nj-icon-box"><i class="bi {{ item.icon }}" aria-hidden="true"></i></span><span class="crm-status-card-count">{{ item.count }}</span></div><div class="crm-status-card-copy"><strong>{{ item.label }}</strong><small>{{ item.caption }}</small></div></a>{% endfor %}
+  </section>
+
+  <form class="ops-card crm-filter-card" method="get" action="{{ project_list_url }}">
+    {% if project_filters.status %}<input type="hidden" name="status" value="{{ project_filters.status }}">{% endif %}
+    <div class="crm-filter-row"><div class="nj-field"><label for="ProjectSearch">Search projects</label><div class="crm-search-wrap"><i class="bi bi-search" aria-hidden="true"></i><input id="ProjectSearch" type="search" name="q" value="{{ project_filters.q }}" placeholder="Project code, client, DNI or supervisor"></div></div><button class="ops-btn" type="submit"><i class="bi bi-search" aria-hidden="true"></i> Search</button><a class="ops-btn is-secondary" href="{{ project_list_url }}"><i class="bi bi-x-lg" aria-hidden="true"></i> Clear</a></div>
+  </form>
+
+  <section class="ops-card crm-table-card">
+    {% if projects %}
+      <div class="crm-table-wrap"><table class="crm-table"><thead><tr><th>Project</th><th>Client</th><th>Supervisor</th><th class="is-center project-status-cell">Status</th><th class="is-center">Progress</th><th class="is-center">Invoice</th><th class="is-right">Amount</th><th>Dates</th><th class="is-center">Actions</th></tr></thead><tbody>
+        {% for project in projects %}
+          <tr{% if project.status == "cancelled" %} class="is-cancelled-row"{% endif %}>
+            <td data-label="Project"><div class="crm-cell-main"><div class="project-name-line"><a class="crm-code-link" href="{{ project.detail_url }}"><i class="bi bi-hash" aria-hidden="true"></i>{{ project.project_code|default:"Pending" }}</a><strong>{{ project.project_name|truncatechars:58 }}</strong></div>{% if project.id_opportunity %}<small>Opportunity {{ project.id_opportunity.opportunity_code }}</small>{% else %}<small>Direct project</small>{% endif %}</div></td>
+            <td data-label="Client"><div class="crm-cell-main"><strong>{{ project.id_client.name }}</strong><small>{{ project.id_client.client_code|default:"No code" }}{% if project.id_client.dni %} · DNI {{ project.id_client.dni }}{% endif %}</small></div></td>
+            <td data-label="Supervisor"><div class="crm-cell-main"><strong>{{ project.id_inspector.email|default:"Unassigned" }}</strong><small>Supervisor / inspector</small></div></td>
+            <td class="is-center project-status-cell" data-label="Status">{% include "projects/partials/_status_track.html" with project=project interactive=False interactive_close=True %}</td>
+            <td class="is-center" data-label="Progress"><div class="crm-progress"><div class="crm-progress-track"><div class="crm-progress-bar" style="width:{{ project.progress|default:0 }}%"></div></div><span class="crm-progress-label">{{ project.progress|default:0 }}%</span></div></td>
+            <td class="is-center" data-label="Invoice">{% if project.invoice_status == "invoice_attached" %}<span class="crm-status-pill is-success">Invoice attached</span>{% else %}<span class="crm-status-pill is-warning">No invoice</span>{% endif %}</td>
+            <td class="is-right" data-label="Amount"><strong>${{ project.contract_amount|default:"0.00"|floatformat:2 }}</strong></td>
+            <td data-label="Dates"><div class="crm-cell-main"><strong>{{ project.start_date|date:"d/m/Y"|default:"No start" }}</strong><small>{% if project.end_date %}Closed {{ project.end_date|date:"d/m/Y" }}{% else %}Final date automatic{% endif %}</small></div></td>
+            <td class="is-center" data-label="Actions"><div class="crm-actions">
+              <a class="nj-icon-btn" href="{{ project.detail_url }}" data-tooltip="View" aria-label="View project"><i class="bi bi-eye" aria-hidden="true"></i></a>
+              {% if can_edit_projects and project.status != "review" and project.status != "completed" and project.status != "cancelled" %}<a class="nj-icon-btn is-neutral" href="{{ project.edit_url }}" data-tooltip="Edit" aria-label="Edit project"><i class="bi bi-pencil" aria-hidden="true"></i></a>{% endif %}
+              {% if project.can_delete_record %}<button class="nj-icon-btn is-void" type="button" data-project-action="delete" data-action-url="{{ project.delete_url }}" data-record-label="{{ project.project_code }} · {{ project.project_name }}" data-tooltip="Delete" aria-label="Delete project"><i class="bi bi-trash3" aria-hidden="true"></i></button>{% elif project.can_cancel_record %}<button class="nj-icon-btn is-void" type="button" data-project-action="cancel" data-action-url="{{ project.cancel_url }}" data-record-label="{{ project.project_code }} · {{ project.project_name }}" data-tooltip="Cancel" aria-label="Cancel project"><i class="bi bi-slash-circle" aria-hidden="true"></i></button>{% endif %}
+            </div></td>
+          </tr>
+        {% endfor %}
+      </tbody></table></div>
+      {% if is_paginated %}<div class="crm-pagination"><span class="crm-pagination-label">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} · {{ page_obj.paginator.count }} projects</span><nav class="crm-pagination-links" aria-label="Project pages">{% if page_obj.has_previous %}<a class="crm-page-link" href="?{% if project_filter_query %}{{ project_filter_query }}&{% endif %}page={{ page_obj.previous_page_number }}"><i class="bi bi-chevron-left" aria-hidden="true"></i></a>{% endif %}<span class="crm-page-link is-active">{{ page_obj.number }}</span>{% if page_obj.has_next %}<a class="crm-page-link" href="?{% if project_filter_query %}{{ project_filter_query }}&{% endif %}page={{ page_obj.next_page_number }}"><i class="bi bi-chevron-right" aria-hidden="true"></i></a>{% endif %}</nav></div>{% endif %}
+    {% else %}
+      <div class="crm-empty"><i class="bi bi-kanban" aria-hidden="true"></i><strong>No projects found</strong><span>Change the status or search terms, or create the first project.</span>{% if can_create_projects %}<a class="ops-btn" href="{{ project_create_url }}"><i class="bi bi-plus-lg" aria-hidden="true"></i> Create project</a>{% endif %}</div>
+    {% endif %}
+  </section>
+  {% include "projects/partials/_action_modal.html" %}
+</div>
+{% endblock %}

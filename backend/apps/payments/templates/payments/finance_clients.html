@@ -1,0 +1,363 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Financial Summary by Client{% endblock %}
+
+{% block page_subtitle %}
+Review total invoiced, total paid, balance due and open invoices by client.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .finance_summary_grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .finance_summary_card {
+    min-width: 0;
+    border: 1px solid var(--crm_border);
+    border-radius: 16px;
+    background: #ffffff;
+  }
+
+  .finance_toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+
+  .finance_table_wrap {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .finance_table {
+    width: 100%;
+    min-width: 1180px;
+    border-collapse: collapse;
+  }
+
+  .finance_table th,
+  .finance_table td {
+    padding: 14px 12px;
+    border-bottom: 1px solid var(--crm_border);
+    text-align: left;
+    vertical-align: top;
+    font-size: 14px;
+  }
+
+  .finance_table th {
+    color: var(--crm_muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .finance_name {
+    font-weight: 900;
+    color: var(--crm_text);
+    overflow-wrap: anywhere;
+  }
+
+  .finance_muted {
+    color: var(--crm_muted);
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  .finance_money {
+    font-weight: 900;
+    white-space: nowrap;
+  }
+
+  .finance_money_green {
+    color: var(--crm_success);
+  }
+
+  .finance_money_red {
+    color: var(--crm_danger);
+  }
+
+  .finance_link {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    color: var(--crm_primary);
+    font-weight: 900;
+    cursor: pointer;
+    font-size: 14px;
+    text-decoration: none;
+  }
+
+  .finance_empty {
+    padding: 28px;
+    text-align: center;
+    color: var(--crm_muted);
+  }
+
+  .finance_search_bar {
+    display: grid;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+
+  .finance_search_bar label {
+    color: var(--crm_text);
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .finance_search_input {
+    width: 100%;
+    min-height: 44px;
+    border: 1px solid var(--crm_border);
+    border-radius: 12px;
+    padding: 10px 12px;
+    color: var(--crm_text);
+    background: #ffffff;
+    font: inherit;
+  }
+
+  .finance_page_head {
+    margin-bottom: 2px;
+  }
+
+  .finance_account_state {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 28px;
+    padding: 5px 9px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 900;
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .finance_account_state.is-success { color: #0e7a57; background: #ecfdf5; border-color: rgba(14,159,110,.22); }
+  .finance_account_state.is-danger { color: #c6283b; background: #fff1f2; border-color: rgba(220,53,69,.22); }
+  .finance_account_state.is-blue { color: #0868e8; background: #eef6ff; border-color: rgba(8,104,232,.20); }
+
+  @media (max-width: 1180px) {
+    .finance_summary_grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 680px) {
+    .finance_toolbar {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .finance_summary_grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+
+  .finance_icon_svg { width: 15px; height: 15px; flex: 0 0 auto; }
+
+  .finance_icon_action {
+    position: relative;
+    width: 34px;
+    height: 34px;
+    border: 0;
+    border-radius: 999px;
+    display: inline-grid;
+    place-items: center;
+    background: rgba(29, 78, 216, 0.10);
+    color: var(--crm_primary);
+    font-size: 15px;
+    font-weight: 900;
+    text-decoration: none;
+  }
+
+  .finance_icon_action > span {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 118px;
+    padding: 7px 9px;
+    border-radius: 9px;
+    background: var(--crm_text);
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 900;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .15s ease;
+    text-align: center;
+    white-space: nowrap;
+    z-index: 5;
+  }
+
+  .finance_icon_action:hover > span { opacity: 1; }
+
+
+  /* Final UX polish: no floating tooltip overlap and no desktop internal scroll. */
+  .finance_icon_action > span { display: none !important; }
+  .finance_table_wrap { overflow: visible; }
+  .finance_table { min-width: 0; table-layout: auto; }
+  .finance_table th, .finance_table td { padding: 9px 8px; font-size: 12.5px; }
+  .finance_summary_grid { gap: 10px; margin-bottom: 12px; }
+  .finance_summary_card { padding: 13px 14px; border-radius: 15px; }
+  .finance_summary_card strong { font-size: 18px; }
+  @media (max-width: 1180px) { .finance_table_wrap { overflow-x: auto; } .finance_table { min-width: 980px; } }
+
+</style>
+{% include "payments/partials/_design_system.html" %}
+{% endblock %}
+
+{% block content %}
+  <div class="payment_theme nj-invoice nj-page finance-standard">
+  <header class="nj-page-head finance_page_head">
+    <div>
+      <span class="nj-page-kicker"><i class="bi bi-people" aria-hidden="true"></i> Client finance</span>
+      <h1 class="nj-page-title">Financial status by client</h1>
+      <p class="nj-page-subtitle">Compare invoiced amounts, confirmed payments, pending balances and available credit with a clear account status.</p>
+    </div>
+    <div class="nj-head-actions"><a class="crm_button crm_button_secondary" href="{% url 'payments:payment_list' %}"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to payments</a></div>
+  </header>
+
+  <section class="finance_summary_grid" aria-label="Client finance totals">
+    <article class="finance_summary_card is-blue"><span class="finance-summary-icon"><i class="bi bi-receipt" aria-hidden="true"></i></span><div class="finance-summary-copy"><span>Total invoiced</span><strong>${{ total_invoiced }}</strong><small>All non-void invoice totals</small></div></article>
+    <article class="finance_summary_card is-success"><span class="finance-summary-icon"><i class="bi bi-wallet2" aria-hidden="true"></i></span><div class="finance-summary-copy"><span>Total paid</span><strong>${{ total_paid }}</strong><small>Confirmed payments and credit applications</small></div></article>
+    <article class="finance_summary_card is-danger"><span class="finance-summary-icon"><i class="bi bi-exclamation-circle" aria-hidden="true"></i></span><div class="finance-summary-copy"><span>Balance due</span><strong>${{ total_balance_due }}</strong><small>Outstanding client balances</small></div></article>
+    <article class="finance_summary_card is-warning"><span class="finance-summary-icon"><i class="bi bi-piggy-bank" aria-hidden="true"></i></span><div class="finance-summary-copy"><span>Credit balance</span><strong>${{ total_credit_balance }}</strong><small>Available unapplied client credit</small></div></article>
+    <article class="finance_summary_card is-violet"><span class="finance-summary-icon"><i class="bi bi-file-earmark-text" aria-hidden="true"></i></span><div class="finance-summary-copy"><span>Open invoices</span><strong>{{ total_open_invoices }}</strong><small>Invoices with pending balance</small></div></article>
+  </section>
+
+  <div class="finance_toolbar">
+    <div>
+      <h2 class="crm_section_title">Clients</h2>
+      <p class="crm_page_text">
+        Each client row summarizes invoices, payments and pending balance.
+      </p>
+    </div>
+
+    <div class="finance_account_state is-blue"><i class="bi bi-shield-check" aria-hidden="true"></i> Calculated from confirmed financial records</div>
+  </div>
+
+  <section class="crm_card">
+    <div class="finance_search_bar">
+      <label for="FinanceClientSearch">Search Client</label>
+      <input id="FinanceClientSearch" class="finance_search_input" type="search" placeholder="Type a client name or client number">
+    </div>
+
+    <div class="finance_table_wrap">
+      <table class="finance_table">
+        <thead>
+          <tr>
+            <th>Client</th>
+            <th>Total Invoiced</th>
+            <th>Total Paid</th>
+            <th>Balance Due</th>
+            <th>Credit</th>
+            <th>Open</th>
+            <th>Paid</th>
+            <th>Partial</th>
+            <th>Unpaid</th>
+            <th>Void</th>
+            <th>Financial Status</th>
+            <th>Last Payment</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for summary in summaries %}
+            <tr data-finance-client="{{ summary.client.name|lower }} {{ summary.client.id_client }}">
+              <td>
+                <div class="finance_name">{{ summary.client.name }}</div>
+                <div class="finance_muted">Client #{{ summary.client.id_client }}</div>
+              </td>
+
+              <td>
+                <span class="finance_money">${{ summary.total_invoiced }}</span>
+              </td>
+
+              <td>
+                <span class="finance_money finance_money_green">${{ summary.total_paid }}</span>
+              </td>
+
+              <td>
+                {% if summary.balance_due > 0 %}
+                  <span class="finance_money finance_money_red">${{ summary.balance_due }}</span>
+                {% else %}
+                  <span class="finance_money finance_money_green">${{ summary.balance_due }}</span>
+                {% endif %}
+              </td>
+
+              <td>
+                <span class="finance_money">${{ summary.credit_balance }}</span>
+              </td>
+
+              <td>{{ summary.open_invoices }}</td>
+              <td>{{ summary.paid_invoices }}</td>
+              <td>{{ summary.partial_invoices }}</td>
+              <td>{{ summary.unpaid_invoices }}</td>
+              <td>{{ summary.void_invoices }}</td>
+
+              <td>
+                {% if summary.balance_due > 0 %}
+                  <span class="finance_account_state is-danger"><i class="bi bi-exclamation-circle" aria-hidden="true"></i> Balance pending</span>
+                {% elif summary.credit_balance > 0 %}
+                  <span class="finance_account_state is-blue"><i class="bi bi-piggy-bank" aria-hidden="true"></i> Credit available</span>
+                {% else %}
+                  <span class="finance_account_state is-success"><i class="bi bi-check2-circle" aria-hidden="true"></i> Account current</span>
+                {% endif %}
+              </td>
+
+              <td>
+                {% if summary.last_payment_date %}
+                  {{ summary.last_payment_date|date:"Y-m-d" }}
+                {% else %}
+                  <span class="finance_muted">No payments</span>
+                {% endif %}
+              </td>
+
+              <td>
+                <a class="finance_icon_action" href="{% url 'payments:finance_client_detail' summary.client.id_client %}" data-tooltip="View Statement" aria-label="View Statement"><svg class="finance_icon_svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg><span>View Statement</span></a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td class="finance_empty" colspan="13">No financial client data found.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+
+  <script>
+    (function () {
+      const searchInput = document.getElementById("FinanceClientSearch");
+      const rows = Array.from(document.querySelectorAll("[data-finance-client]"));
+
+      if (!searchInput) {
+        return;
+      }
+
+      searchInput.addEventListener("input", function () {
+        const term = searchInput.value.trim().toLowerCase();
+
+        rows.forEach(function (row) {
+          const haystack = row.getAttribute("data-finance-client") || "";
+          row.style.display = !term || haystack.includes(term) ? "" : "none";
+        });
+      });
+    })();
+  </script>
+  </div>
+{% endblock %}

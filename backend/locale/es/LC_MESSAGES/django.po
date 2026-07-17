@@ -1,0 +1,830 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Nexxtjob CRM 1.0\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Company Settings"
+msgstr "Configuración de la empresa"
+
+msgid "Default workspace language"
+msgstr "Idioma predeterminado del espacio de trabajo"
+
+msgid "Choose the language used by all users in this company workspace."
+msgstr "Seleccione el idioma que usarán todos los usuarios de este espacio de trabajo."
+
+msgid "Workspace Language"
+msgstr "Idioma del espacio de trabajo"
+
+msgid "You are not allowed to change company settings."
+msgstr "No tiene permiso para cambiar la configuración de la empresa."
+
+msgid "Company language updated successfully."
+msgstr "El idioma de la empresa se actualizó correctamente."
+
+msgid "Language, region and workspace preferences controlled by the company Owner."
+msgstr "Idioma, región y preferencias del espacio de trabajo controladas por el propietario de la empresa."
+
+msgid "Company workspace"
+msgstr "Espacio de trabajo de la empresa"
+
+msgid "Language & Region"
+msgstr "Idioma y región"
+
+msgid "Choose the language used by all users in this company workspace. User-entered names, notes, addresses and business data are never translated."
+msgstr "Seleccione el idioma que usarán todos los usuarios de este espacio de trabajo. Los nombres, notas, direcciones y datos comerciales ingresados por los usuarios nunca se traducen."
+
+msgid "The change applies immediately after saving and remains active for every user in this company."
+msgstr "El cambio se aplica inmediatamente después de guardar y permanece activo para todos los usuarios de esta empresa."
+
+msgid "Only the company Owner can change this setting."
+msgstr "Solo el propietario de la empresa puede cambiar esta configuración."
+
+msgid "Routes, IDs, permissions, statuses stored in the database and information entered by users remain unchanged."
+msgstr "Las rutas, identificadores, permisos, estados almacenados en la base de datos y la información ingresada por los usuarios permanecen sin cambios."
+
+msgid "Save Settings"
+msgstr "Guardar configuración"
+
+msgid "Permission denied."
+msgstr "Permiso denegado."
+
+msgid "403 Forbidden"
+msgstr "403 Prohibido"
+
+msgid "Access Denied"
+msgstr "Acceso denegado"
+
+msgid "You do not have permission to access this section."
+msgstr "No tiene permiso para acceder a esta sección."
+
+msgid "Settings"
+msgstr "Configuración"
+
+msgid "Manage the company language and the email account used by the CRM."
+msgstr "Administre el idioma de la empresa y la cuenta de correo utilizada por el CRM."
+
+msgid "Language"
+msgstr "Idioma"
+
+msgid "Choose the language for this company workspace. The interface changes immediately for every user in the company."
+msgstr "Seleccione el idioma para el espacio de trabajo de esta empresa. La interfaz cambia inmediatamente para todos los usuarios de la empresa."
+
+msgid "Company Owner"
+msgstr "Propietario de la empresa"
+
+msgid "Use the CRM in English"
+msgstr "Usar el CRM en inglés"
+
+msgid "Use the CRM in Spanish"
+msgstr "Usar el CRM en español"
+
+msgid "Names, addresses, notes, products, services and all information entered by users remain exactly as written."
+msgstr "Los nombres, direcciones, notas, productos, servicios y toda la información ingresada por los usuarios permanecen exactamente como fueron escritos."
+
+msgid "Apply language"
+msgstr "Aplicar idioma"
+
+msgid "Email Configuration"
+msgstr "Configuración de correo"
+
+msgid "Configure the email account that this company will use to send documents from the CRM."
+msgstr "Configure la cuenta de correo que esta empresa utilizará para enviar documentos desde el CRM."
+
+msgid "SMTP Host"
+msgstr "Servidor SMTP"
+
+msgid "SMTP Port"
+msgstr "Puerto SMTP"
+
+msgid "SMTP Username"
+msgstr "Usuario SMTP"
+
+msgid "Default From Email"
+msgstr "Correo remitente predeterminado"
+
+msgid "From Name"
+msgstr "Nombre del remitente"
+
+msgid "SMTP Password / App Password"
+msgstr "Contraseña SMTP / contraseña de aplicación"
+
+msgid "Paste SMTP password or Gmail App Password"
+msgstr "Pegue la contraseña SMTP o la contraseña de aplicación de Gmail"
+
+msgid "Company Name"
+msgstr "Nombre de la empresa"
+
+msgid "Leave blank to keep the current SMTP password."
+msgstr "Déjelo vacío para conservar la contraseña SMTP actual."
+
+msgid "SMTP host is required."
+msgstr "El servidor SMTP es obligatorio."
+
+msgid "Enter only the SMTP server host, for example mail.yourdomain.com. Do not use http:// or https://."
+msgstr "Ingrese únicamente el servidor SMTP, por ejemplo mail.sudominio.com. No utilice http:// ni https://."
+
+msgid "SMTP port is required."
+msgstr "El puerto SMTP es obligatorio."
+
+msgid "Port 443/80 is for websites, not SMTP. Use 465 with SSL or 587 with TLS."
+msgstr "Los puertos 443/80 son para sitios web, no para SMTP. Utilice 465 con SSL o 587 con TLS."
+
+msgid "Use TLS and Use SSL cannot both be enabled."
+msgstr "TLS y SSL no pueden estar activados al mismo tiempo."
+
+msgid "Port 465 must use SSL enabled and TLS disabled."
+msgstr "El puerto 465 debe utilizar SSL activado y TLS desactivado."
+
+msgid "Port 465 must use SSL, not TLS."
+msgstr "El puerto 465 debe utilizar SSL, no TLS."
+
+msgid "Port 587 must use TLS enabled and SSL disabled."
+msgstr "El puerto 587 debe utilizar TLS activado y SSL desactivado."
+
+msgid "Port 587 must use TLS, not SSL."
+msgstr "El puerto 587 debe utilizar TLS, no SSL."
+
+msgid "SMTP password is required."
+msgstr "La contraseña SMTP es obligatoria."
+
+msgid "Secure Connection"
+msgstr "Conexión segura"
+
+msgid "Use TLS"
+msgstr "Usar TLS"
+
+msgid "SSL Connection"
+msgstr "Conexión SSL"
+
+msgid "Use SSL"
+msgstr "Usar SSL"
+
+msgid "Status"
+msgstr "Estado"
+
+msgid "Activate email delivery for this company"
+msgstr "Activar el envío de correo para esta empresa"
+
+msgid "Save Email Settings"
+msgstr "Guardar configuración de correo"
+
+msgid "Back to Dashboard"
+msgstr "Volver al panel"
+
+msgid "Email Test"
+msgstr "Prueba de correo"
+
+msgid "Send a test email to verify that the email configuration is working."
+msgstr "Envíe un correo de prueba para verificar que la configuración funciona correctamente."
+
+msgid "Use the real SMTP server for this company. For cPanel or SiteGround mailboxes, usually use <b>mail.yourdomain.com</b>, port <b>465</b> with SSL or port <b>587</b> with TLS. Do not use port <b>443</b>."
+msgstr "Utilice el servidor SMTP real de esta empresa. Para buzones de cPanel o SiteGround, normalmente use <b>mail.sudominio.com</b>, puerto <b>465</b> con SSL o puerto <b>587</b> con TLS. No utilice el puerto <b>443</b>."
+
+msgid "Send Test To"
+msgstr "Enviar prueba a"
+
+msgid "Send Test Email"
+msgstr "Enviar correo de prueba"
+
+msgid "Company"
+msgstr "Empresa"
+
+msgid "Active"
+msgstr "Activo"
+
+msgid "Inactive"
+msgstr "Inactivo"
+
+msgid "Last Test Status"
+msgstr "Estado de la última prueba"
+
+msgid "Success"
+msgstr "Correcto"
+
+msgid "Failed"
+msgstr "Fallido"
+
+msgid "Not tested yet"
+msgstr "Aún no se ha probado"
+
+msgid "Last Message"
+msgstr "Último mensaje"
+
+msgid "Last Tested At"
+msgstr "Última prueba"
+
+msgid "Your user does not have access to this company email configuration."
+msgstr "Su usuario no tiene acceso a la configuración de correo de esta empresa."
+
+msgid "Email settings saved successfully."
+msgstr "La configuración de correo se guardó correctamente."
+
+msgid "Please review the email configuration."
+msgstr "Revise la configuración de correo."
+
+msgid "Only the company Owner can change the workspace language."
+msgstr "Solo el propietario de la empresa puede cambiar el idioma del espacio de trabajo."
+
+msgid "Please select a valid language."
+msgstr "Seleccione un idioma válido."
+
+msgid "Workspace language updated successfully."
+msgstr "El idioma del espacio de trabajo se actualizó correctamente."
+
+msgid "Use the Send Test Email button to run the SMTP test."
+msgstr "Utilice el botón Enviar correo de prueba para ejecutar la prueba SMTP."
+
+msgid "Please enter an email address to send the test."
+msgstr "Ingrese una dirección de correo para enviar la prueba."
+
+msgid "SMTP settings were not found for this company."
+msgstr "No se encontró la configuración SMTP para esta empresa."
+
+msgid "SMTP settings are not active for this company."
+msgstr "La configuración SMTP no está activa para esta empresa."
+
+msgid "SMTP host must be only the server name. Example: mail.yourdomain.com"
+msgstr "El servidor SMTP debe contener únicamente el nombre del servidor. Ejemplo: mail.sudominio.com"
+
+msgid "SMTP username is required."
+msgstr "El usuario SMTP es obligatorio."
+
+msgid "Default from email is required."
+msgstr "El correo remitente predeterminado es obligatorio."
+
+msgid "At least one recipient email is required."
+msgstr "Se requiere al menos un correo destinatario."
+
+msgid "SMTP Test Email"
+msgstr "Correo de prueba SMTP"
+
+msgid "This is a SMTP test email from your CRM. "
+msgstr "Este es un correo de prueba SMTP enviado desde su CRM. "
+
+msgid "This is a SMTP test email from your CRM."
+msgstr "Este es un correo de prueba SMTP enviado desde su CRM."
+
+msgid "If you received this message, your email configuration is working."
+msgstr "Si recibió este mensaje, la configuración de correo está funcionando correctamente."
+
+msgid "SMTP test email sent successfully."
+msgstr "El correo de prueba SMTP se envió correctamente."
+
+msgid "SMTP test failed using"
+msgstr "La prueba SMTP falló utilizando"
+
+msgid "Error"
+msgstr "Error"
+
+msgid "Email"
+msgstr "Correo electrónico"
+
+msgid "Password"
+msgstr "Contraseña"
+
+msgid "Please enter a correct email and password."
+msgstr "Ingrese un correo electrónico y una contraseña correctos."
+
+msgid "This user account is suspended or inactive. Contact your administrator."
+msgstr "Esta cuenta de usuario está suspendida o inactiva. Contacte a su administrador."
+
+msgid "This company account is suspended, inactive, or expired. Please contact DevLayer Studio support."
+msgstr "La cuenta de esta empresa está suspendida, inactiva o vencida. Contacte al soporte de DevLayer Studio."
+
+msgid "Sign in"
+msgstr "Iniciar sesión"
+
+msgid "Your business, connected"
+msgstr "Tu negocio, conectado"
+
+msgid "Welcome back."
+msgstr "Bienvenido de nuevo."
+
+msgid "Access the workspace that keeps customers, jobs, estimates, invoices and payments organized in one secure place."
+msgstr "Accede al espacio que mantiene clientes, trabajos, estimados, facturas y pagos organizados en un solo lugar seguro."
+
+msgid "One workspace for every job"
+msgstr "Un espacio para cada trabajo"
+
+msgid "Secure access and permissions"
+msgstr "Acceso seguro y permisos"
+
+msgid "A product by"
+msgstr "Un producto de"
+
+msgid "Sign in form"
+msgstr "Formulario de inicio de sesión"
+
+msgid "Interface language"
+msgstr "Idioma de la interfaz"
+
+msgid "Use English"
+msgstr "Usar inglés"
+
+msgid "Use Spanish"
+msgstr "Usar español"
+
+msgid "Secure access"
+msgstr "Acceso seguro"
+
+msgid "Enter the email and password assigned to your NexxtJob account."
+msgstr "Ingresa el correo y la contraseña asignados a tu cuenta de NexxtJob."
+
+msgid "Email address"
+msgstr "Correo electrónico"
+
+msgid "Show password"
+msgstr "Mostrar contraseña"
+
+msgid "Hide password"
+msgstr "Ocultar contraseña"
+
+msgid "Remember me"
+msgstr "Recordarme"
+
+msgid "Forgot your password?"
+msgstr "¿Olvidaste tu contraseña?"
+
+msgid "Need help accessing your account?"
+msgstr "¿Necesitas ayuda para acceder a tu cuenta?"
+
+msgid "Contact DevLayer Studio technical support."
+msgstr "Contacta al soporte técnico de DevLayer Studio."
+
+msgid "Support"
+msgstr "Soporte"
+
+msgid "I am having trouble signing in to my NexxtJob account."
+msgstr "Tengo problemas para iniciar sesión en mi cuenta de NexxtJob."
+
+msgid "Hello, I need technical support with NexxtJob CRM."
+msgstr "Hola, necesito soporte técnico con NexxtJob CRM."
+
+msgid "Support topic:"
+msgstr "Tema de soporte:"
+
+msgid "Name:"
+msgstr "Nombre:"
+
+msgid "Email:"
+msgstr "Correo:"
+
+msgid "Company:"
+msgstr "Empresa:"
+
+msgid "Message:"
+msgstr "Mensaje:"
+
+msgid "Technical support"
+msgstr "Soporte técnico"
+
+msgid "Complete the information below and NexxtJob will prepare your WhatsApp support message."
+msgstr "Completa la información y NexxtJob preparará tu mensaje de soporte para WhatsApp."
+
+msgid "Close support form"
+msgstr "Cerrar formulario de soporte"
+
+msgid "Name"
+msgstr "Nombre"
+
+msgid "Your name"
+msgstr "Tu nombre"
+
+msgid "Company name"
+msgstr "Nombre de la empresa"
+
+msgid "Support topic"
+msgstr "Tema de soporte"
+
+msgid "Sign in issue"
+msgstr "Problema de inicio de sesión"
+
+msgid "Password reset issue"
+msgstr "Problema para restablecer la contraseña"
+
+msgid "Suspended or inactive account"
+msgstr "Cuenta suspendida o inactiva"
+
+msgid "Company access issue"
+msgstr "Problema de acceso a la empresa"
+
+msgid "Other support request"
+msgstr "Otra solicitud de soporte"
+
+msgid "Message"
+msgstr "Mensaje"
+
+msgid "Briefly describe the issue"
+msgstr "Describe brevemente el problema"
+
+msgid "Open WhatsApp"
+msgstr "Abrir WhatsApp"
+
+msgid "Reset password"
+msgstr "Restablecer contraseña"
+
+msgid "Reset your password"
+msgstr "Restablece tu contraseña"
+
+msgid "Enter your account email and we will send you a secure link to create a new password."
+msgstr "Ingresa el correo de tu cuenta y te enviaremos un enlace seguro para crear una nueva contraseña."
+
+msgid "Send reset link"
+msgstr "Enviar enlace de recuperación"
+
+msgid "Back to sign in"
+msgstr "Volver al inicio de sesión"
+
+msgid "Reset email sent"
+msgstr "Correo de recuperación enviado"
+
+msgid "Check your email"
+msgstr "Revisa tu correo"
+
+msgid "If the email belongs to an active NexxtJob account, a password reset link was sent. Review your inbox and spam folder."
+msgstr "Si el correo pertenece a una cuenta activa de NexxtJob, se envió un enlace para restablecer la contraseña. Revisa tu bandeja de entrada y la carpeta de correo no deseado."
+
+msgid "Create new password"
+msgstr "Crear nueva contraseña"
+
+msgid "Create a new password"
+msgstr "Crea una nueva contraseña"
+
+msgid "Enter your new password twice to secure your NexxtJob account."
+msgstr "Ingresa dos veces tu nueva contraseña para proteger tu cuenta de NexxtJob."
+
+msgid "New password"
+msgstr "Nueva contraseña"
+
+msgid "Confirm new password"
+msgstr "Confirmar nueva contraseña"
+
+msgid "Update password"
+msgstr "Actualizar contraseña"
+
+msgid "Invalid or expired link"
+msgstr "Enlace inválido o vencido"
+
+msgid "This password reset link is invalid, expired or has already been used. Request a new secure link."
+msgstr "Este enlace para restablecer la contraseña es inválido, venció o ya fue utilizado. Solicita un nuevo enlace seguro."
+
+msgid "Request a new link"
+msgstr "Solicitar un nuevo enlace"
+
+msgid "Password updated"
+msgstr "Contraseña actualizada"
+
+msgid "Your password was changed successfully. You can now sign in to NexxtJob with your new password."
+msgstr "Tu contraseña se actualizó correctamente. Ya puedes iniciar sesión en NexxtJob con tu nueva contraseña."
+
+msgid "Go to sign in"
+msgstr "Ir al inicio de sesión"
+
+msgid "Control Center"
+msgstr "Centro de control"
+
+msgid "Master Calendar"
+msgstr "Calendario general"
+
+msgid "Overview"
+msgstr "Vista general"
+
+msgid "Companies & Subscriptions"
+msgstr "Empresas y suscripciones"
+
+msgid "Platform Operations"
+msgstr "Operación de la plataforma"
+
+msgid "Technical"
+msgstr "Técnico"
+
+msgid "Companies"
+msgstr "Empresas"
+
+msgid "Plans"
+msgstr "Planes"
+
+msgid "Subscriptions"
+msgstr "Suscripciones"
+
+msgid "Billing"
+msgstr "Facturación"
+
+msgid "Payments"
+msgstr "Pagos"
+
+msgid "Recent Activity"
+msgstr "Actividad reciente"
+
+msgid "Platform Users"
+msgstr "Usuarios de plataforma"
+
+msgid "Resource Usage"
+msgstr "Uso de recursos"
+
+msgid "System Monitor"
+msgstr "Monitor del sistema"
+
+msgid "Platform Admin"
+msgstr "Administrador de plataforma"
+
+msgid "Operations Console"
+msgstr "Consola de operaciones"
+
+msgid "Companies, plans, billing and platform control."
+msgstr "Empresas, planes, facturación y control de la plataforma."
+
+msgid "Internal operations and assigned platform tools."
+msgstr "Operaciones internas y herramientas de plataforma asignadas."
+
+msgid "Current Scope"
+msgstr "Entorno actual"
+
+msgid "NexxtJob Platform Administration"
+msgstr "Administración de la plataforma NexxtJob"
+
+msgid "NexxtJob Platform Staff"
+msgstr "Equipo de la plataforma NexxtJob"
+
+msgid "Search menu"
+msgstr "Buscar en el menú"
+
+msgid "Main navigation"
+msgstr "Navegación principal"
+
+msgid "NexxtJob Platform Admin"
+msgstr "Administrador de la plataforma NexxtJob"
+
+msgid "Need help?"
+msgstr "¿Necesita ayuda?"
+
+msgid "Contact CRM support through WhatsApp."
+msgstr "Contacte al soporte del CRM por WhatsApp."
+
+msgid "Contact Support"
+msgstr "Contactar soporte"
+
+msgid "Logout"
+msgstr "Cerrar sesión"
+
+msgid "Open menu"
+msgstr "Abrir menú"
+
+msgid "Close menu"
+msgstr "Cerrar menú"
+
+msgid "Platform developed by"
+msgstr "Plataforma desarrollada por"
+
+msgid "Developed by"
+msgstr "Desarrollado por"
+
+msgid "Customers & Sales"
+msgstr "Clientes y ventas"
+
+msgid "Projects & Field Operations"
+msgstr "Proyectos y operaciones en campo"
+
+msgid "Estimates & Contracts"
+msgstr "Estimados y contratos"
+
+msgid "Billing & Finance"
+msgstr "Facturación y finanzas"
+
+msgid "Purchasing & Suppliers"
+msgstr "Compras y proveedores"
+
+msgid "Team & Settings"
+msgstr "Equipo y configuración"
+
+msgid "System & Control"
+msgstr "Sistema y control"
+
+msgid "Business Integrations"
+msgstr "Integraciones empresariales"
+
+msgid "Activity Calendar"
+msgstr "Calendario de actividades"
+
+msgid "Client Financial Summary"
+msgstr "Estado financiero de clientes"
+
+msgid "Financial Reports"
+msgstr "Reportes financieros"
+
+msgid "Products & Services"
+msgstr "Productos y servicios"
+
+msgid "Purchasing Reports"
+msgstr "Reportes de compras"
+
+msgid "Roles & Permissions"
+msgstr "Roles y permisos"
+
+msgid "User Activity"
+msgstr "Actividad de usuarios"
+
+msgid "Outgoing Email"
+msgstr "Correo saliente"
+
+msgid "Technical Administration"
+msgstr "Administración técnica"
+
+msgid "Integration Center"
+msgstr "Centro de integraciones"
+
+msgid "Google Calendar & Meet"
+msgstr "Google Calendar y Meet"
+
+msgid "Sync History"
+msgstr "Historial de sincronización"
+
+msgid "Workspace Dashboard"
+msgstr "Panel principal"
+
+msgid "Company Workspace"
+msgstr "Espacio de trabajo de la empresa"
+
+msgid "Daily operations, users, sales and workflow control."
+msgstr "Operaciones diarias, usuarios, ventas y control de flujos."
+
+msgid "Operations and business management."
+msgstr "Operaciones y gestión empresarial."
+
+msgid "CRM Workspace"
+msgstr "Espacio de trabajo del CRM"
+
+msgid "Dashboard"
+msgstr "Panel principal"
+
+msgid "Manage estimates, customer decisions, validity, totals and project creation."
+msgstr "Administre estimados, decisiones del cliente, vigencia, totales y creación de proyectos."
+
+msgid "Review proformas, customer approval status, validity and workflow actions from one reliable screen."
+msgstr "Revise proformas, aprobación del cliente, vigencia y acciones del flujo desde una sola pantalla confiable."
+
+msgid "New Estimate"
+msgstr "Nuevo estimado"
+
+msgid "Estimate status overview"
+msgstr "Resumen de estados de estimados"
+
+msgid "Total Estimates"
+msgstr "Estimados totales"
+
+msgid "Show all statuses"
+msgstr "Mostrar todos los estados"
+
+msgid "Search"
+msgstr "Buscar"
+
+msgid "Number, client or project"
+msgstr "Número, cliente o proyecto"
+
+msgid "All statuses"
+msgstr "Todos los estados"
+
+msgid "Apply Filters"
+msgstr "Aplicar filtros"
+
+msgid "Clear"
+msgstr "Limpiar"
+
+msgid "Estimate"
+msgstr "Estimado"
+
+msgid "Client"
+msgstr "Cliente"
+
+msgid "Project"
+msgstr "Proyecto"
+
+msgid "Dates"
+msgstr "Fechas"
+
+msgid "Total"
+msgstr "Total"
+
+msgid "Customer Decision"
+msgstr "Decisión del cliente"
+
+msgid "Actions"
+msgstr "Acciones"
+
+msgid "No description"
+msgstr "Sin descripción"
+
+msgid "Not assigned"
+msgstr "Sin asignar"
+
+msgid "Valid until"
+msgstr "Válido hasta"
+
+msgid "Tax included"
+msgstr "Impuesto incluido"
+
+msgid "Draft"
+msgstr "Borrador"
+
+msgid "Pending"
+msgstr "Pendiente"
+
+msgid "Pending Send"
+msgstr "Pendiente de envío"
+
+msgid "Sent"
+msgstr "Enviado"
+
+msgid "Viewed"
+msgstr "Visto"
+
+msgid "Approved"
+msgstr "Aprobado"
+
+msgid "Rejected"
+msgstr "Rechazado"
+
+msgid "Expired"
+msgstr "Vencido"
+
+msgid "Converted"
+msgstr "Convertido"
+
+msgid "Cancelled"
+msgstr "Anulado"
+
+msgid "Approved by customer"
+msgstr "Aprobado por el cliente"
+
+msgid "Rejected by customer"
+msgstr "Rechazado por el cliente"
+
+msgid "Viewed by customer"
+msgstr "Visto por el cliente"
+
+msgid "Awaiting customer decision"
+msgstr "Esperando decisión del cliente"
+
+msgid "Not sent"
+msgstr "No enviado"
+
+msgid "No reason provided"
+msgstr "Sin motivo registrado"
+
+msgid "View"
+msgstr "Ver"
+
+msgid "Edit"
+msgstr "Editar"
+
+msgid "PDF"
+msgstr "PDF"
+
+msgid "Send"
+msgstr "Enviar"
+
+msgid "Send Again"
+msgstr "Enviar nuevamente"
+
+msgid "Approve"
+msgstr "Aprobar"
+
+msgid "Reject"
+msgstr "Rechazar"
+
+msgid "Reject this estimate?"
+msgstr "¿Desea rechazar este estimado?"
+
+msgid "Open Project"
+msgstr "Abrir proyecto"
+
+msgid "Create Project"
+msgstr "Crear proyecto"
+
+msgid "Delete Draft"
+msgstr "Eliminar borrador"
+
+msgid "Delete this draft estimate?"
+msgstr "¿Desea eliminar este estimado en borrador?"
+
+msgid "Void this estimate? No additional workflow actions will be available."
+msgstr "¿Desea anular este estimado? No estarán disponibles más acciones del flujo."
+
+msgid "Void"
+msgstr "Anular"
+
+msgid "No estimates found."
+msgstr "No se encontraron estimados."
+
+msgid "Estimate pages"
+msgstr "Páginas de estimados"
+
+msgid "Previous page"
+msgstr "Página anterior"
+
+msgid "Next page"
+msgstr "Página siguiente"

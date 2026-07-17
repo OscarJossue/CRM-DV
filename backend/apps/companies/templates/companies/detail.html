@@ -1,0 +1,382 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}{{ company.name }}{% endblock %}
+
+{% block page_subtitle %}
+Company SaaS profile, administrator login, subscription, documents and payment overview.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .company_detail {
+    display: grid;
+    gap: 18px;
+  }
+
+  .company_hero {
+    display: grid;
+    grid-template-columns: 86px minmax(0, 1fr) auto;
+    gap: 18px;
+    align-items: center;
+    padding: 24px;
+    border: 1px solid var(--crm_border);
+    border-radius: 22px;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(31, 58, 138, .12), transparent 32%),
+      #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .company_logo_large {
+    width: 86px;
+    height: 64px;
+    border: 1px solid var(--crm_border);
+    border-radius: 16px;
+    background: #ffffff;
+    padding: 8px;
+    object-fit: contain;
+  }
+
+  .company_logo_large_placeholder {
+    width: 86px;
+    height: 64px;
+    border: 1px solid var(--crm_border);
+    border-radius: 16px;
+    background: #f8fafc;
+    color: var(--crm_muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+  }
+
+  .company_hero h2 {
+    margin: 0;
+    color: var(--crm_text);
+    font-size: clamp(28px, 4vw, 42px);
+    line-height: 1.08;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+  }
+
+  .company_hero p {
+    margin: 7px 0 0;
+    color: var(--crm_muted);
+    font-size: 14px;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+  }
+
+  .company_grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, .7fr);
+    gap: 18px;
+    align-items: start;
+  }
+
+  .company_cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .company_panel {
+    display: grid;
+    gap: 8px;
+    padding: 18px;
+    border: 1px solid var(--crm_border);
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: var(--crm_shadow);
+    min-width: 0;
+  }
+
+  .company_panel span {
+    color: var(--crm_muted);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  .company_panel strong,
+  .company_panel p {
+    margin: 0;
+    color: var(--crm_text);
+    font-size: 14px;
+    line-height: 1.6;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+  }
+
+  .company_status {
+    display: inline-flex;
+    width: fit-content;
+    min-height: 30px;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    border: 1px solid var(--crm_border);
+  }
+
+  .company_status_active {
+    color: var(--crm_success);
+    background: rgba(15, 118, 110, .08);
+  }
+
+  .company_status_inactive {
+    color: var(--crm_danger);
+    background: rgba(185, 28, 28, .08);
+  }
+
+  .company_side {
+    display: grid;
+    gap: 14px;
+  }
+
+  .company_table_wrap {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .company_table {
+    width: 100%;
+    min-width: 780px;
+    border-collapse: collapse;
+  }
+
+  .company_table th,
+  .company_table td {
+    padding: 13px 12px;
+    border-bottom: 1px solid var(--crm_border);
+    text-align: left;
+    vertical-align: top;
+    font-size: 14px;
+  }
+
+  .company_table th {
+    color: var(--crm_muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  @media (max-width: 1050px) {
+
+    .company_hero,
+    .company_grid {
+      grid-template-columns: 1fr;
+    }
+
+    .company_cards {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="company_detail">
+  <div class="company_hero">
+    {% if company.logo %}
+    <img class="company_logo_large" src="{{ company.logo.url }}" alt="{{ company.name }} logo">
+    {% else %}
+    <div class="company_logo_large_placeholder">Logo</div>
+    {% endif %}
+
+    <div>
+      <h2>{{ company.name }}</h2>
+      <p>
+        Workspace URL: /{{ company.slug }}/dashboard/
+      </p>
+    </div>
+
+    <div class="crm_actions">
+      {% if can_edit_companies %}
+      <a class="crm_button" href="{% url 'companies:company_update' company.id_company %}"><i class="bi bi-pencil" aria-hidden="true"></i>&nbsp; Edit Company</a>
+      {% endif %}
+      {% if can_approve_companies %}
+      {% if company.status == "active" %}
+      <form method="post" action="{% url 'companies:company_deactivate' company.id_company %}" data-platform-confirm data-platform-confirm-title="Deactivate company" data-platform-confirm-text="This will suspend the current subscription and block company workspace access." data-platform-confirm-button="Deactivate">
+        {% csrf_token %}
+        <button class="crm_button crm_button_secondary" type="submit"><i class="bi bi-slash-circle"></i>&nbsp; Deactivate</button>
+      </form>
+      {% else %}
+      <form method="post" action="{% url 'companies:company_activate' company.id_company %}" data-platform-confirm data-platform-confirm-title="Reactivate company" data-platform-confirm-text="This will reactivate the company subscription with a new renewal date and restore workspace access." data-platform-confirm-button="Reactivate">
+        {% csrf_token %}
+        <button class="crm_button crm_button_secondary" type="submit"><i class="bi bi-arrow-clockwise"></i>&nbsp; Reactivate</button>
+      </form>
+      {% endif %}
+      {% endif %}
+
+      <a class="crm_button crm_button_secondary" href="{% url 'companies:company_list' %}"><i class="bi bi-arrow-left"></i>&nbsp; Back</a>
+    </div>
+  </div>
+
+  <div class="company_grid">
+    <div class="company_detail_main">
+      <div class="crm_card">
+        <h2 class="crm_section_title">Company Overview</h2>
+
+        <div class="company_cards">
+          <article class="company_panel">
+            <span>Status</span>
+            <strong class="company_status company_status_{{ company.status }}">{{ company.get_status_display }}</strong>
+          </article>
+
+          <article class="company_panel">
+            <span>User Limit</span>
+            <strong>{{ company.user_limit }}</strong>
+          </article>
+
+          <article class="company_panel">
+            <span>Company Email</span>
+            <strong>{{ company.email|default:"Not registered" }}</strong>
+          </article>
+
+          <article class="company_panel">
+            <span>Company Phone</span>
+            <strong>{{ company.phone|default:"Not registered" }}</strong>
+          </article>
+
+          <article class="company_panel">
+            <span>Workspace URL</span>
+            <strong>/{{ company.slug }}/dashboard/</strong>
+          </article>
+
+          <article class="company_panel">
+            <span>Address</span>
+            <p>
+              {{ company.address|default:"No address" }}
+              {% if company.city %}<br>{{ company.city }}{% endif %}
+              {% if company.state %}, {{ company.state }}{% endif %}
+              {% if company.country %}<br>{{ company.country }}{% endif %}
+            </p>
+          </article>
+        </div>
+      </div>
+
+      <div class="crm_card" style="margin-top:18px;">
+        <h2 class="crm_section_title">Recent SaaS Documents</h2>
+
+        <div class="company_table_wrap">
+          <table class="company_table">
+            <thead>
+              <tr>
+                <th>Document</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Total</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for document in documents %}
+              <tr>
+                <td>{{ document.document_number }}</td>
+                <td>{{ document.get_document_type_display }}</td>
+                <td>{{ document.get_status_display }}</td>
+                <td>${{ document.total }}</td>
+                <td>
+                  <a class="company_link" href="{% url 'platform_documents:detail' document.id_document %}">Open</a>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="5">No SaaS documents found.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="crm_card" style="margin-top:18px;">
+        <h2 class="crm_section_title">Recent SaaS Payments</h2>
+
+        <div class="company_table_wrap">
+          <table class="company_table">
+            <thead>
+              <tr>
+                <th>Payment</th>
+                <th>Status</th>
+                <th>Method</th>
+                <th>Amount</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for payment in payments %}
+              <tr>
+                <td>{{ payment.payment_number }}</td>
+                <td>{{ payment.get_status_display }}</td>
+                <td>{{ payment.get_method_display }}</td>
+                <td>${{ payment.amount }}</td>
+                <td>
+                  <a class="company_link" href="{% url 'platform_payments:detail' payment.id_payment %}">Open</a>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="5">No SaaS payments found.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <aside class="company_side">
+      <div class="company_panel">
+        <span>Administrator Login</span>
+
+        {% if owner_user %}
+        <strong>{{ owner_user.email }}</strong>
+        <p>{{ owner_user.first_name }} {{ owner_user.last_name|default:"" }}</p>
+        {% else %}
+        <p>No administrator assigned.</p>
+        {% endif %}
+      </div>
+
+      <div class="company_panel">
+        <span>Current Subscription</span>
+
+        {% if current_subscription %}
+        <strong>{{ current_subscription.id_plan.name }}</strong>
+        <p>Status: {{ current_subscription.get_status_display }}</p>
+        <p>Start: {{ current_subscription.start_date }}</p>
+        <p>Renewal: {{ current_subscription.renewal_date|default:"No renewal date" }}</p>
+        {% else %}
+        <p>No subscription found.</p>
+        {% endif %}
+      </div>
+
+      <div class="company_panel">
+        <span>Users</span>
+        <strong>{{ users|length }}</strong>
+        <p>Total users currently assigned to this company.</p>
+      </div>
+
+      <div class="company_panel">
+        <span>SaaS Documents</span>
+        <strong>{{ documents_count }}</strong>
+        <p>Proformas and invoices issued by CEO MARKETING.</p>
+      </div>
+
+      <div class="company_panel">
+        <span>SaaS Payments</span>
+        <strong>{{ payments_count }}</strong>
+        <p>Payments registered from this company to CEO MARKETING.</p>
+      </div>
+    </aside>
+  </div>
+</section>
+{% include "platform_core/partials/_action_confirm.html" %}
+{% endblock %}

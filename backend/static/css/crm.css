@@ -1,0 +1,18 @@
+/* Shared CRM baseline. Brand-specific super-admin styles live in nexxtjob-platform.css. */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 3px solid rgba(22, 133, 243, .28);
+  outline-offset: 2px;
+}

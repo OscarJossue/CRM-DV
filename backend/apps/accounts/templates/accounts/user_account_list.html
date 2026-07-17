@@ -1,0 +1,220 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Employees & Users{% endblock %}
+{% block page_subtitle %}Manage employee information and CRM access from one unified workspace.{% endblock %}
+
+{% block extra_head %}
+{% include "accounts/partials/_design_system.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="account_theme account_page" data-account-list>
+  <div class="account_toolbar">
+    <div class="account_toolbar_title">
+      <h2>Employees & Users</h2>
+      <p>Each employee has one CRM user account. Personal data, role, position, status and access are managed together.</p>
+    </div>
+
+    {% if can_create_users %}
+      <a class="account_button" href="create/">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+        New Employee
+      </a>
+    {% endif %}
+  </div>
+
+  <section class="account_stats" aria-label="Employee summary">
+    <article class="account_stat">
+      <span class="account_stat_icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span>
+      <span><span class="account_stat_label">Total Employees</span><span class="account_stat_value" data-count-total>0</span></span>
+    </article>
+    <article class="account_stat">
+      <span class="account_stat_icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+      <span><span class="account_stat_label">Active</span><span class="account_stat_value" data-count-active>0</span></span>
+    </article>
+    <article class="account_stat">
+      <span class="account_stat_icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></span>
+      <span><span class="account_stat_label">Inactive</span><span class="account_stat_value" data-count-inactive>0</span></span>
+    </article>
+    <article class="account_stat">
+      <span class="account_stat_icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v14.5"/><path d="M8 7h8"/><path d="M8 11h8"/><path d="M8 15h5"/></svg></span>
+      <span><span class="account_stat_label">With Position</span><span class="account_stat_value" data-count-position>0</span></span>
+    </article>
+  </section>
+
+  {% if company_user_limit %}
+    <section class="crm_card">
+      <div class="account_toolbar" style="align-items:center;">
+        <div class="account_toolbar_title">
+          <h3 style="margin:0;font-size:18px;">CRM Access Capacity</h3>
+          <p>{{ company_active_user_count }} of {{ company_user_limit }} active user slots are currently in use.</p>
+        </div>
+        <span class="account_pill {% if company_user_limit_reached %}warning{% else %}success{% endif %}">
+          {% if company_user_limit_reached %}Limit reached{% else %}{{ company_user_slots_left }} slots available{% endif %}
+        </span>
+      </div>
+    </section>
+  {% endif %}
+
+  <section class="crm_card">
+    <div class="account_filters">
+      <label class="account_field">
+        <span class="account_label">Search</span>
+        <input class="account_filter_input" data-filter-search placeholder="Name, email, phone, DNI, role or position">
+      </label>
+      <label class="account_field">
+        <span class="account_label">Status</span>
+        <select class="account_filter_input" data-filter-status>
+          <option value="">All statuses</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </label>
+      <button class="account_button account_button_secondary" type="button" data-clear-filters>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 12h8"/><path d="M10 18h4"/></svg>
+        Clear
+      </button>
+    </div>
+  </section>
+
+  <section class="crm_card">
+    <div class="account_table_wrap">
+      <table class="account_table" style="min-width:1180px;">
+        <thead>
+          <tr>
+            <th>Employee</th>
+            <th>Contact</th>
+            {% if request.user.is_superuser %}<th>Company</th>{% endif %}
+            <th>Role</th>
+            <th>Position / Category</th>
+            <th>DNI</th>
+            <th>Status</th>
+            <th>Hire Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user_account in user_accounts %}
+            <tr
+              data-row
+              data-status="{% if user_account.is_active and user_account.status == 'active' %}active{% else %}inactive{% endif %}"
+              data-position="{% if user_account.position %}1{% else %}0{% endif %}"
+              data-search="{{ user_account.first_name|default:'' }} {{ user_account.last_name|default:'' }} {{ user_account.email|default:'' }} {{ user_account.phone|default:'' }} {{ user_account.identification|default:'' }} {{ user_account.position|default:'' }} {% if user_account.id_role %}{{ user_account.id_role.name }}{% endif %}"
+            >
+              <td>
+                <div class="account_main">
+                  <span class="account_strong">{{ user_account.get_full_name }}</span>
+                  <span class="account_muted">Employee #{{ user_account.id_user }}</span>
+                </div>
+              </td>
+              <td>
+                <div class="account_main">
+                  <span class="account_strong">{{ user_account.email }}</span>
+                  <span class="account_muted">{{ user_account.phone|default:"No phone" }}</span>
+                </div>
+              </td>
+              {% if request.user.is_superuser %}
+                <td><span class="account_strong">{{ user_account.id_company.name }}</span></td>
+              {% endif %}
+              <td>
+                {% if user_account.id_role %}
+                  <span class="account_pill blue">{{ user_account.id_role.name }}</span>
+                {% else %}
+                  <span class="account_pill warning">No role</span>
+                {% endif %}
+              </td>
+              <td><span class="account_strong">{{ user_account.position|default:"Not assigned" }}</span></td>
+              <td><span class="account_strong">{{ user_account.identification|default:"Optional" }}</span></td>
+              <td>
+                {% if user_account.is_active and user_account.status == "active" %}
+                  <span class="account_pill success">Active</span>
+                {% else %}
+                  <span class="account_pill danger">Inactive</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if user_account.hire_date %}
+                  <span class="account_strong">{{ user_account.hire_date|date:"Y-m-d" }}</span>
+                {% else %}
+                  <span class="account_muted">Automatic</span>
+                {% endif %}
+              </td>
+              <td>
+                <div class="account_actions">
+                  <a class="account_icon_action" href="{{ user_account.id_user }}/" data-tooltip="View" aria-label="View employee">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </a>
+                  {% if can_edit_users %}
+                    <a class="account_icon_action" href="{{ user_account.id_user }}/edit/" data-tooltip="Edit" aria-label="Edit employee">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                    </a>
+                    {% if user_account.is_active and user_account.status == "active" %}
+                      {% if request.user.id_user != user_account.id_user %}
+                        <form class="account_inline_form" method="post" action="{{ user_account.id_user }}/deactivate/" data-account-confirm data-account-confirm-kind="danger" data-account-confirm-title="Deactivate employee" data-account-confirm-message="This employee will no longer be able to log in until the account is activated again." data-account-confirm-button="Deactivate">
+                          {% csrf_token %}
+                          <button class="account_icon_action account_icon_danger" type="submit" data-tooltip="Deactivate" aria-label="Deactivate employee">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg>
+                          </button>
+                        </form>
+                      {% endif %}
+                    {% else %}
+                      <form class="account_inline_form" method="post" action="{{ user_account.id_user }}/activate/" data-account-confirm data-account-confirm-kind="success" data-account-confirm-title="Activate employee" data-account-confirm-message="This employee will be able to log in again if the company user limit allows it." data-account-confirm-button="Activate">
+                        {% csrf_token %}
+                        <button class="account_icon_action account_icon_success" type="submit" data-tooltip="Activate" aria-label="Activate employee">
+                          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/><circle cx="12" cy="12" r="10"/></svg>
+                        </button>
+                      </form>
+                    {% endif %}
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td class="account_empty" colspan="{% if request.user.is_superuser %}9{% else %}8{% endif %}">No employees found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if is_paginated %}
+      <div class="account_actions_bar" style="margin-top:16px;">
+        <span class="account_muted">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        <div class="account_actions">
+          {% if page_obj.has_previous %}<a class="account_button account_button_secondary" href="?page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}
+          {% if page_obj.has_next %}<a class="account_button account_button_secondary" href="?page={{ page_obj.next_page_number }}">Next</a>{% endif %}
+        </div>
+      </div>
+    {% endif %}
+  </section>
+</div>
+
+<script>
+(function(){
+  const root = document.querySelector('[data-account-list]');
+  if(!root) return;
+  const rows = Array.from(root.querySelectorAll('[data-row]'));
+  const search = root.querySelector('[data-filter-search]');
+  const status = root.querySelector('[data-filter-status]');
+  const clear = root.querySelector('[data-clear-filters]');
+  const norm = value => String(value || '').toLowerCase().trim();
+  function apply(){
+    const q = norm(search && search.value);
+    const selectedStatus = norm(status && status.value);
+    const visible = [];
+    rows.forEach(row => {
+      const show = (!q || norm(row.dataset.search).includes(q)) && (!selectedStatus || row.dataset.status === selectedStatus);
+      row.style.display = show ? '' : 'none';
+      if(show) visible.push(row);
+    });
+    root.querySelector('[data-count-total]').textContent = visible.length;
+    root.querySelector('[data-count-active]').textContent = visible.filter(row => row.dataset.status === 'active').length;
+    root.querySelector('[data-count-inactive]').textContent = visible.filter(row => row.dataset.status === 'inactive').length;
+    root.querySelector('[data-count-position]').textContent = visible.filter(row => row.dataset.position === '1').length;
+  }
+  if(search) search.addEventListener('input', apply);
+  if(status) status.addEventListener('change', apply);
+  if(clear) clear.addEventListener('click', function(){ if(search) search.value=''; if(status) status.value=''; apply(); });
+  apply();
+})();
+</script>
+{% endblock %}

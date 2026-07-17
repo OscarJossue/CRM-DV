@@ -1,0 +1,556 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}
+Contract {{ contract.contract_number|default:contract.id_contract }}
+{% endblock %}
+
+{% block page_subtitle %}
+Contract document detail, customer information, scope, legal notice, PDF, email and signature workflow.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .contract_detail_grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .contract_detail_item {
+    display: grid;
+    gap: 8px;
+    padding: 16px;
+    border: 1px solid var(--crm_border);
+    border-radius: 14px;
+    background: #ffffff;
+    min-width: 0;
+  }
+
+  .contract_detail_item_full {
+    grid-column: 1 / -1;
+  }
+
+  .contract_detail_label {
+    color: var(--crm_muted);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .contract_detail_value {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--crm_text);
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    white-space: pre-wrap;
+  }
+
+  .contract_status {
+    display: inline-flex;
+    min-height: 34px;
+    align-items: center;
+    justify-content: center;
+    padding: 7px 12px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    border: 1px solid var(--crm_border);
+    white-space: nowrap;
+  }
+
+  .contract_status_draft,
+  .contract_status_pending {
+    color: #374151;
+    background: #e5e7eb;
+  }
+
+  .contract_status_generated {
+    color: var(--crm_primary);
+    background: rgba(29, 78, 216, 0.08);
+  }
+
+  .contract_status_sent {
+    color: var(--crm_warning);
+    background: rgba(180, 83, 9, 0.08);
+  }
+
+  .contract_status_signed,
+  .contract_status_active,
+  .contract_status_completed {
+    color: var(--crm_success);
+    background: rgba(15, 118, 110, 0.08);
+  }
+
+  .contract_status_void,
+  .contract_status_cancelled {
+    color: var(--crm_danger);
+    background: rgba(185, 28, 28, 0.08);
+  }
+
+  .contract_actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 18px;
+  }
+
+  .contract_inline_form {
+    margin: 0;
+  }
+
+  .contract_void_form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .contract_void_input {
+    min-height: 42px;
+    min-width: 260px;
+    border: 1px solid var(--crm_border);
+    border-radius: 12px;
+    padding: 10px 12px;
+    color: var(--crm_text);
+    background: #ffffff;
+    font: inherit;
+  }
+
+  .contract_warning_card {
+    background: rgba(185, 28, 28, 0.08);
+    border-color: rgba(185, 28, 28, 0.25);
+  }
+
+  .contract_notice_card {
+    background: rgba(29, 78, 216, 0.06);
+    border-color: rgba(29, 78, 216, 0.18);
+  }
+
+  .contract_public_link_card {
+    background: rgba(15, 118, 110, 0.06);
+    border-color: rgba(15, 118, 110, 0.18);
+  }
+
+  .contract_public_link_box {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    margin-top: 14px;
+  }
+
+  .contract_public_link_input {
+    flex: 1;
+    min-width: 260px;
+    min-height: 44px;
+    border: 1px solid var(--crm_border);
+    border-radius: 12px;
+    padding: 10px 12px;
+    color: var(--crm_text);
+    background: #ffffff;
+    font: inherit;
+    font-size: 14px;
+  }
+
+  .contract_signature_layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  .contract_signature_left,
+  .contract_signature_right {
+    min-width: 0;
+  }
+
+  .contract_signature_right {
+    display: grid;
+    gap: 16px;
+  }
+
+  .contract_signature_field {
+    height: 100%;
+  }
+
+  .contract_signature_box {
+    width: 100%;
+    min-height: 245px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    margin-top: 10px;
+    background: #ffffff;
+    border: 1px dashed #cbd5e1;
+    border-radius: 18px;
+  }
+
+  .contract_signature_image {
+    width: 100%;
+    max-width: 620px;
+    max-height: 210px;
+    object-fit: contain;
+    display: block;
+  }
+
+  @media (max-width: 1100px) {
+    .contract_detail_grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 900px) {
+    .contract_signature_layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 680px) {
+    .contract_detail_grid {
+      grid-template-columns: 1fr;
+    }
+
+    .contract_public_link_input,
+    .contract_public_link_box .crm_button {
+      width: 100%;
+    }
+
+    .contract_void_form,
+    .contract_void_input,
+    .contract_void_form button {
+      width: 100%;
+    }
+  }
+</style>
+{% include "contracts/partials/_finance_standard.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="nj-invoice nj-page finance-standard contract-detail-standard">
+  <section class="finance-status-panel">
+    <div class="finance-status-copy"><strong>Contract workflow</strong><span>Read-only status. Generation, sending, customer review, approval, signature and void remain controlled by the existing contract actions.</span></div>
+    {% include "contracts/partials/_status_track.html" with contract=contract detail=True %}
+  </section>
+  <section class="crm_card">
+    <h2 class="crm_section_title">Contract Information</h2>
+
+    <div class="contract_detail_grid">
+      <div class="contract_detail_item">
+        <span class="contract_detail_label">Contract Number</span>
+        <span class="contract_detail_value">{{ contract.contract_number|default:contract.id_contract }}</span>
+      </div>
+
+      <div class="contract_detail_item">
+        <span class="contract_detail_label">Title</span>
+        <span class="contract_detail_value">{{ contract.contract_title|default:"Service Contract" }}</span>
+      </div>
+
+      <div class="contract_detail_item">
+        <span class="contract_detail_label">Status</span>
+        <span class="contract_detail_value">{% include "contracts/partials/_status_track.html" with contract=contract compact=True %}</span>
+      </div>
+
+      <div class="contract_detail_item">
+        <span class="contract_detail_label">Company</span>
+        <span class="contract_detail_value">{% if contract.company_name %}{{ contract.company_name }}{% elif contract.id_company %}{{ contract.id_company.name }}{% else %}No company{% endif %}</span>
+      </div>
+
+      <div class="contract_detail_item">
+        <span class="contract_detail_label">Client</span>
+        <span class="contract_detail_value">{% if contract.client_name %}{{ contract.client_name }}{% elif contract.id_client %}{{ contract.id_client.name }}{% else %}No client{% endif %}</span>
+      </div>
+
+      <div class="contract_detail_item">
+        <span class="contract_detail_label">Project</span>
+        <span class="contract_detail_value">{% if contract.project_name %}{{ contract.project_name }}{% elif contract.id_project %}{{ contract.id_project.name }}{% else %}No project{% endif %}</span>
+      </div>
+
+      <div class="contract_detail_item">
+        <span class="contract_detail_label">Contract Date</span>
+        <span class="contract_detail_value">{{ contract.contract_date|date:"Y-m-d" }}</span>
+      </div>
+
+      <div class="contract_detail_item">
+        <span class="contract_detail_label">Expiration Date</span>
+        <span class="contract_detail_value">{{ contract.expiration_date|date:"Y-m-d"|default:"-" }}</span>
+      </div>
+
+      <div class="contract_detail_item">
+        <span class="contract_detail_label">Generated At</span>
+        <span class="contract_detail_value">{{ contract.generated_at|date:"Y-m-d H:i"|default:"-" }}</span>
+      </div>
+
+      <div class="contract_detail_item">
+        <span class="contract_detail_label">Sent At</span>
+        <span class="contract_detail_value">{{ contract.sent_at|date:"Y-m-d H:i"|default:"-" }}</span>
+      </div>
+
+      <div class="contract_detail_item">
+        <span class="contract_detail_label">Signed Date</span>
+        <span class="contract_detail_value">{{ contract.signed_date|date:"Y-m-d"|default:"-" }}</span>
+      </div>
+
+      <div class="contract_detail_item">
+        <span class="contract_detail_label">Last Modified</span>
+        <span class="contract_detail_value">{{ contract.last_modified_at|date:"Y-m-d H:i"|default:"-" }}</span>
+      </div>
+    </div>
+
+    <div class="contract_actions">
+      <a class="crm_button crm_button_secondary" href="{% url 'contracts:contract_list' %}">Back</a>
+
+      {% if contract.status == "generated" or contract.status == "sent" or contract.status == "signed" %}
+        <a class="crm_button crm_button_secondary" href="{% url 'contracts:contract_pdf' contract.id_contract %}"><i class="bi bi-file-earmark-pdf-fill" aria-hidden="true"></i> Download PDF</a>
+      {% endif %}
+
+      {% if can_edit_contracts %}
+        {% if contract.status == "draft" or contract.status == "pending" %}
+          <a class="crm_button" href="{% url 'contracts:contract_update' contract.id_contract %}">Edit Contract</a>
+
+          <form class="contract_inline_form" method="post" action="{% url 'contracts:contract_generate' contract.id_contract %}">
+            {% csrf_token %}
+            <button class="crm_button" type="submit">Generate Contract</button>
+          </form>
+        {% endif %}
+
+        {% if contract.status == "signed" %}
+          <button class="crm_button crm_button_secondary" type="button" disabled>
+            Contract Signed
+          </button>
+        {% elif contract.status == "rejected" %}
+          <button class="crm_button crm_button_secondary" type="button" disabled>
+            Contract Rejected
+          </button>
+        {% elif contract.status == "void" %}
+          <button class="crm_button crm_button_secondary" type="button" disabled>
+            Contract Voided
+          </button>
+        {% elif contract.status == "sent" or contract.status == "viewed" or contract.status == "approved" %}
+          <a class="crm_button" href="{% url 'contracts:contract_send' contract.id_contract %}">
+            Resend Contract
+          </a>
+        {% else %}
+          <a class="crm_button" href="{% url 'contracts:contract_send' contract.id_contract %}">
+            Send Contract
+          </a>
+        {% endif %}
+      {% endif %}
+
+      {% if can_approve_contracts %}
+        {% if contract.status == "generated" or contract.status == "sent" %}
+          <form class="contract_inline_form" method="post" action="{% url 'contracts:contract_mark_signed' contract.id_contract %}">
+            {% csrf_token %}
+            <button class="crm_button crm_button_secondary" type="submit">Mark Signed</button>
+          </form>
+        {% endif %}
+      {% endif %}
+
+      {% if can_delete_contracts %}
+        {% if contract.status == "generated" or contract.status == "sent" %}
+          <form class="contract_void_form" method="post" action="{% url 'contracts:contract_void' contract.id_contract %}">
+            {% csrf_token %}
+            <input
+              type="text"
+              name="void_reason"
+              class="contract_void_input"
+              placeholder="Void reason"
+              required
+            >
+            <button class="crm_button crm_button_secondary" type="submit">Void Contract</button>
+          </form>
+        {% endif %}
+      {% endif %}
+    </div>
+  </section>
+  <section class="crm_card contract_public_link_card">
+    <h2 class="crm_section_title">Customer Public Contract Link</h2>
+
+    <p class="crm_page_text">
+      This secure link can be sent to the customer so they can review, approve, or reject the contract without logging into the CRM.
+    </p>
+
+    <div class="contract_public_link_box">
+      <input
+        type="text"
+        class="contract_public_link_input"
+        value="{{ public_contract_url }}"
+        readonly
+        id="publicContractUrl"
+      >
+
+      <a
+        class="crm_button crm_button_secondary"
+        href="{{ public_contract_url }}"
+        target="_blank"
+        rel="noopener"
+      >
+        Open Public Preview
+      </a>
+
+      <button
+        type="button"
+        class="crm_button"
+        onclick="navigator.clipboard.writeText(document.getElementById('publicContractUrl').value); this.innerText='Copied';"
+      >
+        Copy Link
+      </button>
+    </div>
+  </section>
+  {% if contract.status == "void" %}
+    <section class="crm_card contract_warning_card">
+      <h2 class="crm_section_title">Voided Contract</h2>
+      <p class="crm_page_text">Voided At: {{ contract.voided_at|date:"Y-m-d H:i"|default:"-" }}</p>
+      <p class="crm_page_text">Voided By: {{ contract.voided_by|default:"-" }}</p>
+      <p class="crm_page_text">Reason: {{ contract.void_reason|default:"No reason provided." }}</p>
+    </section>
+  {% endif %}
+
+  <section class="crm_card">
+    <h2 class="crm_section_title">Customer Information</h2>
+
+    <div class="contract_detail_grid">
+      <div class="contract_detail_item">
+        <span class="contract_detail_label">Customer Name</span>
+        <span class="contract_detail_value">{{ contract.client_name|default:"-" }}</span>
+      </div>
+
+      <div class="contract_detail_item">
+        <span class="contract_detail_label">Phone</span>
+        <span class="contract_detail_value">{{ contract.client_phone|default:"-" }}</span>
+      </div>
+
+      <div class="contract_detail_item">
+        <span class="contract_detail_label">Alternate Phone</span>
+        <span class="contract_detail_value">{{ contract.client_alt_phone|default:"-" }}</span>
+      </div>
+
+      <div class="contract_detail_item">
+        <span class="contract_detail_label">Email</span>
+        <span class="contract_detail_value">{{ contract.client_email|default:"-" }}</span>
+      </div>
+
+      <div class="contract_detail_item contract_detail_item_full">
+        <span class="contract_detail_label">Address</span>
+        <span class="contract_detail_value">{{ contract.client_full_address|default:"-" }}</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="crm_card">
+    <h2 class="crm_section_title">Project Snapshot</h2>
+
+    <div class="contract_detail_grid">
+      <div class="contract_detail_item">
+        <span class="contract_detail_label">Project Name</span>
+        <span class="contract_detail_value">{{ contract.project_name|default:"-" }}</span>
+      </div>
+
+      <div class="contract_detail_item contract_detail_item_full">
+        <span class="contract_detail_label">Project Address</span>
+        <span class="contract_detail_value">{{ contract.project_address|default:"-" }}</span>
+      </div>
+
+      <div class="contract_detail_item contract_detail_item_full">
+        <span class="contract_detail_label">Project Description</span>
+        <span class="contract_detail_value">{{ contract.project_description|default:"-" }}</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="crm_card">
+    <h2 class="crm_section_title">Scope of Work</h2>
+
+    <div class="contract_detail_grid">
+      <div class="contract_detail_item contract_detail_item_full">
+        <span class="contract_detail_label">Work To Be Done</span>
+        <span class="contract_detail_value">{{ contract.work_to_be_done|default:"-" }}</span>
+      </div>
+
+      <div class="contract_detail_item contract_detail_item_full">
+        <span class="contract_detail_label">Additional Work</span>
+        <span class="contract_detail_value">{{ contract.additional_work|default:"-" }}</span>
+      </div>
+
+      <div class="contract_detail_item contract_detail_item_full">
+        <span class="contract_detail_label">Work NOT To Be Done</span>
+        <span class="contract_detail_value">{{ contract.work_not_to_be_done|default:"-" }}</span>
+      </div>
+
+      <div class="contract_detail_item contract_detail_item_full">
+        <span class="contract_detail_label">Special Instructions</span>
+        <span class="contract_detail_value">{{ contract.special_instructions|default:"-" }}</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="crm_card contract_notice_card">
+    <h2 class="crm_section_title">Legal Notice</h2>
+
+    <div class="contract_detail_grid">
+      <div class="contract_detail_item contract_detail_item_full">
+        <span class="contract_detail_label">Notice To Consumer</span>
+        <span class="contract_detail_value">{{ contract.consumer_notice|default:"-" }}</span>
+      </div>
+
+      <div class="contract_detail_item contract_detail_item_full">
+        <span class="contract_detail_label">Cancellation Notice</span>
+        <span class="contract_detail_value">{{ contract.cancellation_notice|default:"-" }}</span>
+      </div>
+    </div>
+  </section>
+
+ <section class="crm_card">
+  <h2 class="crm_section_title">Signature</h2>
+
+  <div class="contract_signature_layout">
+    <div class="contract_signature_left">
+      {% if contract.signature_image %}
+        <div class="contract_detail_item contract_signature_field">
+          <span class="contract_detail_label">Customer Signature</span>
+
+          <div class="contract_signature_box">
+            <img
+              src="{{ contract.signature_image.url }}"
+              alt="Customer signature"
+              class="contract_signature_image"
+            >
+          </div>
+        </div>
+      {% else %}
+        <div class="contract_detail_item contract_signature_field">
+          <span class="contract_detail_label">Customer Signature</span>
+          <span class="contract_detail_value">-</span>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="contract_signature_right">
+      <div class="contract_detail_item">
+        <span class="contract_detail_label">Customer Signature Name</span>
+        <span class="contract_detail_value">
+          {{ contract.customer_signature_name|default:contract.client_name|default:"-" }}
+        </span>
+      </div>
+
+      <div class="contract_detail_item">
+        <span class="contract_detail_label">Signed Date</span>
+        <span class="contract_detail_value">
+          {% if contract.sign_token_used_at %}
+            {{ contract.sign_token_used_at|date:"Y-m-d H:i" }}
+          {% elif contract.signed_date %}
+            {{ contract.signed_date|date:"Y-m-d" }}
+          {% else %}
+            -
+          {% endif %}
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
+</div>
+{% endblock %}

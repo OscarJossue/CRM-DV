@@ -1,0 +1,290 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}{{ document.document_number }}{% endblock %}
+
+{% block page_subtitle %}
+SaaS document issued by CEO MARKETING to {{ document.id_company.name }}.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .doc_detail {
+    display: grid;
+    gap: 18px;
+  }
+
+  .doc_detail_hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 18px;
+    align-items: start;
+    padding: 24px;
+    border: 1px solid var(--crm_border);
+    border-radius: 22px;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(31, 58, 138, 0.12), transparent 32%),
+      #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .doc_badge {
+    display: inline-flex;
+    width: fit-content;
+    min-height: 30px;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    border: 1px solid var(--crm_border);
+    border-radius: 10px;
+    background: rgba(31, 58, 138, .08);
+    color: var(--crm_primary);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .doc_detail_title {
+    margin: 10px 0 0;
+    color: var(--crm_text);
+    font-size: clamp(28px, 4vw, 42px);
+    line-height: 1.08;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+  }
+
+  .doc_detail_text {
+    margin: 8px 0 0;
+    color: var(--crm_muted);
+    font-size: 14px;
+    line-height: 1.65;
+  }
+
+  .doc_detail_grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, .7fr);
+    gap: 18px;
+    align-items: start;
+  }
+
+  .doc_table_wrap {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .doc_table {
+    width: 100%;
+    min-width: 760px;
+    border-collapse: collapse;
+  }
+
+  .doc_table th,
+  .doc_table td {
+    padding: 13px 12px;
+    border-bottom: 1px solid var(--crm_border);
+    text-align: left;
+    vertical-align: top;
+    font-size: 14px;
+  }
+
+  .doc_table th {
+    color: var(--crm_muted);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  .doc_total_box {
+    display: grid;
+    gap: 10px;
+  }
+
+  .doc_total_row {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--crm_border);
+    color: var(--crm_text);
+    font-size: 14px;
+    font-weight: 800;
+  }
+
+  .doc_total_row_final {
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--crm_primary);
+  }
+
+  .doc_info_panel {
+    display: grid;
+    gap: 8px;
+    padding: 18px;
+    border: 1px solid var(--crm_border);
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .doc_info_panel span {
+    color: var(--crm_muted);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .doc_info_panel strong,
+  .doc_info_panel p {
+    margin: 0;
+    color: var(--crm_text);
+    font-size: 14px;
+    line-height: 1.6;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+  }
+
+  .doc_side {
+    display: grid;
+    gap: 14px;
+  }
+
+  @media (max-width: 980px) {
+
+    .doc_detail_hero,
+    .doc_detail_grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="doc_detail">
+  <div class="doc_detail_hero">
+    <div>
+      <span class="doc_badge">{{ document.get_document_type_display }}</span>
+      <span class="doc_badge">{{ document.get_status_display }}</span>
+
+      <h2 class="doc_detail_title">{{ document.document_number }}</h2>
+
+      <p class="doc_detail_text">
+        Issued to {{ document.id_company.name }}. This document belongs to the CEO MARKETING SaaS administration layer.
+      </p>
+    </div>
+
+    <div class="crm_actions">
+      <a class="crm_button" href="{% url 'platform_documents:update' document.id_document %}">Edit</a>
+
+      <a class="crm_button crm_button_secondary" href="{% url 'platform_documents:print' document.id_document %}"
+        target="_blank">
+        Print / Save PDF
+      </a>
+      <a class="crm_button crm_button_secondary" href="{% url 'platform_documents:send_email' document.id_document %}">
+        Send by Email
+      </a>
+      {% if can_generate_invoice %}
+      <form method="post" action="{% url 'platform_documents:generate_invoice' document.id_document %}"
+        style="margin:0;">
+        {% csrf_token %}
+        <button class="crm_button crm_button_secondary" type="submit">
+          Generate Invoice
+        </button>
+      </form>
+      {% endif %}
+
+      {% if generated_invoice %}
+      <a class="crm_button crm_button_secondary"
+        href="{% url 'platform_documents:detail' generated_invoice.id_document %}">
+        View Generated Invoice
+      </a>
+      {% endif %}
+
+      <a class="crm_button crm_button_secondary" href="{% url 'platform_documents:list' %}">Back</a>
+    </div>
+  </div>
+
+  <div class="doc_detail_grid">
+    <div class="crm_card">
+      <h2 class="crm_section_title">Line Items</h2>
+
+      <div class="doc_table_wrap">
+        <table class="doc_table">
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th>Quantity</th>
+              <th>Unit Price</th>
+              <th>Subtotal</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for item in document.items.all %}
+            <tr>
+              <td>{{ item.description }}</td>
+              <td>{{ item.quantity }}</td>
+              <td>${{ item.unit_price }}</td>
+              <td>${{ item.subtotal }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="4">No line items found.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <aside class="doc_side">
+      <div class="doc_info_panel">
+        <span>Company</span>
+        <strong>{{ document.id_company.name }}</strong>
+        <p>/{{ document.id_company.slug }}/</p>
+      </div>
+
+      <div class="doc_info_panel">
+        <span>Dates</span>
+        <strong>Issue: {{ document.issue_date }}</strong>
+        <p>Due: {{ document.due_date|default:"No due date" }}</p>
+      </div>
+
+      <div class="doc_info_panel">
+        <span>Totals</span>
+
+        <div class="doc_total_box">
+          <div class="doc_total_row">
+            <span>Subtotal</span>
+            <strong>${{ document.subtotal }}</strong>
+          </div>
+
+          <div class="doc_total_row">
+            <span>Tax</span>
+            <strong>${{ document.tax_amount }}</strong>
+          </div>
+
+          <div class="doc_total_row">
+            <span>Discount</span>
+            <strong>${{ document.discount_amount }}</strong>
+          </div>
+
+          <div class="doc_total_row doc_total_row_final">
+            <span>Total</span>
+            <strong>${{ document.total }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="doc_info_panel">
+        <span>Terms</span>
+        <p>{{ document.terms|default:"No terms added." }}</p>
+      </div>
+
+      <div class="doc_info_panel">
+        <span>Footer</span>
+        <p>{{ document.footer|default:"No footer added." }}</p>
+      </div>
+    </aside>
+  </div>
+</section>
+{% endblock %}

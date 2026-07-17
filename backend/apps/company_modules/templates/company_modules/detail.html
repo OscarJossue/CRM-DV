@@ -1,0 +1,91 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Company Module Detail{% endblock %}
+
+{% block page_subtitle %}
+Review a mini CRM module availability rule.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .cm_detail_grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .cm_detail_item {
+    display: grid;
+    gap: 8px;
+    padding: 16px;
+    border: 1px solid var(--crm_border);
+    border-radius: 14px;
+    background: #ffffff;
+    min-width: 0;
+  }
+
+  .cm_detail_label {
+    color: var(--crm_muted);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .cm_detail_value {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--crm_text);
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+
+  .cm_detail_actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 18px;
+  }
+
+  @media (max-width: 900px) {
+    .cm_detail_grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <section class="crm_card">
+    <h2 class="crm_section_title">Module Rule</h2>
+
+    <div class="cm_detail_grid">
+      <div class="cm_detail_item">
+        <span class="cm_detail_label">Company</span>
+        <span class="cm_detail_value">{{ company_module.id_company.name }}</span>
+      </div>
+
+      <div class="cm_detail_item">
+        <span class="cm_detail_label">Module</span>
+        <span class="cm_detail_value">{{ company_module.get_module_display }}</span>
+      </div>
+
+      <div class="cm_detail_item">
+        <span class="cm_detail_label">Status</span>
+        <span class="cm_detail_value">
+          {% if company_module.is_enabled %}
+            Enabled
+          {% else %}
+            Disabled
+          {% endif %}
+        </span>
+      </div>
+    </div>
+
+    <div class="cm_detail_actions">
+      <a class="crm_button crm_button_secondary" href="{% url 'company_modules:company_module_list' %}">Back</a>
+      <a class="crm_button" href="{% url 'company_modules:company_module_update' company_module.id_company_module %}">Edit Rule</a>
+      <a class="crm_button crm_button_secondary" href="{% url 'company_modules:company_module_manage' company_module.id_company.id_company %}">Manage Company Modules</a>
+    </div>
+  </section>
+{% endblock %}

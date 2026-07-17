@@ -1,0 +1,147 @@
+{% extends "layouts/base.html" %}
+{% load i18n %}
+
+{% block page_title %}{% translate "Estimates" %}{% endblock %}
+{% block page_subtitle %}{% translate "Manage estimates, customer decisions, validity, totals and project creation." %}{% endblock %}
+
+{% block extra_head %}
+  {% include "estimates/partials/_finance_standard.html" %}
+  {% include "partials/_crm_unified_dashboard.html" %}
+  <style>
+    .estimate-total { color: var(--nj-navy); font-size: 13px; font-weight: 950; white-space: nowrap; }
+    .estimate-customer-state { min-width: 175px; }
+    .estimate-cancelled td { opacity: .72; }
+    .estimate-inline-form { display: inline-flex; margin: 0; }
+  </style>
+{% endblock %}
+
+{% block content %}
+<div class="nj-invoice nj-page crm-unified finance-standard">
+  <header class="nj-page-head">
+    <div>
+      <div class="nj-page-kicker"><i class="bi bi-calculator"></i>{% translate "Sales" %}</div>
+      <h1 class="nj-page-title">{% translate "Estimates" %}</h1>
+      <p class="nj-page-subtitle">{% translate "Review proformas, customer approval status, validity and workflow actions from one reliable screen." %}</p>
+    </div>
+    {% if can_create_estimates %}
+      <div class="nj-head-actions">
+        <a class="nj-btn" href="{{ estimate_create_url }}"><i class="bi bi-plus-lg"></i>{% translate "New Estimate" %}</a>
+      </div>
+    {% endif %}
+  </header>
+
+  <section class="crm-status-grid" aria-label="{% translate 'Estimate status overview' %}">
+    <a class="crm-status-card {% if not current_status_filter %}is-active{% endif %}" href="{{ estimate_list_url }}{% if estimate_dashboard_summary.all_query_string %}?{{ estimate_dashboard_summary.all_query_string }}{% endif %}" style="--crm-status-color:#0868E8">
+      <span class="crm-status-card-top"><span class="nj-icon-box"><i class="bi bi-collection"></i></span><span class="crm-status-card-count">{{ estimate_dashboard_summary.total }}</span></span>
+      <span class="crm-status-card-copy"><strong>{% translate "All estimates" %}</strong><small>{% translate "Complete estimate pipeline" %}</small></span>
+    </a>
+    {% for status_item in estimate_dashboard_summary.items %}
+      <a class="crm-status-card {% if status_item.is_active %}is-active{% endif %}" href="{{ estimate_list_url }}?{{ status_item.query_string }}" style="--crm-status-color:{{ status_item.color }}">
+        <span class="crm-status-card-top">
+          <span class="nj-icon-box">
+            {% if status_item.status == "draft" %}<i class="bi bi-file-earmark"></i>
+            {% elif status_item.status == "pending_send" %}<i class="bi bi-hourglass-split"></i>
+            {% elif status_item.status == "sent" %}<i class="bi bi-send-check"></i>
+            {% elif status_item.status == "approved" %}<i class="bi bi-check2-circle"></i>
+            {% elif status_item.status == "rejected" %}<i class="bi bi-x-circle"></i>
+            {% elif status_item.status == "expired" %}<i class="bi bi-clock-history"></i>
+            {% elif status_item.status == "converted" %}<i class="bi bi-folder-check"></i>
+            {% else %}<i class="bi bi-slash-circle"></i>{% endif %}
+          </span>
+          <span class="crm-status-card-count">{{ status_item.count }}</span>
+        </span>
+        <span class="crm-status-card-copy"><strong>{% translate status_item.label %}</strong><small>{{ status_item.percent }}% {% translate "of total" %}</small></span>
+      </a>
+    {% endfor %}
+  </section>
+
+  <section class="nj-card crm-filter-card">
+    <form class="crm-filter-row" method="get" action="{{ estimate_list_url }}">
+      {% if current_status_filter %}<input type="hidden" name="status" value="{{ current_status_filter }}">{% endif %}
+      <div class="nj-field">
+        <label for="estimate-search">{% translate "Search" %}</label>
+        <div class="crm-search-wrap">
+          <i class="bi bi-search"></i>
+          <input id="estimate-search" name="q" type="search" value="{{ current_search_query }}" placeholder="{% translate 'Estimate number, client or project' %}" autocomplete="off">
+        </div>
+      </div>
+      <button class="nj-btn" type="submit"><i class="bi bi-search"></i>{% translate "Search" %}</button>
+      <a class="nj-btn nj-btn-secondary" href="{{ estimate_list_url }}"><i class="bi bi-arrow-counterclockwise"></i>{% translate "Clear" %}</a>
+    </form>
+  </section>
+
+  <section class="nj-card crm-table-card">
+    <div class="crm-table-wrap">
+      <table class="crm-table">
+        <thead>
+          <tr>
+            <th>{% translate "Estimate" %}</th>
+            <th>{% translate "Client" %}</th>
+            <th>{% translate "Project" %}</th>
+            <th>{% translate "Dates" %}</th>
+            <th class="is-right">{% translate "Total" %}</th>
+            <th class="is-center">{% translate "Status" %}</th>
+            <th>{% translate "Customer Decision" %}</th>
+            <th class="is-center">{% translate "Actions" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for estimate in estimates %}
+            <tr {% if estimate.status == "cancelled" %}class="estimate-cancelled"{% endif %}>
+              <td>
+                <div class="crm-cell-main">
+                  <a class="crm-code-link" href="{{ estimate.ui_urls.detail }}"><i class="bi bi-receipt"></i>{{ estimate.estimate_number|default:"EST" }}</a>
+                  <small>{{ estimate.description|default:_('No description')|truncatechars:72 }}</small>
+                </div>
+              </td>
+              <td><div class="crm-cell-main"><strong>{{ estimate.client_billing_name|default:estimate.id_client.name }}</strong><small>{{ estimate.id_client.client_code|default:"—" }}{% if estimate.id_client.dni %} · {{ estimate.id_client.dni }}{% endif %}</small></div></td>
+              <td><div class="crm-cell-main"><strong>{{ estimate.project_name|default:_('Not assigned') }}</strong><small>{{ estimate.project_address|default:"—"|truncatechars:60 }}</small></div></td>
+              <td><div class="crm-cell-main"><strong>{{ estimate.issue_date|date:"d/m/Y" }}</strong><small>{% translate "Valid until" %}: {{ estimate.expiration_date|date:"d/m/Y"|default:"—" }}</small></div></td>
+              <td class="is-right"><span class="estimate-total">${{ estimate.total|floatformat:2 }}</span>{% if estimate.tax_enabled %}<div class="crm-cell-main"><small>{% translate "Tax included" %}</small></div>{% endif %}</td>
+              <td class="is-center">{% include "estimates/partials/_status_track.html" with estimate=estimate compact=True %}</td>
+              <td class="estimate-customer-state">
+                {% if estimate.approved_at %}<div class="crm-cell-main"><strong>{% translate "Approved by customer" %}</strong><small>{{ estimate.approved_at|date:"d/m/Y H:i" }}</small></div>
+                {% elif estimate.rejected_at %}<div class="crm-cell-main"><strong>{% translate "Rejected by customer" %}</strong><small>{{ estimate.rejection_reason|default:_('No reason provided')|truncatechars:62 }}</small></div>
+                {% elif estimate.viewed_at %}<div class="crm-cell-main"><strong>{% translate "Viewed by customer" %}</strong><small>{{ estimate.viewed_at|date:"d/m/Y H:i" }}</small></div>
+                {% elif estimate.sent_at %}<div class="crm-cell-main"><strong>{% translate "Awaiting customer decision" %}</strong><small>{{ estimate.sent_at|date:"d/m/Y H:i" }}</small></div>
+                {% else %}<span class="crm-status-pill is-neutral">{% translate "Not sent" %}</span>{% endif %}
+              </td>
+              <td class="is-center">
+                <div class="crm-actions">
+                  <a class="nj-icon-btn" href="{{ estimate.ui_urls.detail }}" data-tooltip="{% translate 'View' %}" aria-label="{% translate 'View' %}"><i class="bi bi-eye"></i></a>
+                  {% if can_edit_estimates and estimate.status != "approved" and estimate.status != "converted" and estimate.status != "cancelled" %}<a class="nj-icon-btn" href="{{ estimate.ui_urls.edit }}" data-tooltip="{% translate 'Edit' %}" aria-label="{% translate 'Edit' %}"><i class="bi bi-pencil"></i></a>{% endif %}
+                  <a class="nj-icon-btn is-pdf" href="{{ estimate.ui_urls.pdf }}" data-tooltip="{% translate 'PDF' %}" aria-label="{% translate 'PDF' %}"><i class="bi bi-file-earmark-pdf"></i></a>
+                  {% if can_edit_estimates %}
+                    {% if estimate.status == "pending" or estimate.status == "pending_send" %}<a class="nj-icon-btn is-success" href="{{ estimate.ui_urls.send }}" data-tooltip="{% translate 'Send' %}" aria-label="{% translate 'Send' %}"><i class="bi bi-send"></i></a>
+                    {% elif estimate.status == "sent" or estimate.status == "viewed" or estimate.status == "rejected" %}<a class="nj-icon-btn is-success" href="{{ estimate.ui_urls.send }}" data-tooltip="{% translate 'Send Again' %}" aria-label="{% translate 'Send Again' %}"><i class="bi bi-send-check"></i></a>{% endif %}
+                  {% endif %}
+                  {% if can_approve_estimates and estimate.status == "sent" or can_approve_estimates and estimate.status == "viewed" %}
+                    <form class="estimate-inline-form" method="post" action="{{ estimate.ui_urls.approve }}">{% csrf_token %}<input type="hidden" name="create_project" value="0"><button class="nj-icon-btn is-success" type="submit" data-tooltip="{% translate 'Approve' %}" aria-label="{% translate 'Approve' %}"><i class="bi bi-check-lg"></i></button></form>
+                    <form class="estimate-inline-form" method="post" action="{{ estimate.ui_urls.reject }}" onsubmit="return confirm('{% translate 'Reject this estimate?' %}');">{% csrf_token %}<button class="nj-icon-btn is-danger" type="submit" data-tooltip="{% translate 'Reject' %}" aria-label="{% translate 'Reject' %}"><i class="bi bi-x-lg"></i></button></form>
+                  {% endif %}
+                  {% if estimate.id_project_id %}<a class="nj-icon-btn is-success" href="{{ estimate.ui_urls.project_open }}" data-tooltip="{% translate 'Open Project' %}" aria-label="{% translate 'Open Project' %}"><i class="bi bi-folder2-open"></i></a>
+                  {% elif estimate.status == "approved" %}<a class="nj-icon-btn is-success" href="{{ estimate.ui_urls.project_create }}" data-tooltip="{% translate 'Create Project' %}" aria-label="{% translate 'Create Project' %}"><i class="bi bi-folder-plus"></i></a>{% endif %}
+                  {% if can_delete_estimates and estimate.status == "draft" %}<form class="estimate-inline-form" method="post" action="{{ estimate.ui_urls.delete }}" onsubmit="return confirm('{% translate 'Delete this draft estimate?' %}');">{% csrf_token %}<button class="nj-icon-btn is-danger" type="submit" data-tooltip="{% translate 'Delete Draft' %}" aria-label="{% translate 'Delete Draft' %}"><i class="bi bi-trash3"></i></button></form>{% endif %}
+                  {% if can_delete_estimates and estimate.status != "approved" and estimate.status != "converted" and estimate.status != "cancelled" %}<form class="estimate-inline-form" method="post" action="{{ estimate.ui_urls.cancel }}" onsubmit="return confirm('{% translate 'Void this estimate? No additional workflow actions will be available.' %}');">{% csrf_token %}<button class="nj-icon-btn is-void" type="submit" data-tooltip="{% translate 'Void' %}" aria-label="{% translate 'Void' %}"><i class="bi bi-slash-circle"></i></button></form>{% endif %}
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="8"><div class="crm-empty"><i class="bi bi-calculator"></i><strong>{% translate "No estimates found" %}</strong><span>{% translate "Create an estimate or adjust the current search." %}</span></div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if is_paginated %}
+      <nav class="crm-pagination" aria-label="{% translate 'Estimate pages' %}">
+        <span class="crm-pagination-label">{% blocktranslate with page=page_obj.number pages=paginator.num_pages %}Page {{ page }} of {{ pages }}{% endblocktranslate %}</span>
+        <span class="crm-pagination-links">
+          {% if page_obj.has_previous %}<a class="crm-page-link" href="?q={{ current_search_query|urlencode }}&status={{ current_status_filter|urlencode }}&page={{ page_obj.previous_page_number }}"><i class="bi bi-chevron-left"></i></a>{% endif %}
+          <span class="crm-page-link is-active">{{ page_obj.number }}</span>
+          {% if page_obj.has_next %}<a class="crm-page-link" href="?q={{ current_search_query|urlencode }}&status={{ current_status_filter|urlencode }}&page={{ page_obj.next_page_number }}"><i class="bi bi-chevron-right"></i></a>{% endif %}
+        </span>
+      </nav>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

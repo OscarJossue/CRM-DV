@@ -1,0 +1,104 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}{{ form_title }}{% endblock %}
+
+{% block page_subtitle %}
+Create or update lead information for the current CRM scope.
+{% endblock %}
+
+{% block extra_head %}
+{% include "leads/partials/_module_design.html" %}
+{% endblock %}
+
+{% block content %}
+<section class="crm_module_theme crm_card">
+  <div class="module_toolbar" style="margin-bottom:18px;">
+    <div class="module_toolbar_title">
+      <span class="module_kicker"><i class="bi bi-broadcast-pin"></i> Lead Form</span>
+      <h2 class="module_title">{{ form_title }}</h2>
+      <p class="module_copy">Capture lead contact data, source, assigned user and internal notes.</p>
+    </div>
+  </div>
+
+  <form class="module_form" method="post" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="module_error">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    {% if request.user.is_superuser %}
+      <div class="module_form_grid">
+        <div class="module_form_field">
+          <label for="{{ form.id_company.id_for_label }}">Company</label>
+          {{ form.id_company }}
+          {% if form.id_company.errors %}<div class="module_error">{{ form.id_company.errors }}</div>{% endif %}
+        </div>
+        <div class="module_form_field">
+          <label for="{{ form.id_assigned_user.id_for_label }}">Assigned User</label>
+          {{ form.id_assigned_user }}
+          {% if form.id_assigned_user.errors %}<div class="module_error">{{ form.id_assigned_user.errors }}</div>{% endif %}
+        </div>
+      </div>
+    {% else %}
+      <div style="display:none;">{{ form.id_company }}</div>
+      <div class="module_form_grid">
+        <div class="module_form_field module_form_field_full">
+          <label for="{{ form.id_assigned_user.id_for_label }}">Assigned User</label>
+          {{ form.id_assigned_user }}
+          {% if form.id_assigned_user.errors %}<div class="module_error">{{ form.id_assigned_user.errors }}</div>{% endif %}
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="module_form_grid">
+      <div class="module_form_field">
+        <label for="{{ form.name.id_for_label }}">Lead Name <span class="module_required">*</span></label>
+        {{ form.name }}
+        {% if form.name.errors %}<div class="module_error">{{ form.name.errors }}</div>{% endif %}
+      </div>
+
+      <div class="module_form_field">
+        <label for="{{ form.phone.id_for_label }}">Phone</label>
+        {{ form.phone }}
+        {% if form.phone.errors %}<div class="module_error">{{ form.phone.errors }}</div>{% endif %}
+      </div>
+
+      <div class="module_form_field">
+        <label for="{{ form.email.id_for_label }}">Email</label>
+        {{ form.email }}
+        {% if form.email.errors %}<div class="module_error">{{ form.email.errors }}</div>{% endif %}
+      </div>
+
+      <div class="module_form_field">
+        <label for="{{ form.source.id_for_label }}">Source</label>
+        {{ form.source }}
+        {% if form.source.errors %}<div class="module_error">{{ form.source.errors }}</div>{% endif %}
+      </div>
+
+      <div class="module_form_field">
+        <label for="{{ form.status.id_for_label }}">Status</label>
+        {{ form.status }}
+        {% if form.status.errors %}<div class="module_error">{{ form.status.errors }}</div>{% endif %}
+      </div>
+
+      <div class="module_form_field">
+        <label for="{{ form.address.id_for_label }}">Address</label>
+        {{ form.address }}
+        {% if form.address.errors %}<div class="module_error">{{ form.address.errors }}</div>{% endif %}
+      </div>
+
+      <div class="module_form_field module_form_field_full">
+        <label for="{{ form.notes.id_for_label }}">Notes</label>
+        {{ form.notes }}
+        {% if form.notes.errors %}<div class="module_error">{{ form.notes.errors }}</div>{% endif %}
+      </div>
+    </div>
+
+    <div class="module_form_actions">
+      <button class="crm_button" type="submit"><i class="bi bi-check2-circle"></i>{{ submit_label }}</button>
+      <a class="crm_button crm_button_secondary" href="{% url 'leads:lead_list' %}"><i class="bi bi-arrow-left"></i>Cancel</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

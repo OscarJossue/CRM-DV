@@ -1,0 +1,10 @@
+{% extends "layouts/base.html" %}
+{% block page_title %}Sync Logs{% endblock %}
+{% block page_subtitle %}Audit every connection, sync, export and integration error.{% endblock %}
+{% block extra_head %}{% include "integrations/partials/_design_system.html" %}{% endblock %}
+{% block content %}
+<div class="account_theme integration_theme account_page">
+  <div class="account_toolbar"><div class="account_toolbar_title"><h2>Sync Logs</h2><p>Every integration action is tracked here for troubleshooting and audit.</p></div><a class="account_button account_button_secondary" href="../">Dashboard</a></div>
+  <section class="crm_card"><div class="account_table_wrap"><table class="account_table"><thead><tr><th>Tool</th><th>Action</th><th>Status</th><th>Message</th><th>External ID</th><th>Date</th></tr></thead><tbody>{% for log in logs %}<tr><td><span class="account_strong">{{ log.get_tool_display }}</span></td><td>{{ log.action }}</td><td><span class="account_pill {% if log.status == 'success' %}success{% elif log.status == 'error' %}danger{% else %}warning{% endif %}">{{ log.get_status_display }}</span></td><td><span class="account_muted">{{ log.message|truncatechars:120 }}</span></td><td><span class="integration_code">{{ log.external_id|default:"—" }}</span></td><td>{{ log.started_at|date:"Y-m-d H:i" }}</td></tr>{% empty %}<tr><td colspan="6" class="account_empty">No integration logs yet.</td></tr>{% endfor %}</tbody></table></div></section>
+</div>
+{% endblock %}

@@ -1,0 +1,244 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Languages{% endblock %}
+{% block page_subtitle %}Choose the language used across this company workspace.{% endblock %}
+
+{% block extra_head %}
+<style>
+  .language_page {
+    max-width: 980px;
+    margin: 0 auto;
+  }
+
+  .language_card {
+    border: 1px solid var(--crm_border);
+    border-radius: 24px;
+    background: var(--crm_surface);
+    box-shadow: var(--crm_shadow_soft);
+    padding: 24px;
+  }
+
+  .language_intro {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 22px;
+  }
+
+  .language_intro h2 {
+    margin: 0;
+    color: var(--crm_text);
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: -.02em;
+  }
+
+  .language_intro p {
+    margin: 8px 0 0;
+    color: var(--crm_muted);
+    line-height: 1.65;
+    font-size: 14px;
+    font-weight: 650;
+  }
+
+  .owner_badge {
+    flex: 0 0 auto;
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(37, 99, 235, .18);
+    background: rgba(37, 99, 235, .08);
+    color: var(--crm_primary_dark);
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+
+  .language_form {
+    display: grid;
+    gap: 18px;
+  }
+
+  .language_choices {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 220px));
+    gap: 14px;
+  }
+
+  .language_option {
+    position: relative;
+  }
+
+  .language_option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .language_option label {
+    min-height: 76px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border: 1px solid var(--crm_border);
+    border-radius: 17px;
+    background: var(--crm_bg);
+    color: var(--crm_text);
+    cursor: pointer;
+    transition: transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
+  }
+
+  .language_option label:hover {
+    transform: translateY(-2px);
+    border-color: var(--crm_primary);
+    background: rgba(37, 99, 235, .05);
+  }
+
+  .language_option input:checked + label {
+    border-color: var(--crm_primary);
+    background: rgba(37, 99, 235, .09);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .10);
+  }
+
+  .language_code {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    display: grid;
+    place-items: center;
+    border-radius: 13px;
+    background: #fff;
+    border: 1px solid var(--crm_border);
+    color: var(--crm_primary_dark);
+    font-size: 13px;
+    font-weight: 900;
+  }
+
+  .language_name {
+    display: grid;
+    gap: 4px;
+  }
+
+  .language_name strong {
+    color: var(--crm_text);
+    font-size: 14px;
+    font-weight: 900;
+  }
+
+  .language_name span {
+    color: var(--crm_muted);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .language_note {
+    padding: 14px 16px;
+    border-radius: 15px;
+    border: 1px solid rgba(37, 99, 235, .14);
+    background: rgba(37, 99, 235, .06);
+    color: var(--crm_muted);
+    font-size: 13px;
+    line-height: 1.65;
+    font-weight: 650;
+  }
+
+  .language_actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .language_save {
+    min-height: 44px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--crm_primary_dark);
+    color: #fff;
+    font-weight: 900;
+    cursor: pointer;
+  }
+
+  @media (max-width: 700px) {
+    .language_intro {
+      display: grid;
+    }
+
+    .language_choices {
+      grid-template-columns: 1fr;
+    }
+
+    .owner_badge {
+      width: fit-content;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="language_page">
+  <section class="language_card">
+    <div class="language_intro">
+      <div>
+        <h2>Workspace language</h2>
+        <p>Select English or Spanish. The complete company CRM interface changes immediately after saving.</p>
+      </div>
+      <span class="owner_badge">Company Owner</span>
+    </div>
+
+    <form class="language_form" method="post">
+      {% csrf_token %}
+
+      <div class="language_choices">
+        <div class="language_option">
+          <input
+            id="language_en"
+            type="radio"
+            name="language"
+            value="en"
+            {% if current_language == "en" %}checked{% endif %}
+          >
+          <label for="language_en">
+            <span class="language_code">EN</span>
+            <span class="language_name">
+              <strong>English</strong>
+              <span>Use the CRM in English</span>
+            </span>
+          </label>
+        </div>
+
+        <div class="language_option">
+          <input
+            id="language_es"
+            type="radio"
+            name="language"
+            value="es"
+            {% if current_language == "es" %}checked{% endif %}
+          >
+          <label for="language_es">
+            <span class="language_code">ES</span>
+            <span class="language_name">
+              <strong>Spanish</strong>
+              <span>Usar el CRM en español</span>
+            </span>
+          </label>
+        </div>
+      </div>
+
+      {% if form.language.errors %}
+        <div class="text-danger">{{ form.language.errors }}</div>
+      {% endif %}
+
+      <div class="language_note">
+        User-entered information is never translated. Client names, company names, project names, addresses, notes, products, services, codes and document numbers remain exactly as entered.
+      </div>
+
+      <div class="language_actions">
+        <button class="language_save" type="submit">Save language</button>
+      </div>
+    </form>
+  </section>
+</div>
+{% endblock %}

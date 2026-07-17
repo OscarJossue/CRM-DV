@@ -1,0 +1,162 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}{{ form_title|default:"Employee Form" }}{% endblock %}
+
+{% block page_subtitle %}
+Create or update employee profile information.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .employee_form_grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .employee_form_group {
+    display: grid;
+    gap: 8px;
+  }
+
+  .employee_form_group_full {
+    grid-column: 1 / -1;
+  }
+
+  .employee_label {
+    font-size: 13px;
+    color: var(--crm_muted);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .crm_input {
+    width: 100%;
+    min-height: 44px;
+    border: 1px solid var(--crm_border);
+    border-radius: 12px;
+    padding: 10px 12px;
+    background: #ffffff;
+    color: var(--crm_text);
+    font-size: 14px;
+    outline: none;
+  }
+
+  .crm_input:focus {
+    border-color: var(--crm_primary);
+    box-shadow: 0 0 0 4px rgba(31, 58, 138, 0.12);
+  }
+
+  .employee_error {
+    color: var(--crm_danger);
+    font-size: 13px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+
+  .employee_form_actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  @media (max-width: 768px) {
+    .employee_form_grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <div class="crm_card">
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="employee_error">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="employee_form_grid">
+        <div class="employee_form_group">
+          <label class="employee_label" for="{{ form.id_company.id_for_label }}">Company</label>
+          {{ form.id_company }}
+          {% for error in form.id_company.errors %}
+            <span class="employee_error">{{ error }}</span>
+          {% endfor %}
+        </div>
+
+        <div class="employee_form_group">
+          <label class="employee_label" for="{{ form.id_user.id_for_label }}">User Account</label>
+          {{ form.id_user }}
+          {% for error in form.id_user.errors %}
+            <span class="employee_error">{{ error }}</span>
+          {% endfor %}
+        </div>
+
+        <div class="employee_form_group">
+          <label class="employee_label" for="{{ form.identification.id_for_label }}">Identification</label>
+          {{ form.identification }}
+          {% for error in form.identification.errors %}
+            <span class="employee_error">{{ error }}</span>
+          {% endfor %}
+        </div>
+
+        <div class="employee_form_group">
+          <label class="employee_label" for="{{ form.position.id_for_label }}">Position</label>
+          {{ form.position }}
+          {% for error in form.position.errors %}
+            <span class="employee_error">{{ error }}</span>
+          {% endfor %}
+        </div>
+
+        <div class="employee_form_group">
+          <label class="employee_label" for="{{ form.category.id_for_label }}">Category</label>
+          {{ form.category }}
+          {% for error in form.category.errors %}
+            <span class="employee_error">{{ error }}</span>
+          {% endfor %}
+        </div>
+
+        <div class="employee_form_group">
+          <label class="employee_label" for="{{ form.schedule.id_for_label }}">Schedule</label>
+          {{ form.schedule }}
+          {% for error in form.schedule.errors %}
+            <span class="employee_error">{{ error }}</span>
+          {% endfor %}
+        </div>
+
+        <div class="employee_form_group">
+          <label class="employee_label" for="{{ form.hourly_rate.id_for_label }}">Hourly Rate</label>
+          {{ form.hourly_rate }}
+          {% for error in form.hourly_rate.errors %}
+            <span class="employee_error">{{ error }}</span>
+          {% endfor %}
+        </div>
+
+        <div class="employee_form_group">
+          <label class="employee_label" for="{{ form.hire_date.id_for_label }}">Hire Date</label>
+          {{ form.hire_date }}
+          {% for error in form.hire_date.errors %}
+            <span class="employee_error">{{ error }}</span>
+          {% endfor %}
+        </div>
+
+        <div class="employee_form_group employee_form_group_full">
+          <label class="employee_label" for="{{ form.status.id_for_label }}">Status</label>
+          {{ form.status }}
+          {% for error in form.status.errors %}
+            <span class="employee_error">{{ error }}</span>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="employee_form_actions">
+        <button class="crm_button" type="submit">{{ submit_label|default:"Save Employee" }}</button>
+        <a class="crm_button crm_button_secondary" href="{% url 'employees:employee_list' %}">Cancel</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

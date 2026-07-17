@@ -1,0 +1,59 @@
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+  document.querySelectorAll("[data-inline-delivery]").forEach(function(form){
+    const rows = form.querySelector("[data-inline-photo-rows]");
+    const template = form.querySelector("[data-inline-photo-template]");
+    const addButton = form.querySelector("[data-inline-add-photo]");
+    if(!rows || !template || !addButton){ return; }
+    const maximum = Number(rows.dataset.max || 0);
+    let nextIndex = 1;
+
+    function updateAddButton(){
+      addButton.hidden = rows.querySelectorAll("[data-inline-photo-row]").length >= maximum;
+    }
+
+    function addRow(){
+      if(rows.querySelectorAll("[data-inline-photo-row]").length >= maximum){ return; }
+      const index = nextIndex++;
+      const wrapper = document.createElement("div");
+      wrapper.innerHTML = template.innerHTML.replaceAll("__INDEX__", String(index)).trim();
+      const row = wrapper.firstElementChild;
+      const fileInput = row.querySelector("[data-inline-file]");
+      const cameraButton = row.querySelector("[data-inline-camera]");
+      const galleryButton = row.querySelector("[data-inline-gallery]");
+      const removeButton = row.querySelector("[data-inline-remove]");
+      const preview = row.querySelector("[data-inline-photo-preview]");
+      const fileName = row.querySelector("[data-inline-photo-name]");
+
+      cameraButton.addEventListener("click", function(){
+        fileInput.setAttribute("capture", "environment");
+        fileInput.click();
+      });
+      galleryButton.addEventListener("click", function(){
+        fileInput.removeAttribute("capture");
+        fileInput.click();
+      });
+      fileInput.addEventListener("change", function(){
+        const file = fileInput.files && fileInput.files[0];
+        if(!file){ return; }
+        fileName.textContent = file.name;
+        const objectUrl = URL.createObjectURL(file);
+        preview.src = objectUrl;
+        preview.hidden = false;
+        preview.onload = function(){ URL.revokeObjectURL(objectUrl); };
+      });
+      removeButton.addEventListener("click", function(){ row.remove(); updateAddButton(); });
+      rows.appendChild(row);
+      updateAddButton();
+    }
+
+    addButton.addEventListener("click", addRow);
+    if(maximum > 0){ addRow(); }
+
+    form.addEventListener("submit", function(){
+      const submit = form.querySelector(".inline-submit-review");
+      if(submit){ submit.disabled = true; submit.textContent = "Saving and sending…"; }
+    });
+  });
+});
+</script>

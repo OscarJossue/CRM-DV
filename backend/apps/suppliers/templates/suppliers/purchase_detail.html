@@ -1,0 +1,90 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}{{ purchase.purchase_number }}{% endblock %}
+{% block page_subtitle %}Unified company purchase detail with supplier, products, totals, payment control and documents.{% endblock %}
+{% block extra_head %}{% include "suppliers/partials/_design_system.html" %}{% endblock %}
+
+{% block content %}
+<div class="nj-invoice nj-page supplier_theme">
+  <section class="supplier_header_card">
+    <div class="supplier_title_block">
+      <span class="supplier_kicker"><i class="bi bi-receipt" aria-hidden="true"></i> Purchase detail</span>
+      <h2>{{ purchase.purchase_number }}</h2>
+      <p>{{ purchase.id_supplier.company_name }} · {{ purchase.purchase_date }} · {{ purchase.external_document_number|default:"No external reference" }}</p>
+    </div>
+    <div class="supplier_actions">
+      <a class="supplier_btn supplier_btn_secondary" href="../"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back</a>
+      {% if can_edit_suppliers %}<a class="supplier_btn" href="edit/"><i class="bi bi-pencil" aria-hidden="true"></i> Edit</a>{% endif %}
+      {% if can_create_suppliers %}<a class="supplier_btn supplier_btn_secondary" href="documents/create/"><i class="bi bi-paperclip" aria-hidden="true"></i> Add Document</a>{% endif %}
+      {% if can_approve_suppliers and purchase.status != 'cancelled' %}<form method="post" action="cancel/" class="supplier_inline_form" onsubmit="return confirm('Cancel this purchase?');">{% csrf_token %}<button class="supplier_btn supplier_btn_danger" type="submit"><i class="bi bi-x-circle" aria-hidden="true"></i> Cancel</button></form>{% endif %}
+    </div>
+  </section>
+
+  <section class="supplier_grid_2" aria-label="Purchase status">
+    <article class="supplier_panel supplier-workflow-panel">
+      <div class="supplier_title_block"><span class="supplier_kicker">Purchase workflow</span><h3>Current Purchase Status</h3></div>
+      {% include "suppliers/partials/_purchase_status_track.html" with current_status=purchase.status current_label=purchase.get_status_display detail=True %}
+    </article>
+    <article class="supplier_panel supplier-workflow-panel">
+      <div class="supplier_title_block"><span class="supplier_kicker">Payment control</span><h3>Current Payment Status</h3></div>
+      {% include "suppliers/partials/_purchase_payment_track.html" with current_status=purchase.payment_status current_label=purchase.get_payment_status_display detail=True %}
+    </article>
+  </section>
+
+  <section class="supplier_grid_4">
+    <article class="supplier_stat is-primary"><div><span>Subtotal</span><strong>${{ purchase.subtotal|floatformat:2 }}</strong></div></article>
+    <article class="supplier_stat is-warning"><div><span>Tax</span><strong>${{ purchase.tax_amount|floatformat:2 }}</strong></div></article>
+    <article class="supplier_stat is-success"><div><span>Total</span><strong>${{ purchase.total|floatformat:2 }}</strong></div></article>
+    <article class="supplier_stat {% if purchase.balance_due > 0 %}is-danger{% else %}is-success{% endif %}"><div><span>Balance</span><strong class="{% if purchase.balance_due > 0 %}red{% else %}green{% endif %}">${{ purchase.balance_due|floatformat:2 }}</strong></div></article>
+  </section>
+
+  <section class="supplier_detail_layout">
+    <main class="supplier-internal-main">
+      <section class="nj-card">
+        <div class="supplier-section-head"><div class="supplier-section-title"><span class="nj-icon-box"><i class="bi bi-cart-check" aria-hidden="true"></i></span><div><h2>Purchase information</h2><p>Supplier, reference, category and internal description.</p></div></div></div>
+        <div class="supplier-section-body">
+          <div class="supplier_info_grid">
+            <div class="supplier_info_box"><span>Supplier</span><strong>{{ purchase.id_supplier.company_name }}</strong></div>
+            <div class="supplier_info_box"><span>Reference</span><strong>{{ purchase.external_document_number|default:"—" }}</strong></div>
+            <div class="supplier_info_box"><span>Category</span><strong>{{ purchase.get_category_display|default:purchase.category|default:"—" }}</strong></div>
+            <div class="supplier_info_box"><span>Purchase Date</span><strong>{{ purchase.purchase_date }}</strong></div>
+            <div class="supplier_info_box" style="grid-column:1/-1;"><span>Description</span><strong>{{ purchase.description|default:"—" }}</strong></div>
+            <div class="supplier_info_box" style="grid-column:1/-1;"><span>Notes</span><strong>{{ purchase.notes|default:"—" }}</strong></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <aside class="supplier-internal-side">
+      <section class="nj-card">
+        <div class="nj-card-head"><h2 class="nj-card-title"><i class="bi bi-calculator" aria-hidden="true"></i> Financial summary</h2></div>
+        <div class="nj-card-body">
+          <div class="supplier_summary">
+            <div class="supplier_summary_box"><span>Subtotal</span><strong>${{ purchase.subtotal|floatformat:2 }}</strong></div>
+            <div class="supplier_summary_box"><span>Tax</span><strong>${{ purchase.tax_amount|floatformat:2 }}</strong></div>
+            <div class="supplier_summary_box"><span>Discount</span><strong>${{ purchase.discount_amount|floatformat:2 }}</strong></div>
+            <div class="supplier_summary_box"><span>Total</span><strong>${{ purchase.total|floatformat:2 }}</strong></div>
+            <div class="supplier_summary_box"><span>Paid</span><strong>${{ purchase.paid_amount|floatformat:2 }}</strong></div>
+            <div class="supplier_summary_box"><span>Balance</span><strong>${{ purchase.balance_due|floatformat:2 }}</strong></div>
+          </div>
+        </div>
+      </section>
+    </aside>
+  </section>
+
+  <section class="nj-card">
+    <div class="supplier-section-head"><div class="supplier-section-title"><span class="nj-icon-box is-violet"><i class="bi bi-list-check" aria-hidden="true"></i></span><div><h2>Products purchased</h2><p>Quantity, unit cost, tax and line total.</p></div></div></div>
+    <div class="supplier_table_wrap">
+      <table class="supplier_table">
+        <thead><tr><th>Product</th><th>Description</th><th>Qty</th><th>Unit</th><th>Unit Cost</th><th>Tax</th><th>Total</th></tr></thead>
+        <tbody>{% for item in purchase.items.all %}<tr><td data-label="Product"><div class="supplier_name"><strong>{{ item.item_name }}</strong><span>{% if item.id_offer.product_code %}{{ item.id_offer.product_code }}{% else %}Product{% endif %}</span></div></td><td data-label="Description">{{ item.description|default:"—" }}</td><td data-label="Qty">{{ item.quantity|floatformat:2 }}</td><td data-label="Unit">{{ item.unit|default:"—" }}</td><td data-label="Unit Cost" class="supplier_money">${{ item.unit_price|floatformat:2 }}</td><td data-label="Tax" class="supplier_money">${{ item.tax_amount|floatformat:2 }}</td><td data-label="Total" class="supplier_money">${{ item.total|floatformat:2 }}</td></tr>{% empty %}<tr><td colspan="7"><div class="supplier_empty">No items found.</div></td></tr>{% endfor %}</tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="nj-card">
+    <div class="supplier-section-head"><div class="supplier-section-title"><span class="nj-icon-box is-warning"><i class="bi bi-paperclip" aria-hidden="true"></i></span><div><h2>Attachments</h2><p>Receipts, supplier invoices, quotes and other documents.</p></div></div>{% if can_create_suppliers %}<a class="supplier_btn supplier_btn_secondary" href="documents/create/"><i class="bi bi-cloud-arrow-up" aria-hidden="true"></i> Upload Document</a>{% endif %}</div>
+    <div class="supplier_table_wrap"><table class="supplier_table"><thead><tr><th>Title</th><th>Type</th><th>Date</th><th>File</th><th>Actions</th></tr></thead><tbody>{% for document in purchase_documents %}<tr><td data-label="Title">{{ document.title }}</td><td data-label="Type">{{ document.get_document_type_display }}</td><td data-label="Date">{{ document.created_at|date:"Y-m-d" }}</td><td data-label="File"><a class="supplier_btn supplier_btn_secondary" href="{{ document.file.url }}" target="_blank"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i> Open</a></td><td data-label="Actions"><div class="supplier_icon_actions">{% if can_delete_suppliers %}<form method="post" action="../../documents/{{ document.id_supplier_document }}/delete/" class="supplier_inline_form" onsubmit="return confirm('Delete this document?');">{% csrf_token %}<button class="supplier_icon_action supplier_icon_danger" type="submit" data-tooltip="Delete" aria-label="Delete document"><i class="bi bi-trash3" aria-hidden="true"></i><span>Delete</span></button></form>{% endif %}</div></td></tr>{% empty %}<tr><td colspan="5"><div class="supplier_empty">No documents attached.</div></td></tr>{% endfor %}</tbody></table></div>
+  </section>
+</div>
+{% endblock %}

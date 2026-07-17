@@ -1,0 +1,170 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}{{ employee.full_name }}{% endblock %}
+
+{% block page_subtitle %}
+Employee profile, user account, work information and status.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .employee_detail_grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .employee_detail_item {
+    display: grid;
+    gap: 8px;
+    padding: 16px;
+    border: 1px solid var(--crm_border);
+    border-radius: 14px;
+    background: #ffffff;
+    min-width: 0;
+  }
+
+  .employee_detail_label {
+    color: var(--crm_muted);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .employee_detail_value {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--crm_text);
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .employee_status {
+    display: inline-flex;
+    width: fit-content;
+    min-height: 32px;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    border: 1px solid var(--crm_border);
+  }
+
+  .employee_status_active {
+    color: var(--crm_success);
+    background: rgba(15, 118, 110, 0.08);
+  }
+
+  .employee_status_inactive {
+    color: var(--crm_danger);
+    background: rgba(185, 28, 28, 0.08);
+  }
+
+  .employee_detail_actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 18px;
+  }
+
+  .employee_inline_form {
+    margin: 0;
+  }
+
+  @media (max-width: 1100px) {
+    .employee_detail_grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 680px) {
+    .employee_detail_grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <section class="crm_card">
+    <h2 class="crm_section_title">Employee Information</h2>
+
+    <div class="employee_detail_grid">
+      <div class="employee_detail_item">
+        <span class="employee_detail_label">Name</span>
+        <span class="employee_detail_value">{{ employee.full_name }}</span>
+      </div>
+
+      <div class="employee_detail_item">
+        <span class="employee_detail_label">Email</span>
+        <span class="employee_detail_value">{{ employee.id_user.email }}</span>
+      </div>
+
+      <div class="employee_detail_item">
+        <span class="employee_detail_label">Company</span>
+        <span class="employee_detail_value">{{ employee.id_company.name }}</span>
+      </div>
+
+      <div class="employee_detail_item">
+        <span class="employee_detail_label">Identification</span>
+        <span class="employee_detail_value">{{ employee.identification|default:"No identification" }}</span>
+      </div>
+
+      <div class="employee_detail_item">
+        <span class="employee_detail_label">Position</span>
+        <span class="employee_detail_value">{{ employee.position|default:"No position" }}</span>
+      </div>
+
+      <div class="employee_detail_item">
+        <span class="employee_detail_label">Category</span>
+        <span class="employee_detail_value">{{ employee.category|default:"No category" }}</span>
+      </div>
+
+      <div class="employee_detail_item">
+        <span class="employee_detail_label">Schedule</span>
+        <span class="employee_detail_value">{{ employee.schedule|default:"No schedule" }}</span>
+      </div>
+
+      <div class="employee_detail_item">
+        <span class="employee_detail_label">Hourly Rate</span>
+        <span class="employee_detail_value">{% if employee.hourly_rate %}${{ employee.hourly_rate }}{% else %}No rate{% endif %}</span>
+      </div>
+
+      <div class="employee_detail_item">
+        <span class="employee_detail_label">Hire Date</span>
+        <span class="employee_detail_value">{{ employee.hire_date|date:"Y-m-d"|default:"No hire date" }}</span>
+      </div>
+
+      <div class="employee_detail_item">
+        <span class="employee_detail_label">Status</span>
+        <span class="employee_status employee_status_{{ employee.status }}">
+          {{ employee.get_status_display }}
+        </span>
+      </div>
+    </div>
+
+    <div class="employee_detail_actions">
+      <a class="crm_button crm_button_secondary" href="{% url 'employees:employee_list' %}">Back</a>
+
+      {% if can_edit_employees %}
+        <a class="crm_button" href="{% url 'employees:employee_update' employee.id_employee %}">Edit Employee</a>
+
+        {% if employee.status == "active" %}
+          <form class="employee_inline_form" method="post" action="{% url 'employees:employee_deactivate' employee.id_employee %}">
+            {% csrf_token %}
+            <button class="crm_button crm_button_secondary" type="submit">Deactivate</button>
+          </form>
+        {% else %}
+          <form class="employee_inline_form" method="post" action="{% url 'employees:employee_activate' employee.id_employee %}">
+            {% csrf_token %}
+            <button class="crm_button" type="submit">Activate</button>
+          </form>
+        {% endif %}
+      {% endif %}
+    </div>
+  </section>
+{% endblock %}

@@ -1,0 +1,210 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}{{ form_title|default:"Company Form" }}{% endblock %}
+
+{% block page_subtitle %}
+Update company profile information and SaaS plan. Renewal dates are calculated automatically from the selected plan.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .company_form_grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .company_form_group {
+    display: grid;
+    gap: 8px;
+  }
+
+  .company_form_group_full {
+    grid-column: 1 / -1;
+  }
+
+  .company_section_break {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: 6px;
+    padding: 16px;
+    border: 1px solid rgba(31, 58, 138, .18);
+    border-radius: 16px;
+    background: rgba(31, 58, 138, .06);
+  }
+
+  .company_section_break h2 {
+    margin: 0;
+    color: var(--crm_text);
+    font-size: 18px;
+    font-weight: 900;
+  }
+
+  .company_section_break p {
+    margin: 0;
+    color: var(--crm_muted);
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  .company_label {
+    font-size: 13px;
+    color: var(--crm_text);
+    font-weight: 900;
+    overflow-wrap: anywhere;
+  }
+
+  .crm_input {
+    width: 100%;
+    min-height: 44px;
+    border: 1px solid var(--crm_border);
+    border-radius: 12px;
+    padding: 10px 12px;
+    background: #ffffff;
+    color: var(--crm_text);
+    font-size: 14px;
+    outline: none;
+  }
+
+  textarea.crm_input {
+    min-height: 110px;
+    resize: vertical;
+  }
+
+  .crm_input:focus {
+    border-color: var(--crm_primary);
+    box-shadow: 0 0 0 4px rgba(31, 58, 138, .12);
+  }
+
+  .company_error {
+    color: var(--crm_danger);
+    font-size: 13px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+
+  .company_current_logo {
+    width: 160px;
+    max-width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: contain;
+    border: 1px solid var(--crm_border);
+    border-radius: 12px;
+    background: #ffffff;
+    padding: 10px;
+  }
+
+  .company_help_text {
+    color: var(--crm_muted);
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  .company_temp_notice {
+    padding: 12px;
+    border: 1px solid rgba(31, 58, 138, .18);
+    border-radius: 12px;
+    background: rgba(31, 58, 138, .06);
+    color: var(--crm_primary);
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  .company_form_actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  @media (max-width: 768px) {
+    .company_form_grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="crm_card">
+  <form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+
+    <input type="hidden" name="logo_temp_token" value="{{ logo_temp_token|default:'' }}">
+
+    {% if form.non_field_errors %}
+      <div class="company_error">
+        {{ form.non_field_errors }}
+      </div>
+    {% endif %}
+
+    <div class="company_form_grid">
+      {% for field in form.visible_fields %}
+
+        {% if field.name == "name" %}
+          <div class="company_section_break">
+            <h2>Company Profile</h2>
+            <p>General company information used by the SaaS platform.</p>
+          </div>
+        {% endif %}
+
+        {% if field.name == "id_plan" %}
+          <div class="company_section_break">
+            <h2>SaaS Subscription</h2>
+            <p>Select the plan. The company user limit and renewal date are updated automatically.</p>
+          </div>
+        {% endif %}
+
+        {% if field.name == "owner_first_name" %}
+          <div class="company_section_break">
+            <h2>Company Administrator</h2>
+            <p>Manage the primary administrator directly from the company. This account has full access only inside this company workspace.</p>
+          </div>
+        {% endif %}
+
+        <div class="company_form_group {% if field.name == 'description' or field.name == 'address' or field.name == 'subscription_notes' %}company_form_group_full{% endif %}">
+          <label class="company_label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+
+          {% if field.name == "logo" %}
+            {% if temp_logo_url %}
+              <img class="company_current_logo" src="{{ temp_logo_url }}" alt="Temporary company logo preview">
+              <div class="company_temp_notice">
+                Logo uploaded temporarily: {{ temp_logo_name }}. It will be saved when the form is completed correctly.
+              </div>
+            {% elif company and company.logo %}
+              <img class="company_current_logo" src="{{ company.logo.url }}" alt="{{ company.name }} logo">
+              <span class="company_help_text">Current logo. Upload a new image only if you want to replace it.</span>
+            {% endif %}
+          {% endif %}
+
+          {{ field }}
+
+          {% if field.name == "logo" %}
+            <span class="company_help_text">Recommended: horizontal logo, less than 3MB.</span>
+          {% endif %}
+
+          {% if field.name == "owner_password1" %}
+            <span class="company_help_text">Leave empty to keep the current password. A password is required only when creating a missing administrator.</span>
+          {% endif %}
+
+          {% if field.name == "owner_password2" %}
+            <span class="company_help_text">Repeat the same password to confirm the change.</span>
+          {% endif %}
+
+          {% for error in field.errors %}
+            <span class="company_error">{{ error }}</span>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="company_form_actions">
+      <button class="crm_button" type="submit">{{ submit_label|default:"Save" }}</button>
+      <a class="crm_button crm_button_secondary" href="{% url 'companies:company_list' %}">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

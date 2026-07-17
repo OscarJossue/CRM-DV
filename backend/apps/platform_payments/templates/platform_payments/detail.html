@@ -1,0 +1,277 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}{{ payment.payment_number }}{% endblock %}
+
+{% block page_subtitle %}
+SaaS payment recorded for {{ payment.id_company.name }}.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .pay_detail {
+    display: grid;
+    gap: 18px;
+  }
+
+  .pay_hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 18px;
+    align-items: start;
+    padding: 24px;
+    border: 1px solid var(--crm_border);
+    border-radius: 22px;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(15, 118, 110, 0.12), transparent 32%),
+      #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .pay_badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .pay_badge {
+    display: inline-flex;
+    width: fit-content;
+    min-height: 30px;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    border: 1px solid var(--crm_border);
+    border-radius: 10px;
+    background: rgba(31, 58, 138, .08);
+    color: var(--crm_primary);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .pay_title {
+    margin: 10px 0 0;
+    color: var(--crm_text);
+    font-size: clamp(28px, 4vw, 42px);
+    line-height: 1.08;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+  }
+
+  .pay_text {
+    margin: 8px 0 0;
+    color: var(--crm_muted);
+    font-size: 14px;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+  }
+
+  .pay_grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, .7fr);
+    gap: 18px;
+    align-items: start;
+  }
+
+  .pay_info_grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .pay_panel {
+    display: grid;
+    gap: 8px;
+    padding: 18px;
+    border: 1px solid var(--crm_border);
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: var(--crm_shadow);
+    min-width: 0;
+  }
+
+  .pay_panel span {
+    color: var(--crm_muted);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .pay_panel strong,
+  .pay_panel p {
+    margin: 0;
+    color: var(--crm_text);
+    font-size: 14px;
+    line-height: 1.6;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+  }
+
+  .pay_amount {
+    color: var(--crm_primary);
+    font-size: 34px;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .pay_side {
+    display: grid;
+    gap: 14px;
+  }
+
+  .pay_inline_form {
+    margin: 0;
+  }
+
+  .pay_panel_actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 8px;
+  }
+
+  .pay_link {
+    color: var(--crm_primary);
+    font-size: 13px;
+    font-weight: 900;
+  }
+
+  @media (max-width: 980px) {
+    .pay_hero,
+    .pay_grid {
+      grid-template-columns: 1fr;
+    }
+
+    .pay_info_grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <section class="pay_detail">
+    <div class="pay_hero">
+      <div>
+        <div class="pay_badges">
+          <span class="pay_badge">{{ payment.get_status_display }}</span>
+          <span class="pay_badge">{{ payment.get_method_display }}</span>
+        </div>
+
+        <h2 class="pay_title">{{ payment.payment_number }}</h2>
+
+        <p class="pay_text">
+          Payment recorded for {{ payment.id_company.name }} in the CEO MARKETING SaaS administration layer.
+        </p>
+      </div>
+
+      <div class="crm_actions">
+        <a class="crm_button" href="{% url 'platform_payments:update' payment.id_payment %}">Edit</a>
+
+        {% if payment.status != "paid" %}
+          <form class="pay_inline_form" method="post" action="{% url 'platform_payments:mark_paid' payment.id_payment %}">
+            {% csrf_token %}
+            <button class="crm_button crm_button_secondary" type="submit">Mark Paid</button>
+          </form>
+        {% endif %}
+
+        {% if payment.status != "void" %}
+          <form class="pay_inline_form" method="post" action="{% url 'platform_payments:void' payment.id_payment %}">
+            {% csrf_token %}
+            <button class="crm_button crm_button_secondary" type="submit">Void</button>
+          </form>
+        {% endif %}
+
+        <a class="crm_button crm_button_secondary" href="{% url 'platform_payments:list' %}">Back</a>
+      </div>
+    </div>
+
+    <div class="pay_grid">
+      <div class="crm_card">
+        <h2 class="crm_section_title">Payment Information</h2>
+
+        <div class="pay_info_grid">
+          <article class="pay_panel">
+            <span>Amount</span>
+            <strong class="pay_amount">${{ payment.amount }}</strong>
+          </article>
+
+          <article class="pay_panel">
+            <span>Payment Date</span>
+            <strong>{{ payment.payment_date|default:"No date" }}</strong>
+          </article>
+
+          <article class="pay_panel">
+            <span>Reference</span>
+            <strong>{{ payment.reference|default:"No reference" }}</strong>
+          </article>
+
+          <article class="pay_panel">
+            <span>Received By</span>
+            <strong>{{ payment.received_by.email|default:"Not assigned" }}</strong>
+          </article>
+
+          <article class="pay_panel">
+            <span>Created At</span>
+            <strong>{{ payment.created_at|date:"Y-m-d H:i" }}</strong>
+          </article>
+
+          <article class="pay_panel">
+            <span>Updated At</span>
+            <strong>{{ payment.updated_at|date:"Y-m-d H:i" }}</strong>
+          </article>
+
+          <article class="pay_panel" style="grid-column:1 / -1;">
+            <span>Notes</span>
+            <p>{{ payment.notes|default:"No internal notes added." }}</p>
+          </article>
+        </div>
+      </div>
+
+      <aside class="pay_side">
+        <div class="pay_panel">
+          <span>Company</span>
+          <strong>{{ payment.id_company.name }}</strong>
+          <p>/{{ payment.id_company.slug }}/</p>
+        </div>
+
+        <div class="pay_panel">
+          <span>Subscription</span>
+
+          {% if payment.id_subscription %}
+            <strong>#{{ payment.id_subscription.id_subscription }}</strong>
+            <p>{{ payment.id_subscription.get_status_display }}</p>
+          {% else %}
+            <p>No subscription linked.</p>
+          {% endif %}
+        </div>
+
+        <div class="pay_panel">
+          <span>SaaS Document</span>
+
+          {% if payment.id_document %}
+            <strong>{{ payment.id_document.document_number }}</strong>
+            <p>{{ payment.id_document.get_document_type_display }} · {{ payment.id_document.get_status_display }}</p>
+
+            <div class="pay_panel_actions">
+              <a class="pay_link" href="{% url 'platform_documents:detail' payment.id_document.id_document %}">
+                Open Document
+              </a>
+
+              {% if payment.status == "paid" and payment.id_document.document_type == "proforma" and payment.id_document.status == "paid" %}
+                <form method="post" action="{% url 'platform_documents:generate_invoice' payment.id_document.id_document %}" style="margin:0;">
+                  {% csrf_token %}
+                  <button class="crm_button crm_button_secondary" type="submit">
+                    Generate Invoice
+                  </button>
+                </form>
+              {% endif %}
+            </div>
+          {% else %}
+            <p>No document linked.</p>
+          {% endif %}
+        </div>
+      </aside>
+    </div>
+  </section>
+{% endblock %}

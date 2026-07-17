@@ -1,0 +1,70 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}{{ form_title }}{% endblock %}
+{% block page_subtitle %}Register or update products and services using the unified internal invoice standard.{% endblock %}
+{% block extra_head %}{% include "suppliers/partials/_design_system.html" %}{% endblock %}
+
+{% block content %}
+<div class="nj-invoice nj-page supplier_theme">
+  <header class="nj-page-head">
+    <div>
+      <span class="nj-page-kicker"><i class="bi bi-box-seam" aria-hidden="true"></i> Product workflow</span>
+      <h1 class="nj-page-title">{{ form_title }}</h1>
+      <p class="nj-page-subtitle">Connect the product or service to a supplier and define its code, category, unit and reference cost.</p>
+    </div>
+    <div class="nj-head-actions">
+      <a class="nj-btn nj-btn-secondary" href="{{ cancel_url }}"><i class="bi bi-x-lg" aria-hidden="true"></i> Cancel</a>
+      <button class="nj-btn" type="submit" form="SupplierOfferForm"><i class="bi bi-check2-square" aria-hidden="true"></i> {{ submit_label }}</button>
+    </div>
+  </header>
+
+  {% if form.non_field_errors %}<div class="nj-alert" role="alert"><i class="bi bi-exclamation-triangle"></i><div>{{ form.non_field_errors }}</div></div>{% endif %}
+
+  <form id="SupplierOfferForm" method="post" novalidate>
+    {% csrf_token %}
+    <div class="supplier-internal-layout">
+      <main class="supplier-internal-main">
+        {% if supplier %}
+          <div class="supplier-source-banner"><i class="bi bi-truck"></i><div><strong>Supplier-linked product</strong><span>This product will be registered under {{ supplier.company_name }}.</span></div></div>
+        {% endif %}
+        <section class="nj-card">
+          <div class="supplier-section-head"><div class="supplier-section-title"><span class="nj-icon-box"><i class="bi bi-box-seam"></i></span><div><h2>Product information</h2><p>Core identification and supplier relationship.</p></div></div></div>
+          <div class="supplier-section-body">
+            <div class="supplier_form_grid">
+              {% if form.id_supplier.is_hidden %}{{ form.id_supplier }}{% else %}<div class="supplier_form_field"><label class="nj-required" for="{{ form.id_supplier.id_for_label }}">Supplier</label>{{ form.id_supplier }}{% for error in form.id_supplier.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</div>{% endif %}
+              <div class="supplier_form_field span_2"><label class="nj-required" for="{{ form.name.id_for_label }}">Product or Service Name</label>{{ form.name }}{% for error in form.name.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</div>
+              <div class="supplier_form_field"><label for="{{ form.product_code.id_for_label }}">Product Code</label>{{ form.product_code }}{% for error in form.product_code.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</div>
+              <div class="supplier_form_field"><label for="{{ form.category.id_for_label }}">Category</label>{{ form.category }}{% for error in form.category.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</div>
+              <div class="supplier_form_field"><label for="{{ form.unit.id_for_label }}">Unit</label>{{ form.unit }}{% for error in form.unit.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</div>
+              <div class="supplier_form_field"><label for="{{ form.estimated_price.id_for_label }}">Reference Cost</label>{{ form.estimated_price }}{% for error in form.estimated_price.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</div>
+              <div class="supplier_form_field"><label for="{{ form.status.id_for_label }}">Status</label>{{ form.status }}{% for error in form.status.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="nj-card">
+          <div class="supplier-section-head"><div class="supplier-section-title"><span class="nj-icon-box is-violet"><i class="bi bi-card-text"></i></span><div><h2>Description and notes</h2><p>Operational detail used when this product is added to a purchase.</p></div></div></div>
+          <div class="supplier-section-body">
+            <div class="supplier_form_grid">
+              <div class="supplier_form_field span_3"><label for="{{ form.description.id_for_label }}">Description</label>{{ form.description }}{% for error in form.description.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</div>
+              <div class="supplier_form_field span_3"><label for="{{ form.notes.id_for_label }}">Internal Notes</label>{{ form.notes }}{% for error in form.notes.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <aside class="supplier-internal-side">
+        <section class="nj-card">
+          <div class="nj-card-head"><h2 class="nj-card-title"><i class="bi bi-info-circle"></i> Product summary</h2></div>
+          <div class="nj-card-body supplier-side-list">
+            <div class="supplier-side-row"><i class="bi bi-truck"></i><div><span>Supplier</span><strong>{% if supplier %}{{ supplier.company_name }}{% else %}Selected in the form{% endif %}</strong></div></div>
+            <div class="supplier-side-row"><i class="bi bi-currency-dollar"></i><div><span>Reference cost</span><strong>Editable in every purchase</strong></div></div>
+            <div class="supplier-side-row"><i class="bi bi-receipt"></i><div><span>Usage</span><strong>Available in supplier purchases</strong></div></div>
+          </div>
+        </section>
+        <button class="nj-btn" type="submit"><i class="bi bi-check2-square"></i> {{ submit_label }}</button>
+      </aside>
+    </div>
+  </form>
+</div>
+{% endblock %}

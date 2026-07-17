@@ -1,0 +1,193 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Platform Users{% endblock %}
+
+{% block page_subtitle %}
+Manage internal CEO MARKETING staff users and their SaaS administration permissions.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .platform_users_page {
+    display: grid;
+    gap: 18px;
+  }
+
+  .platform_users_top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    border: 1px solid var(--crm_border);
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .platform_users_top h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--crm_text);
+    overflow-wrap: anywhere;
+  }
+
+  .platform_users_top p {
+    margin: 6px 0 0;
+    color: var(--crm_muted);
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+
+  .platform_users_table_wrap {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .platform_users_table {
+    width: 100%;
+    min-width: 900px;
+    border-collapse: collapse;
+  }
+
+  .platform_users_table th,
+  .platform_users_table td {
+    padding: 14px 12px;
+    border-bottom: 1px solid var(--crm_border);
+    text-align: left;
+    vertical-align: top;
+    font-size: 14px;
+  }
+
+  .platform_users_table th {
+    color: var(--crm_muted);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .platform_user_name {
+    font-weight: 900;
+    color: var(--crm_text);
+    overflow-wrap: anywhere;
+  }
+
+  .platform_user_muted {
+    color: var(--crm_muted);
+    overflow-wrap: anywhere;
+  }
+
+  .platform_user_badge {
+    display: inline-flex;
+    min-height: 30px;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    border: 1px solid var(--crm_border);
+    border-radius: 10px;
+    color: var(--crm_primary);
+    background: rgba(31, 58, 138, 0.08);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .platform_user_actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .platform_user_link {
+    color: var(--crm_primary);
+    font-weight: 900;
+    font-size: 13px;
+  }
+
+  .platform_user_empty {
+    padding: 24px;
+    text-align: center;
+    color: var(--crm_muted);
+  }
+
+  @media (max-width: 760px) {
+    .platform_users_top {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="platform_users_page">
+  <div class="platform_users_top">
+    <div>
+      <h2>Internal Platform Users</h2>
+      <p>
+        These users belong to the internal CEO MARKETING SaaS workspace. Permissions are assigned directly to each user.
+      </p>
+    </div>
+
+    <div class="crm_actions">
+      <a class="crm_button" href="{% url 'platform_users:user_create' %}">Create Platform User</a>
+    </div>
+  </div>
+
+  <div class="crm_card">
+    <div class="platform_users_table_wrap">
+      <table class="platform_users_table">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Status</th>
+            <th>Active Login</th>
+            <th>Permissions</th>
+            <th>Created</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for platform_user in platform_users %}
+          <tr>
+            <td>
+              <div class="platform_user_name">
+                {{ platform_user.first_name }} {{ platform_user.last_name|default:"" }}
+              </div>
+              <div class="platform_user_muted">{{ platform_user.email }}</div>
+            </td>
+
+            <td>
+              <span class="platform_user_badge">{{ platform_user.get_status_display }}</span>
+            </td>
+
+            <td>{% if platform_user.is_active %}Yes{% else %}No{% endif %}</td>
+
+            <td>{{ platform_user.platform_permissions.all|length }} modules</td>
+
+            <td>{{ platform_user.created_at|date:"Y-m-d" }}</td>
+
+            <td>
+              <div class="platform_user_actions">
+                <a class="platform_user_link" href="{% url 'platform_users:user_detail' platform_user.id_user %}">View</a>
+                <a class="platform_user_link" href="{% url 'platform_users:user_update' platform_user.id_user %}">Edit</a>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td class="platform_user_empty" colspan="6">
+              No internal platform users found.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}

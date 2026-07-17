@@ -1,0 +1,11 @@
+{% extends "layouts/base.html" %}
+{% block page_title %}Upload to Drive{% endblock %}
+{% block page_subtitle %}Upload a CRM file into Google Drive.{% endblock %}
+{% block extra_head %}{% include "integrations/partials/_design_system.html" %}{% endblock %}
+{% block content %}
+<form class="account_theme integration_theme account_form" method="post" enctype="multipart/form-data">{% csrf_token %}
+  <div class="account_toolbar"><div class="account_toolbar_title"><h2>Upload to Drive</h2><p>The file is saved in the CRM and sent to Google Drive using the connected account.</p></div><a class="account_button account_button_secondary" href="../">Cancel</a></div>
+  <section class="crm_card"><div class="integration_form_grid">{% for field in form %}<div class="integration_form_field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.errors %}<div class="integration_error">{{ field.errors }}</div>{% endif %}</div>{% endfor %}</div></section>
+  <section class="crm_card"><button class="account_button" type="submit"><svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg> Upload</button></section>
+</form>
+{% endblock %}

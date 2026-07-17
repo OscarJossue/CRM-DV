@@ -1,0 +1,1078 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ page_title|default:"Contract Preview" }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #f3f6fb;
+            color: #111827;
+            font-family: Arial, sans-serif;
+        }
+
+        .public-shell {
+            width: 100%;
+            min-height: 100vh;
+            padding: 4% 5%;
+        }
+
+        .contract-card {
+            width: 100%;
+            max-width: 1080px;
+            margin: 0 auto;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 24px;
+            box-shadow: 0 24px 70px rgba(15, 23, 42, .10);
+            overflow: hidden;
+        }
+
+        .contract-header {
+            padding: 34px;
+            background: linear-gradient(135deg, #0f172a, #1d4ed8);
+            color: #ffffff;
+        }
+
+        .contract-header h1 {
+            margin: 0;
+            font-size: clamp(28px, 4vw, 44px);
+            font-weight: 800;
+            letter-spacing: -0.04em;
+        }
+
+        .contract-header p {
+            margin: 10px 0 0;
+            opacity: .9;
+            font-size: 16px;
+        }
+
+        .contract-body {
+            padding: 34px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 22px;
+            margin-bottom: 28px;
+        }
+
+        .info-box {
+            border: 1px solid #e5e7eb;
+            border-radius: 18px;
+            padding: 22px;
+            background: #fbfdff;
+        }
+
+        .info-box h3 {
+            margin: 0 0 14px;
+            font-size: 18px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .info-box p {
+            margin: 0 0 8px;
+            color: #374151;
+            font-size: 15px;
+            line-height: 1.55;
+        }
+
+        .section-box {
+            border: 1px solid #e5e7eb;
+            border-radius: 18px;
+            padding: 24px;
+            margin-bottom: 22px;
+            background: #ffffff;
+        }
+
+        .section-box h2 {
+            margin: 0 0 12px;
+            font-size: 22px;
+            font-weight: 800;
+            color: #111827;
+        }
+
+        .section-box p {
+            margin: 0;
+            color: #374151;
+            line-height: 1.7;
+            white-space: pre-line;
+        }
+
+        .total-box {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            align-items: center;
+            border-radius: 20px;
+            padding: 24px;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            margin-bottom: 24px;
+        }
+
+        .total-box span {
+            font-size: 15px;
+            color: #1e3a8a;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+
+        .total-box strong {
+            font-size: clamp(26px, 4vw, 40px);
+            color: #0f172a;
+            font-weight: 900;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 14px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 800;
+            text-transform: uppercase;
+            background: #e5e7eb;
+            color: #111827;
+        }
+
+        .status-approved {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-signed {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            justify-content: flex-end;
+            padding: 28px 34px;
+            border-top: 1px solid #e5e7eb;
+            background: #f9fafb;
+        }
+
+        .btn-main {
+            border: none;
+            border-radius: 999px;
+            padding: 13px 24px;
+            font-weight: 800;
+        }
+
+        .btn-approve {
+            background: #16a34a;
+            color: #ffffff;
+        }
+
+        .btn-approve:hover {
+            background: #15803d;
+            color: #ffffff;
+        }
+
+        .btn-reject {
+            background: #dc2626;
+            color: #ffffff;
+        }
+
+        .btn-reject:hover {
+            background: #b91c1c;
+            color: #ffffff;
+        }
+
+        .btn-secondary-soft {
+            background: #e5e7eb;
+            color: #111827;
+        }
+
+        .alert-custom {
+            max-width: 1080px;
+            margin: 0 auto 20px;
+            border-radius: 18px;
+        }
+
+        @media (max-width: 768px) {
+            .public-shell {
+                padding: 20px;
+            }
+
+            .contract-header,
+            .contract-body,
+            .actions {
+                padding: 24px;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .total-box {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .actions {
+                justify-content: stretch;
+            }
+
+            .actions .btn {
+                width: 100%;
+            }
+        }
+
+        .public_modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 22px;
+    background: rgba(15, 23, 42, .62);
+}
+
+.public_modal.is_open {
+    display: flex;
+}
+
+.public_modal_card {
+    width: 100%;
+    max-width: 520px;
+    background: #ffffff;
+    border-radius: 22px;
+    overflow: hidden;
+    box-shadow: 0 30px 90px rgba(15, 23, 42, .30);
+}
+
+.public_modal_header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 22px 24px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.public_modal_header h3 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 900;
+    color: #0f172a;
+}
+
+.public_modal_close {
+    border: none;
+    background: #f3f4f6;
+    color: #111827;
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.public_modal_body {
+    padding: 24px;
+}
+
+.public_modal_body p {
+    margin: 0;
+    color: #374151;
+    line-height: 1.6;
+}
+
+.public_modal_body label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 800;
+    color: #111827;
+}
+
+.public_modal_body textarea {
+    width: 100%;
+    min-height: 130px;
+    border: 1px solid #d1d5db;
+    border-radius: 14px;
+    padding: 12px;
+    resize: vertical;
+    font: inherit;
+}
+
+.public_modal_footer {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 18px 24px 24px;
+}
+
+.public_btn_plain {
+    border: none;
+    border-radius: 999px;
+    padding: 12px 18px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.public_btn_gray {
+    background: #e5e7eb;
+    color: #111827;
+}
+
+.public_btn_green {
+    background: #16a34a;
+    color: #ffffff;
+}
+
+.public_btn_red {
+    background: #dc2626;
+    color: #ffffff;
+}
+
+@media (max-width: 640px) {
+    .public_modal_footer button {
+        width: 100%;
+    }
+}
+
+
+
+.public_modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 22px;
+}
+
+.public_modal.is_open {
+  display: flex;
+}
+
+.public_modal_overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.68);
+}
+
+.public_modal_box {
+  position: relative;
+  width: min(720px, 100%);
+  background: #ffffff;
+  border-radius: 22px;
+  padding: 28px;
+  box-shadow: 0 30px 90px rgba(15, 23, 42, 0.35);
+  z-index: 2;
+}
+
+.public_modal_box h3 {
+  margin: 0 0 10px;
+  font-size: 28px;
+  color: #111827;
+}
+
+.public_modal_box p {
+  margin: 0 0 18px;
+  color: #4b5563;
+  line-height: 1.6;
+}
+
+.public_modal_close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #111827;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.signature_canvas_wrap {
+  width: 100%;
+  background: #f9fafb;
+  border: 2px dashed #cbd5e1;
+  border-radius: 16px;
+  overflow: hidden;
+  margin: 16px 0;
+}
+
+#signatureCanvas {
+  width: 100%;
+  height: 220px;
+  display: block;
+  background: #ffffff;
+  cursor: crosshair;
+}
+
+.signature_actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.public_action_btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 12px 22px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.public_action_primary {
+  background: #1f3a8a;
+  color: #ffffff;
+}
+
+.public_action_secondary {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+@media (max-width: 640px) {
+  .public_modal_box {
+    padding: 22px;
+  }
+
+  .signature_actions {
+    justify-content: stretch;
+  }
+
+  .signature_actions button {
+    width: 100%;
+  }
+}
+
+#signatureCanvas {
+  width: 100%;
+  height: 220px;
+  display: block;
+  background: #ffffff;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.public_evidence_grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 16px;
+}
+
+.public_evidence_item {
+    margin: 0;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.public_evidence_item img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+}
+
+@media (max-width: 780px) {
+    .public_evidence_grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .public_evidence_item img {
+        height: 140px;
+    }
+}
+
+.public_legal_text {
+    text-align: justify;
+    line-height: 1.7;
+    white-space: normal;
+}
+
+.public_signature_box {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 18px;
+    align-items: center;
+}
+
+.public_signature_image {
+    width: 100%;
+    max-height: 130px;
+    object-fit: contain;
+    border: 1px solid #dbe3ef;
+    border-radius: 14px;
+    padding: 12px;
+    background: #ffffff;
+}
+
+.public_signature_info p {
+    margin: 0 0 8px;
+    font-size: 15px;
+    color: #374151;
+}
+
+.public_evidence_item figcaption {
+    margin-top: 8px;
+    padding: 0 4px 8px;
+    font-size: 12px;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+@media (max-width: 780px) {
+    .public_signature_box {
+        grid-template-columns: 1fr;
+    }
+}
+    </style>
+  {% include "components/_invoice_action_system.html" %}
+</head>
+
+<body>
+<div class="public-shell">
+
+    {% if signature_error %}
+        <div class="alert alert-danger alert-custom">
+            {{ signature_error }}
+        </div>
+    {% endif %}
+
+    <div class="contract-card">
+        <header class="contract-header">
+            <h1>{{ contract.contract_title|default:"Service Contract" }}</h1>
+            <p>
+                Contract:
+                <strong>{{ contract.contract_number|default:contract.id_contract }}</strong>
+                · Date:
+                <strong>{{ contract.contract_date }}</strong>
+            </p>
+        </header>
+
+        <main class="contract-body">
+
+            <div class="mb-4">
+                {% if contract.status == "approved" %}
+                    <span class="status-pill status-approved">Approved</span>
+                {% elif contract.status == "rejected" %}
+                    <span class="status-pill status-rejected">Rejected</span>
+                {% elif contract.status == "signed" %}
+                    <span class="status-pill status-signed">Signed</span>
+                {% else %}
+                    <span class="status-pill">{{ contract.status|default:"Pending" }}</span>
+                {% endif %}
+            </div>
+
+            <div class="info-grid">
+                <div class="info-box">
+                    <h3>Company Information</h3>
+                    <p><strong>{{ contract.company_name|default:"Company" }}</strong></p>
+                    {% if contract.company_phone %}<p>{{ contract.company_phone }}</p>{% endif %}
+                    {% if contract.company_email %}<p>{{ contract.company_email }}</p>{% endif %}
+                    {% if contract.company_address %}<p>{{ contract.company_address }}</p>{% endif %}
+                </div>
+
+                <div class="info-box">
+                    <h3>Customer Information</h3>
+                    <p><strong>{{ contract.client_name|default:"Client" }}</strong></p>
+                    {% if contract.client_phone %}<p>{{ contract.client_phone }}</p>{% endif %}
+                    {% if contract.client_email %}<p>{{ contract.client_email }}</p>{% endif %}
+                    {% if contract.client_full_address %}<p>{{ contract.client_full_address }}</p>{% endif %}
+                </div>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-box">
+                    <h3>Project</h3>
+                    <p><strong>{{ contract.project_name|default:"Project" }}</strong></p>
+                    {% if contract.project_address %}<p>{{ contract.project_address }}</p>{% endif %}
+                    {% if contract.project_description %}<p>{{ contract.project_description }}</p>{% endif %}
+                </div>
+
+                <div class="info-box">
+                    <h3>Estimate / Contract Details</h3>
+                    {% if contract.id_estimate %}
+                        <p>Estimate ID: <strong>{{ contract.id_estimate_id }}</strong></p>
+                    {% else %}
+                        <p>No estimate attached.</p>
+                    {% endif %}
+                    {% if contract.expiration_date %}
+                        <p>Expiration Date: <strong>{{ contract.expiration_date }}</strong></p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="total-box">
+                <div>
+                    <span>Total Amount Due</span>
+                    <strong>${{ contract.total_amount_due }}</strong>
+                </div>
+                <div>
+                    <span>Initial Payment</span>
+                    <strong>${{ contract.initial_payment }}</strong>
+                </div>
+            </div>
+
+            {% if contract.work_to_be_done %}
+                <section class="section-box">
+                    <h2>Work To Be Done</h2>
+                    <p>{{ contract.work_to_be_done }}</p>
+                </section>
+            {% endif %}
+
+            {% if contract.additional_work %}
+                <section class="section-box">
+                    <h2>Additional Work</h2>
+                    <p>{{ contract.additional_work }}</p>
+                </section>
+            {% endif %}
+
+            {% if contract.work_not_to_be_done %}
+                <section class="section-box">
+                    <h2>Work Not To Be Done</h2>
+                    <p>{{ contract.work_not_to_be_done }}</p>
+                </section>
+            {% endif %}
+
+            {% if contract.special_instructions %}
+                <section class="section-box">
+                    <h2>Special Instructions</h2>
+                    <p>{{ contract.special_instructions }}</p>
+                </section>
+            {% endif %}
+            {% if contract.signature_image %}
+
+    
+
+{% endif %}
+            
+<section class="section-box">
+    <h2>Payment Terms And Conditions</h2>
+    <p class="public_legal_text">{{ context_payment_terms|linebreaksbr }}</p>
+</section>
+
+<section class="section-box">
+    <h2>Cancellation</h2>
+    <p class="public_legal_text">{{ context_cancellation_terms|linebreaksbr }}</p>
+</section>
+
+<section class="section-box">
+    <h2>Guarantee</h2>
+    <p class="public_legal_text">{{ context_guarantee_terms|linebreaksbr }}</p>
+</section>
+
+<section class="section-box">
+    <h2>Miscellaneous Terms</h2>
+    <p class="public_legal_text">{{ context_miscellaneous_terms|linebreaksbr }}</p>
+</section>
+
+{% if contract.evidence_photos.all %}
+    <section class="section-box">
+        <h2>Evidence Photos / Annexes</h2>
+
+        <div class="public_evidence_grid">
+            {% for evidence in contract.evidence_photos.all %}
+                {% if evidence.image %}
+                    <figure class="public_evidence_item">
+                        <img src="{{ evidence.image.url }}" alt="Contract evidence {{ forloop.counter }}">
+                        <figcaption>Photo {{ forloop.counter }}</figcaption>
+                    </figure>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </section>
+{% endif %}
+{% if contract.signature_image and contract.signature_image.name %}
+    <section class="section-box">
+        <h2>Customer Signature</h2>
+
+        <div class="public_signature_box">
+            <img class="public_signature_image" src="{{ contract.signature_image.url }}" alt="Customer signature">
+
+            <div class="public_signature_info">
+                <p>
+                    <strong>Customer Signature Name:</strong>
+                    {{ contract.customer_signature_name|default:contract.client_name }}
+                </p>
+
+                {% if contract.signed_date %}
+                    <p>
+                        <strong>Signed Date:</strong>
+                        {{ contract.signed_date }}
+                    </p>
+                {% endif %}
+
+                {% if contract.customer_signed_at %}
+                    <p>
+                        <strong>Signed At:</strong>
+                        {{ contract.customer_signed_at }}
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+{% endif %}
+
+            {% if contract.rejection_reason %}
+                <section class="section-box">
+                    <h2>Rejection Reason</h2>
+                    <p>{{ contract.rejection_reason }}</p>
+                </section>
+            {% endif %}
+        </main>
+
+        <footer class="actions">
+            {% if contract.status == "sent" or contract.status == "viewed" %}
+                <button type="button" class="btn btn-main btn-approve" onclick="openPublicModal('approveModal')">
+                    Approve Contract
+                </button>
+
+                <button type="button" class="btn btn-main btn-reject" onclick="openPublicModal('rejectModal')">
+                    Reject Contract
+                </button>
+            {% elif contract.status == "approved" %}
+                <button type="button" class="btn btn-main btn-secondary-soft" disabled>
+                    This contract has already been approved.
+                </button>
+
+                <button type="button" class="btn btn-main btn-approve" data-open-signature-modal>
+                    Sign Contract
+                </button>
+            {% elif contract.status == "rejected" %}
+                <button type="button" class="btn btn-main btn-secondary-soft" disabled>
+                    This contract has already been rejected.
+                </button>
+            {% elif contract.status == "signed" %}
+                <button type="button" class="btn btn-main btn-secondary-soft" disabled>
+                    This contract has already been signed.
+                </button>
+            {% else %}
+                <button type="button" class="btn btn-main btn-secondary-soft" disabled>
+                    This contract is not ready for customer approval yet.
+                </button>
+            {% endif %}
+        </footer>
+    </div>
+</div>
+
+<div class="public_modal" id="approveModal" aria-hidden="true">
+    <div class="public_modal_card">
+        <form method="post" action="approve/">
+            {% csrf_token %}
+
+            <div class="public_modal_header">
+                <h3>Approve Contract</h3>
+                <button type="button" class="public_modal_close" onclick="closePublicModal('approveModal')">×</button>
+            </div>
+
+            <div class="public_modal_body">
+                <p>Are you sure you want to approve this contract?</p>
+            </div>
+
+            <div class="public_modal_footer">
+                <button type="button" class="public_btn_plain public_btn_gray" onclick="closePublicModal('approveModal')">
+                    Not Yet
+                </button>
+                <button type="submit" class="public_btn_plain public_btn_green">
+                    Yes, Approve
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="public_modal" id="rejectModal" aria-hidden="true">
+    <div class="public_modal_card">
+        <form method="post" action="reject/">
+            {% csrf_token %}
+
+            <div class="public_modal_header">
+                <h3>Reject Contract</h3>
+                <button type="button" class="public_modal_close" onclick="closePublicModal('rejectModal')">×</button>
+            </div>
+
+            <div class="public_modal_body">
+                <label for="rejection_reason">
+                    Please explain why you are rejecting this contract.
+                </label>
+
+                <textarea
+                    id="rejection_reason"
+                    name="rejection_reason"
+                    required
+                    minlength="5"
+                    placeholder="Write your reason here...">{{ rejection_reason|default:"" }}</textarea>
+            </div>
+
+            <div class="public_modal_footer">
+                <button type="button" class="public_btn_plain public_btn_gray" onclick="closePublicModal('rejectModal')">
+                    Go Back
+                </button>
+                <button type="submit" class="public_btn_plain public_btn_red">
+                    Submit Rejection
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<div class="public_modal" id="signatureModal" aria-hidden="true">
+  <div class="public_modal_overlay" data-close-signature-modal></div>
+
+  <div class="public_modal_box">
+    <button type="button" class="public_modal_close" data-close-signature-modal>
+      ×
+    </button>
+
+    <h3>Sign Contract</h3>
+
+    <p>
+      Please draw your signature inside the box below. By signing, you confirm that you approve this contract.
+    </p>
+
+    <form method="post" action="sign/" id="signatureForm">
+      {% csrf_token %}
+
+      <input type="hidden" name="signature_data" id="signatureData">
+
+      <div class="signature_canvas_wrap">
+        <canvas id="signatureCanvas" width="600" height="220"></canvas>
+      </div>
+
+      <div class="signature_actions">
+        <button type="button" class="public_action_btn public_action_secondary" id="clearSignature">
+          Clear
+        </button>
+
+        <button type="button" class="public_action_btn public_action_primary" id="submitSignature">
+            Submit Signature
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+    function openPublicModal(id) {
+        var modal = document.getElementById(id);
+        if (!modal) return;
+        modal.classList.add('is_open');
+        modal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closePublicModal(id) {
+        var modal = document.getElementById(id);
+        if (!modal) return;
+        modal.classList.remove('is_open');
+        modal.setAttribute('aria-hidden', 'true');
+    }
+
+    document.addEventListener('click', function(event) {
+        if (event.target.classList && event.target.classList.contains('public_modal')) {
+            event.target.classList.remove('is_open');
+            event.target.setAttribute('aria-hidden', 'true');
+        }
+    });
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            document.querySelectorAll('.public_modal.is_open').forEach(function(modal) {
+                modal.classList.remove('is_open');
+                modal.setAttribute('aria-hidden', 'true');
+            });
+        }
+    });
+</script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const modal = document.getElementById("signatureModal");
+    const openButtons = document.querySelectorAll("[data-open-signature-modal]");
+    const closeButtons = document.querySelectorAll("[data-close-signature-modal]");
+    const canvas = document.getElementById("signatureCanvas");
+    const clearButton = document.getElementById("clearSignature");
+    const signatureData = document.getElementById("signatureData");
+    const signatureForm = document.getElementById("signatureForm");
+
+    if (!modal || !canvas || !signatureForm) {
+      return;
+    }
+
+    const ctx = canvas.getContext("2d");
+    let drawing = false;
+    let hasSignature = false;
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+      canvas.width = Math.max(rect.width, 300);
+      canvas.height = 220;
+
+      ctx.putImageData(imageData, 0, 0);
+      setupCanvasStyle();
+    }
+
+    function setupCanvasStyle() {
+      ctx.lineWidth = 3;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.strokeStyle = "#111827";
+    }
+
+    function getPosition(event) {
+      const rect = canvas.getBoundingClientRect();
+      const touch = event.touches && event.touches[0];
+
+      return {
+        x: ((touch ? touch.clientX : event.clientX) - rect.left) * (canvas.width / rect.width),
+        y: ((touch ? touch.clientY : event.clientY) - rect.top) * (canvas.height / rect.height),
+      };
+    }
+
+    function startDrawing(event) {
+      event.preventDefault();
+      drawing = true;
+      hasSignature = true;
+
+      const position = getPosition(event);
+      ctx.beginPath();
+      ctx.moveTo(position.x, position.y);
+    }
+
+    function draw(event) {
+      if (!drawing) {
+        return;
+      }
+
+      event.preventDefault();
+
+      const position = getPosition(event);
+      ctx.lineTo(position.x, position.y);
+      ctx.stroke();
+    }
+
+    function stopDrawing(event) {
+      if (!drawing) {
+        return;
+      }
+
+      event.preventDefault();
+      drawing = false;
+      ctx.closePath();
+    }
+
+    function openModal() {
+      modal.classList.add("is_open");
+      modal.setAttribute("aria-hidden", "false");
+      setTimeout(function () {
+        setupCanvasStyle();
+      }, 80);
+    }
+
+    function closeModal() {
+      modal.classList.remove("is_open");
+      modal.setAttribute("aria-hidden", "true");
+    }
+
+    openButtons.forEach(function (button) {
+      button.addEventListener("click", openModal);
+    });
+
+    closeButtons.forEach(function (button) {
+      button.addEventListener("click", closeModal);
+    });
+
+    canvas.addEventListener("mousedown", startDrawing);
+    canvas.addEventListener("mousemove", draw);
+    canvas.addEventListener("mouseup", stopDrawing);
+    canvas.addEventListener("mouseleave", stopDrawing);
+
+    canvas.addEventListener("touchstart", startDrawing, { passive: false });
+    canvas.addEventListener("touchmove", draw, { passive: false });
+    canvas.addEventListener("touchend", stopDrawing, { passive: false });
+
+    clearButton.addEventListener("click", function () {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      hasSignature = false;
+      setupCanvasStyle();
+    });
+
+    const submitSignatureButton = document.getElementById("submitSignature");
+
+    function submitSignatureForm() {
+    if (!hasSignature) {
+        alert("Please draw your signature before submitting.");
+        return;
+    }
+
+    signatureData.value = canvas.toDataURL("image/png");
+
+    if (!signatureData.value || signatureData.value.length < 100) {
+        alert("Signature could not be processed. Please clear and sign again.");
+        return;
+    }
+
+    if (submitSignatureButton) {
+        submitSignatureButton.disabled = true;
+        submitSignatureButton.textContent = "Submitting...";
+    }
+
+    signatureForm.submit();
+    }
+
+    if (submitSignatureButton) {
+    submitSignatureButton.addEventListener("click", submitSignatureForm);
+    }
+
+    signatureForm.addEventListener("submit", function (event) {
+    if (!signatureData.value) {
+        event.preventDefault();
+        submitSignatureForm();
+    }
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") {
+        closeModal();
+      }
+    });
+
+    setupCanvasStyle();
+
+    const urlParams = new URLSearchParams(window.location.search);
+
+    if (urlParams.get("sign") === "1") {
+    openModal();
+    }
+  });
+</script>
+</body>
+</html>

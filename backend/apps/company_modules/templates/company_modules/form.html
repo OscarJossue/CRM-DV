@@ -1,0 +1,114 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}{{ form_title }}{% endblock %}
+
+{% block page_subtitle %}
+Create or update a company module access rule.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .cm_form {
+    display: grid;
+    gap: 18px;
+  }
+
+  .cm_form_grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .cm_form_field {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .cm_form_field label {
+    color: var(--crm_text);
+    font-size: 13px;
+    font-weight: 900;
+  }
+
+  .crm_input {
+    width: 100%;
+    min-height: 44px;
+    border: 1px solid var(--crm_border);
+    border-radius: 12px;
+    padding: 10px 12px;
+    color: var(--crm_text);
+    background: #ffffff;
+    font: inherit;
+  }
+
+  .crm_checkbox {
+    width: 20px;
+    height: 20px;
+  }
+
+  .cm_error {
+    color: var(--crm_danger);
+    font-size: 13px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+
+  .cm_form_actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  @media (max-width: 760px) {
+    .cm_form_grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <section class="crm_card">
+    <h2 class="crm_section_title">{{ form_title }}</h2>
+
+    <form class="cm_form" method="post">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="cm_error">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="cm_form_grid">
+        <div class="cm_form_field">
+          <label for="{{ form.id_company.id_for_label }}">Company</label>
+          {{ form.id_company }}
+          {% if form.id_company.errors %}
+            <div class="cm_error">{{ form.id_company.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="cm_form_field">
+          <label for="{{ form.module.id_for_label }}">Module</label>
+          {{ form.module }}
+          {% if form.module.errors %}
+            <div class="cm_error">{{ form.module.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="cm_form_field">
+          <label for="{{ form.is_enabled.id_for_label }}">Enabled</label>
+          {{ form.is_enabled }}
+          {% if form.is_enabled.errors %}
+            <div class="cm_error">{{ form.is_enabled.errors }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="cm_form_actions">
+        <button class="crm_button" type="submit">{{ submit_label }}</button>
+        <a class="crm_button crm_button_secondary" href="{% url 'company_modules:company_module_list' %}">Cancel</a>
+      </div>
+    </form>
+  </section>
+{% endblock %}

@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="{{ request.LANGUAGE_CODE|default:'en' }}">
+
+<head>
+  <meta charset="UTF-8">
+  <title>{{ document.document_number }}</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      background: #ffffff;
+      color: #000000;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 14px;
+    }
+
+    body {
+      padding: 22px 24px;
+    }
+
+    .doc_print_page {
+      width: 100%;
+      max-width: 980px;
+      margin: 0 auto;
+      background: #ffffff;
+    }
+
+    .print_actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .print_button {
+      min-height: 40px;
+      padding: 9px 16px;
+      border: 1px solid #111111;
+      border-radius: 6px;
+      background: #111111;
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .doc_header {
+      display: grid;
+      grid-template-columns: 140px minmax(0, 1fr);
+      gap: 20px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .doc_logo_box {
+      width: 120px;
+      height: 82px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .doc_logo {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .doc_company_title {
+      margin: 0 0 5px;
+      font-size: 26px;
+      line-height: 1.1;
+      font-weight: 900;
+      color: #000000;
+    }
+
+    .doc_company_text {
+      margin: 3px 0;
+      font-size: 14px;
+      line-height: 1.35;
+      color: #000000;
+    }
+
+    .doc_info_grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      border: 1px solid #cfcfcf;
+      margin-bottom: 24px;
+    }
+
+    .doc_info_col {
+      display: grid;
+      gap: 0;
+      padding: 8px 10px;
+      min-width: 0;
+    }
+
+    .doc_info_col:first-child {
+      border-right: 1px solid #cfcfcf;
+    }
+
+    .doc_info_row {
+      display: grid;
+      grid-template-columns: 130px minmax(0, 1fr);
+      gap: 10px;
+      min-height: 24px;
+      align-items: center;
+    }
+
+    .doc_info_label {
+      font-weight: 500;
+      color: #000000;
+      overflow-wrap: anywhere;
+    }
+
+    .doc_info_value {
+      color: #000000;
+      overflow-wrap: anywhere;
+    }
+
+    .doc_items_table,
+    .doc_totals_table,
+    .doc_additional_table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .doc_items_table {
+      margin-bottom: 22px;
+    }
+
+    .doc_items_table th {
+      padding: 5px 8px;
+      border: 1px solid #d0d0d0;
+      background: #0b0b0b;
+      color: #ffffff;
+      font-size: 13px;
+      line-height: 1.2;
+      text-align: left;
+      font-weight: 800;
+    }
+
+    .doc_items_table td {
+      padding: 5px 8px;
+      border: 1px solid #d0d0d0;
+      font-size: 13px;
+      line-height: 1.25;
+      vertical-align: top;
+      color: #000000;
+    }
+
+    .doc_code_col {
+      width: 90px;
+    }
+
+    .doc_aux_col {
+      width: 90px;
+    }
+
+    .doc_qty_col {
+      width: 80px;
+    }
+
+    .doc_money_col {
+      width: 130px;
+    }
+
+    .text_right {
+      text-align: right;
+    }
+
+    .doc_totals_wrap {
+      width: 100%;
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 36px;
+    }
+
+    .doc_totals_table {
+      width: 96%;
+    }
+
+    .doc_totals_table td {
+      padding: 4px 8px;
+      border: 1px solid #d0d0d0;
+      font-size: 13px;
+      line-height: 1.25;
+      color: #000000;
+    }
+
+    .doc_total_label {
+      font-weight: 500;
+    }
+
+    .doc_total_value {
+      width: 170px;
+      text-align: right;
+      font-weight: 500;
+    }
+
+    .doc_total_final td {
+      background: #eeeeee;
+      font-weight: 900;
+    }
+
+    .doc_section_title {
+      margin: 0 0 8px;
+      font-size: 16px;
+      line-height: 1.2;
+      font-style: italic;
+      font-weight: 900;
+      color: #000000;
+    }
+
+    .doc_additional_table {
+      margin-bottom: 34px;
+    }
+
+    .doc_additional_table th,
+    .doc_additional_table td {
+      padding: 5px 8px;
+      border: 1px solid #d0d0d0;
+      font-size: 13px;
+      text-align: left;
+      color: #000000;
+    }
+
+    .doc_additional_table th {
+      background: #eeeeee;
+      font-weight: 900;
+    }
+
+    .doc_notes {
+      margin-top: 0;
+    }
+
+    .doc_notes_text {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.25;
+      color: #000000;
+      white-space: pre-line;
+    }
+
+    @media print {
+      @page {
+        size: letter;
+        margin: 18mm 14mm;
+      }
+
+      body {
+        padding: 0;
+      }
+
+      .print_actions {
+        display: none;
+      }
+
+      .doc_print_page {
+        max-width: none;
+      }
+    }
+
+    @media (max-width: 720px) {
+      body {
+        padding: 16px;
+      }
+
+      .doc_header {
+        grid-template-columns: 1fr;
+        text-align: left;
+      }
+
+      .doc_info_grid {
+        grid-template-columns: 1fr;
+      }
+
+      .doc_info_col:first-child {
+        border-right: 0;
+        border-bottom: 1px solid #cfcfcf;
+      }
+
+      .doc_info_row {
+        grid-template-columns: 1fr;
+        gap: 2px;
+        padding: 4px 0;
+      }
+
+      .doc_items_table {
+        min-width: 720px;
+      }
+
+      .doc_table_scroll {
+        overflow-x: auto;
+      }
+
+      .doc_totals_table {
+        width: 100%;
+      }
+    }
+  </style>
+  {% include "components/_invoice_action_system.html" %}
+</head>
+
+<body>
+  <main class="doc_print_page">
+    <div class="print_actions">
+      <a class="print_button" href="{% url 'platform_documents:send_email' document.id_document %}"
+        style="text-decoration:none;">
+        Send by Email
+      </a>
+
+      <button class="print_button" type="button" onclick="window.print()">Print / Save PDF</button>
+    </div>
+
+    <header class="doc_header">
+      <div class="doc_logo_box">
+        <img class="doc_logo" src="/media/logo_empresa.png" alt="CEO Marketing USA Logo">
+      </div>
+
+      <div>
+        <h1 class="doc_company_title">CEO Marketing USA</h1>
+        <p class="doc_company_text">Websites, SEO &amp; Google Business Solutions</p>
+        <p class="doc_company_text">33 Roosevelt Av Belleville NJ</p>
+        <p class="doc_company_text">info@ceomarketingusa.com</p>
+      </div>
+    </header>
+
+    <section class="doc_info_grid">
+      <div class="doc_info_col">
+        <div class="doc_info_row">
+          <span class="doc_info_label">
+            {% if document.document_type == "proforma" %}Proforma Number:{% else %}Invoice Number:{% endif %}
+          </span>
+          <span class="doc_info_value">{{ document.document_number }}</span>
+        </div>
+
+        <div class="doc_info_row">
+          <span class="doc_info_label">Issue Date:</span>
+          <span class="doc_info_value">{{ document.issue_date|date:"d/m/Y" }}</span>
+        </div>
+
+        <div class="doc_info_row">
+          <span class="doc_info_label">Issue Time:</span>
+          <span class="doc_info_value">{{ document.created_at|date:"H:i:s" }}</span>
+        </div>
+
+        <div class="doc_info_row">
+          <span class="doc_info_label">Shipping Guide:</span>
+          <span class="doc_info_value">SHP-{{ document.issue_date|date:"Ymd" }}-{{ document.id_document }}</span>
+        </div>
+
+        <div class="doc_info_row">
+          <span class="doc_info_label">Payment Method:</span>
+          <span class="doc_info_value">
+            {% with first_payment=document.platform_payments.all|first %}
+            {% if first_payment %}
+            {{ first_payment.get_method_display }}
+            {% else %}
+            Pending
+            {% endif %}
+            {% endwith %}
+          </span>
+        </div>
+      </div>
+
+      <div class="doc_info_col">
+        <div class="doc_info_row">
+          <span class="doc_info_label">Client Name:</span>
+          <span class="doc_info_value">{{ document.id_company.name }}</span>
+        </div>
+
+        <div class="doc_info_row">
+          <span class="doc_info_label">Client ID:</span>
+          <span class="doc_info_value">{{ document.id_company.id_company }}</span>
+        </div>
+
+        <div class="doc_info_row">
+          <span class="doc_info_label">Client Email:</span>
+          <span class="doc_info_value">{{ document.id_company.email|default:"Not registered" }}</span>
+        </div>
+
+        <div class="doc_info_row">
+          <span class="doc_info_label">Client Address:</span>
+          <span class="doc_info_value">
+            {% if document.id_company.address %}
+            {{ document.id_company.address }}
+            {% else %}
+            Not registered
+            {% endif %}
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <div class="doc_table_scroll">
+      <table class="doc_items_table">
+        <thead>
+          <tr>
+            <th class="doc_code_col">Code</th>
+            <th class="doc_aux_col">Aux</th>
+            <th>Description</th>
+            <th class="doc_qty_col">Qty</th>
+            <th class="doc_money_col">Unit Price</th>
+            <th class="doc_money_col">Subtotal</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for item in document.items.all %}
+          <tr>
+            <td>{{ forloop.counter|stringformat:"03d" }}</td>
+            <td></td>
+            <td>{{ item.description }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>${{ item.unit_price|floatformat:2 }}</td>
+            <td>${{ item.subtotal|floatformat:2 }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6">No line items found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <section class="doc_totals_wrap">
+      <table class="doc_totals_table">
+        <tbody>
+          <tr>
+            <td class="doc_total_label">Subtotal:</td>
+            <td class="doc_total_value">${{ document.subtotal|floatformat:2 }}</td>
+          </tr>
+
+          <tr>
+            <td class="doc_total_label">Tax:</td>
+            <td class="doc_total_value">${{ document.tax_amount|floatformat:2 }}</td>
+          </tr>
+
+          <tr class="doc_total_final">
+            <td class="doc_total_label">Total:</td>
+            <td class="doc_total_value">${{ document.total|floatformat:2 }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2 class="doc_section_title">Additional Information</h2>
+
+      <table class="doc_additional_table">
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr>
+            <td>Website</td>
+            <td>
+              /{{ document.id_company.slug }}/dashboard/
+            </td>
+          </tr>
+
+          {% if document.id_subscription %}
+          <tr>
+            <td>Subscription</td>
+            <td>#{{ document.id_subscription.id_subscription }} · {{ document.id_subscription.get_status_display }}</td>
+          </tr>
+          {% endif %}
+
+          <tr>
+            <td>Document Status</td>
+            <td>{{ document.get_status_display }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="doc_notes">
+      <h2 class="doc_section_title">Notes</h2>
+
+      <p class="doc_notes_text">
+        {% if document.notes %}{{ document.notes }}{% elif document.terms %}{{ document.terms }}{% else %}Thank you for
+        choosing CEO Marketing USA. This document was generated from the CEO Marketing CRM SaaS administration
+        platform.{% endif %}
+      </p>
+    </section>
+  </main>
+</body>
+
+</html>

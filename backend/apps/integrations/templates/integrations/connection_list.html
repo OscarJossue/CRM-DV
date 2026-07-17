@@ -1,0 +1,73 @@
+{% extends "layouts/base.html" %}
+{% block page_title %}Google Connection{% endblock %}
+{% block page_subtitle %}Manage the encrypted Google account used by Calendar, Drive and Analytics.{% endblock %}
+{% block extra_head %}{% include "integrations/partials/_design_system.html" %}{% endblock %}
+{% block content %}
+<div class="account_theme integration_theme account_page">
+  <div class="account_toolbar">
+    <div class="account_toolbar_title">
+      <h2>Google Connection</h2>
+      <p>One isolated, encrypted Google connection is maintained for each company.</p>
+    </div>
+    <div class="integration_icon_actions">
+      <a class="integration_icon_action" href="../" data-tooltip="Integrations dashboard" aria-label="Integrations dashboard">
+        <svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/></svg>
+      </a>
+      {% if can_manage_integrations %}
+        <a class="integration_icon_action" href="google/setup/" data-tooltip="Configure Google App" aria-label="Configure Google App">
+          <i class="bi bi-pencil" aria-hidden="true"></i>
+        </a>
+        <form method="post" action="../google/connect/">
+          {% csrf_token %}
+          <button class="integration_icon_action integration_icon_action_success" type="submit" data-tooltip="Connect / Reconnect Google" aria-label="Connect / Reconnect Google">
+            <svg viewBox="0 0 24 24"><path d="M20 11a8.1 8.1 0 1 0 2 5"/><path d="M20 4v7h-7"/></svg>
+          </button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <section class="crm_card">
+    <div class="account_info_grid">
+      <div class="account_info_item"><span class="account_detail_label">Connection model</span><span class="account_detail_value">One Google connection per company</span></div>
+      <div class="account_info_item"><span class="account_detail_label">Security</span><span class="account_detail_value">OAuth client secret and tokens encrypted at rest</span></div>
+      <div class="account_info_item"><span class="account_detail_label">Enabled tools</span><span class="account_detail_value">Calendar / Meet · Drive · Analytics</span></div>
+      <div class="account_info_item"><span class="account_detail_label">Google App</span><span class="account_detail_value">{% if company_connection and company_connection.has_google_app_credentials %}Configured{% else %}Pending setup{% endif %}</span></div>
+    </div>
+  </section>
+
+  <section class="crm_card">
+    <div class="account_table_wrap">
+      <table class="account_table">
+        <thead><tr><th>Account</th><th>Status</th><th>Google App</th><th>Scopes</th><th>Last Sync</th><th>Actions</th></tr></thead>
+        <tbody>
+          {% for connection in connections %}
+            <tr>
+              <td><div class="account_main"><span class="account_strong">{{ connection.connected_email|default:"Google connection" }}</span><span class="account_muted">{{ connection.display_name|default:connection.id_company.name }}</span></div></td>
+              <td><span class="account_pill account_status_{{ connection.status }}">{{ connection.get_status_display }}</span></td>
+              <td>{% if connection.has_google_app_credentials %}<span class="account_pill blue">Configured</span><span class="account_muted">{{ connection.oauth_client_id_masked }}</span>{% else %}<span class="account_pill account_status_error">Missing</span>{% endif %}</td>
+              <td><span class="account_muted">{{ connection.scopes|length }} granted</span></td>
+              <td>{{ connection.last_sync_at|date:"Y-m-d H:i"|default:"Never" }}</td>
+              <td>
+                <div class="integration_icon_actions">
+                  <a class="integration_icon_action" href="{{ connection.id_connection }}/" data-tooltip="View connection" aria-label="View connection"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></a>
+                  {% if can_manage_integrations %}
+                    <a class="integration_icon_action" href="google/setup/" data-tooltip="Configure Google App" aria-label="Configure Google App"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+                    <a class="integration_icon_action" href="{{ connection.id_connection }}/settings/" data-tooltip="Tool settings" aria-label="Tool settings"><svg viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M2 14h4M10 8h4M18 16h4"/></svg></a>
+                    <form method="post" action="../google/{{ connection.id_connection }}/disconnect/" data-account-confirm data-account-confirm-kind="danger" data-account-confirm-title="Disconnect Google" data-account-confirm-message="Calendar, Drive and Analytics will stop synchronizing until you reconnect." data-account-confirm-button="Disconnect">
+                      {% csrf_token %}
+                      <button class="integration_icon_action integration_icon_action_danger" type="submit" data-tooltip="Disconnect" aria-label="Disconnect"><svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button>
+                    </form>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="6" class="account_empty">No Google connection yet. Configure the Google App, then connect the company account.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

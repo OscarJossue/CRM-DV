@@ -1,0 +1,156 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Reports{% endblock %}
+
+{% block page_subtitle %}
+Company summaries, financial totals, project activity and payment verification.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .reports_actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .reports_grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .reports_box {
+    display: grid;
+    gap: 8px;
+    padding: 18px;
+    border: 1px solid var(--crm_border);
+    border-radius: 14px;
+    background: #ffffff;
+    min-width: 0;
+  }
+
+  .reports_label {
+    color: var(--crm_muted);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    overflow-wrap: anywhere;
+  }
+
+  .reports_value {
+    color: var(--crm_primary);
+    font-size: 28px;
+    line-height: 1.1;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+  }
+
+  .reports_section {
+    margin-top: 22px;
+  }
+
+  @media (max-width: 1100px) {
+    .reports_grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 680px) {
+    .reports_grid {
+      grid-template-columns: 1fr;
+    }
+
+    .reports_actions {
+      flex-direction: column;
+    }
+
+    .reports_actions .crm_button {
+      width: 100%;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <div class="reports_actions">
+    <a class="crm_button" href="{% url 'reports:financial_summary_csv' %}">Export Financial CSV</a>
+    <a class="crm_button crm_button_secondary" href="{% url 'reports:projects_summary_csv' %}">Export Projects CSV</a>
+    <a class="crm_button crm_button_secondary" href="{% url 'reports:payments_summary_csv' %}">Export Payments CSV</a>
+    <a class="crm_button crm_button_secondary" href="{% url 'reports:financial_summary_pdf' %}"><i class="bi bi-file-earmark-pdf-fill" aria-hidden="true"></i> Export PDF</a>
+  </div>
+
+  <section class="crm_card">
+    <h2 class="crm_section_title">Financial Summary</h2>
+
+    <div class="reports_grid">
+      <div class="reports_box">
+        <span class="reports_label">Total Billed</span>
+        <span class="reports_value">${{ financial_summary.total_billed }}</span>
+      </div>
+
+      <div class="reports_box">
+        <span class="reports_label">Total Paid</span>
+        <span class="reports_value">${{ financial_summary.total_paid }}</span>
+      </div>
+
+      <div class="reports_box">
+        <span class="reports_label">Total Balance</span>
+        <span class="reports_value">${{ financial_summary.total_balance }}</span>
+      </div>
+
+      <div class="reports_box">
+        <span class="reports_label">Invoices</span>
+        <span class="reports_value">{{ financial_summary.total_invoices }}</span>
+      </div>
+
+      <div class="reports_box">
+        <span class="reports_label">Payments</span>
+        <span class="reports_value">{{ financial_summary.total_payments }}</span>
+      </div>
+
+      <div class="reports_box">
+        <span class="reports_label">Verified Payments</span>
+        <span class="reports_value">{{ financial_summary.verified_payments }}</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="crm_card reports_section">
+    <h2 class="crm_section_title">Operations Summary</h2>
+
+    <div class="reports_grid">
+      <div class="reports_box">
+        <span class="reports_label">Clients</span>
+        <span class="reports_value">{{ financial_summary.total_clients }}</span>
+      </div>
+
+      <div class="reports_box">
+        <span class="reports_label">Leads</span>
+        <span class="reports_value">{{ financial_summary.total_leads }}</span>
+      </div>
+
+      <div class="reports_box">
+        <span class="reports_label">Projects</span>
+        <span class="reports_value">{{ project_summary.total_projects }}</span>
+      </div>
+
+      <div class="reports_box">
+        <span class="reports_label">Active Projects</span>
+        <span class="reports_value">{{ project_summary.active_projects }}</span>
+      </div>
+
+      <div class="reports_box">
+        <span class="reports_label">Completed Projects</span>
+        <span class="reports_value">{{ project_summary.completed_projects }}</span>
+      </div>
+
+      <div class="reports_box">
+        <span class="reports_label">Pending Payments</span>
+        <span class="reports_value">{{ payment_summary.pending_payments }}</span>
+      </div>
+    </div>
+  </section>
+{% endblock %}

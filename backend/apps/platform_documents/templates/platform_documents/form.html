@@ -1,0 +1,816 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}
+{% if form.instance.pk %}Edit Platform Document{% else %}Create Platform Document{% endif %}
+{% endblock %}
+
+{% block page_subtitle %}
+Create SaaS proformas and invoices issued by CEO MARKETING to companies.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .doc_form_layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(310px, .68fr);
+    gap: 18px;
+    align-items: start;
+  }
+
+  .doc_form {
+    display: grid;
+    gap: 18px;
+  }
+
+  .doc_group {
+    display: grid;
+    gap: 14px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--crm_border);
+  }
+
+  .doc_group:last-of-type {
+    border-bottom: 0;
+  }
+
+  .doc_group_head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .doc_group_title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--crm_text);
+    overflow-wrap: anywhere;
+  }
+
+  .doc_group_text {
+    margin: 4px 0 0;
+    color: var(--crm_muted);
+    font-size: 13px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+
+  .doc_grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .doc_field {
+    display: grid;
+    gap: 7px;
+    min-width: 0;
+  }
+
+  .doc_field_full {
+    grid-column: 1 / -1;
+  }
+
+  .doc_label {
+    font-size: 13px;
+    font-weight: 900;
+    color: var(--crm_text);
+    overflow-wrap: anywhere;
+  }
+
+  .doc_error {
+    color: var(--crm_danger);
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+
+  .doc_info_note {
+    padding: 14px;
+    border: 1px solid rgba(31, 58, 138, 0.18);
+    border-radius: 14px;
+    background: rgba(31, 58, 138, 0.06);
+    color: var(--crm_primary);
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+  }
+
+  .doc_subscription_empty {
+    padding: 14px;
+    border: 1px solid rgba(180, 83, 9, 0.18);
+    border-radius: 14px;
+    background: rgba(180, 83, 9, 0.08);
+    color: var(--crm_warning);
+    font-size: 13px;
+    font-weight: 900;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+  }
+
+  .doc_subscription_box {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid rgba(15, 118, 110, 0.18);
+    border-radius: 16px;
+    background: rgba(15, 118, 110, 0.06);
+  }
+
+  .doc_subscription_stat {
+    display: grid;
+    gap: 5px;
+    padding: 12px;
+    border: 1px solid rgba(15, 118, 110, 0.14);
+    border-radius: 14px;
+    background: #ffffff;
+  }
+
+  .doc_subscription_stat span {
+    color: var(--crm_muted);
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  .doc_subscription_stat strong {
+    color: var(--crm_text);
+    font-size: 14px;
+    font-weight: 900;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .doc_items {
+    display: grid;
+    gap: 12px;
+  }
+
+  .doc_item {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(110px, .4fr) minmax(130px, .5fr) auto;
+    gap: 10px;
+    align-items: end;
+    padding: 14px;
+    border: 1px solid var(--crm_border);
+    border-radius: 16px;
+    background: #f8fafc;
+  }
+
+  .doc_item.is_hidden {
+    display: none;
+  }
+
+  .doc_remove_button {
+    min-height: 42px;
+    padding: 9px 12px;
+    border: 1px solid rgba(185, 28, 28, .22);
+    border-radius: 12px;
+    background: rgba(185, 28, 28, .08);
+    color: var(--crm_danger);
+    font-size: 13px;
+    font-weight: 900;
+    cursor: pointer;
+  }
+
+  .doc_delete_native {
+    display: none;
+  }
+
+  .doc_side {
+    display: grid;
+    gap: 14px;
+  }
+
+  .doc_side_card {
+    display: grid;
+    gap: 10px;
+    padding: 20px;
+    border: 1px solid var(--crm_border);
+    border-radius: 20px;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(31, 58, 138, 0.12), transparent 34%),
+      #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .doc_side_card h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--crm_text);
+  }
+
+  .doc_side_card p {
+    margin: 0;
+    color: var(--crm_muted);
+    font-size: 14px;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+  }
+
+  .doc_rule_list {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .doc_rule_item {
+    padding: 12px;
+    border: 1px solid var(--crm_border);
+    border-radius: 14px;
+    background: #ffffff;
+    color: var(--crm_text);
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  @media (max-width: 1100px) {
+    .doc_form_layout {
+      grid-template-columns: 1fr;
+    }
+
+    .doc_subscription_box {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 760px) {
+    .doc_grid,
+    .doc_item,
+    .doc_subscription_box {
+      grid-template-columns: 1fr;
+    }
+
+    .doc_group_head {
+      flex-direction: column;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="doc_form_layout">
+  <form class="crm_card doc_form" method="post" id="platformDocumentForm">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="crm_message">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div class="doc_group">
+      <div class="doc_group_head">
+        <div>
+          <h2 class="doc_group_title">Document Information</h2>
+          <p class="doc_group_text">
+            Select the company and the system will show only the subscription assigned to that company.
+          </p>
+        </div>
+      </div>
+
+      <div class="doc_info_note">
+        The document number is generated automatically. Subscription information is loaded from the selected company.
+      </div>
+
+      <div class="doc_grid">
+        <label class="doc_field">
+          <span class="doc_label">{{ form.id_company.label }}</span>
+          {{ form.id_company }}
+          {% if form.id_company.errors %}
+            <span class="doc_error">{{ form.id_company.errors }}</span>
+          {% endif %}
+        </label>
+
+        <label class="doc_field">
+          <span class="doc_label">{{ form.id_subscription.label }}</span>
+          {{ form.id_subscription }}
+          {% if form.id_subscription.errors %}
+            <span class="doc_error">{{ form.id_subscription.errors }}</span>
+          {% endif %}
+        </label>
+
+        <label class="doc_field">
+          <span class="doc_label">{{ form.document_type.label }}</span>
+          {{ form.document_type }}
+          {% if form.document_type.errors %}
+            <span class="doc_error">{{ form.document_type.errors }}</span>
+          {% endif %}
+        </label>
+
+        <label class="doc_field">
+          <span class="doc_label">{{ form.status.label }}</span>
+          {{ form.status }}
+          {% if form.status.errors %}
+            <span class="doc_error">{{ form.status.errors }}</span>
+          {% endif %}
+        </label>
+
+        <label class="doc_field">
+          <span class="doc_label">{{ form.issue_date.label }}</span>
+          {{ form.issue_date }}
+          {% if form.issue_date.errors %}
+            <span class="doc_error">{{ form.issue_date.errors }}</span>
+          {% endif %}
+        </label>
+
+        <label class="doc_field">
+          <span class="doc_label">{{ form.due_date.label }}</span>
+          {{ form.due_date }}
+          {% if form.due_date.errors %}
+            <span class="doc_error">{{ form.due_date.errors }}</span>
+          {% endif %}
+        </label>
+      </div>
+
+      <div id="documentSubscriptionInfo" class="doc_subscription_empty">
+        Select a company to load subscription information.
+      </div>
+    </div>
+
+    <div class="doc_group">
+      <div class="doc_group_head">
+        <div>
+          <h2 class="doc_group_title">Line Items</h2>
+          <p class="doc_group_text">
+            The first item can be filled automatically from the selected subscription plan.
+          </p>
+        </div>
+
+        <button class="crm_button crm_button_secondary" type="button" id="addDocumentItem">
+          Add Item
+        </button>
+      </div>
+
+      {{ items_formset.management_form }}
+
+      {% if items_formset.non_form_errors %}
+        <div class="crm_message">{{ items_formset.non_form_errors }}</div>
+      {% endif %}
+
+      <div class="doc_items" id="documentItemsList">
+        {% for item_form in items_formset %}
+          <div class="doc_item" data-item-row>
+            {% for hidden in item_form.hidden_fields %}
+              {{ hidden }}
+            {% endfor %}
+
+            <label class="doc_field">
+              <span class="doc_label">{{ item_form.description.label }}</span>
+              {{ item_form.description }}
+              {% if item_form.description.errors %}
+                <span class="doc_error">{{ item_form.description.errors }}</span>
+              {% endif %}
+            </label>
+
+            <label class="doc_field">
+              <span class="doc_label">{{ item_form.quantity.label }}</span>
+              {{ item_form.quantity }}
+              {% if item_form.quantity.errors %}
+                <span class="doc_error">{{ item_form.quantity.errors }}</span>
+              {% endif %}
+            </label>
+
+            <label class="doc_field">
+              <span class="doc_label">{{ item_form.unit_price.label }}</span>
+              {{ item_form.unit_price }}
+              {% if item_form.unit_price.errors %}
+                <span class="doc_error">{{ item_form.unit_price.errors }}</span>
+              {% endif %}
+            </label>
+
+            <div>
+              {% if item_form.DELETE %}
+                <span class="doc_delete_native">{{ item_form.DELETE }}</span>
+              {% endif %}
+              <button class="doc_remove_button" type="button" data-remove-item>Remove</button>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <template id="documentItemEmptyTemplate">
+        <div class="doc_item" data-item-row>
+          {% for hidden in items_formset.empty_form.hidden_fields %}
+            {{ hidden }}
+          {% endfor %}
+
+          <label class="doc_field">
+            <span class="doc_label">{{ items_formset.empty_form.description.label }}</span>
+            {{ items_formset.empty_form.description }}
+          </label>
+
+          <label class="doc_field">
+            <span class="doc_label">{{ items_formset.empty_form.quantity.label }}</span>
+            {{ items_formset.empty_form.quantity }}
+          </label>
+
+          <label class="doc_field">
+            <span class="doc_label">{{ items_formset.empty_form.unit_price.label }}</span>
+            {{ items_formset.empty_form.unit_price }}
+          </label>
+
+          <div>
+            {% if items_formset.empty_form.DELETE %}
+              <span class="doc_delete_native">{{ items_formset.empty_form.DELETE }}</span>
+            {% endif %}
+            <button class="doc_remove_button" type="button" data-remove-item>Remove</button>
+          </div>
+        </div>
+      </template>
+    </div>
+
+    <div class="doc_group">
+      <div class="doc_group_head">
+        <div>
+          <h2 class="doc_group_title">Totals & Terms</h2>
+          <p class="doc_group_text">
+            Tax and discount values will be applied when the document is saved.
+          </p>
+        </div>
+      </div>
+
+      <div class="doc_grid">
+        <label class="doc_field">
+          <span class="doc_label">{{ form.tax_rate.label }}</span>
+          {{ form.tax_rate }}
+          {% if form.tax_rate.errors %}
+            <span class="doc_error">{{ form.tax_rate.errors }}</span>
+          {% endif %}
+        </label>
+
+        <label class="doc_field">
+          <span class="doc_label">{{ form.discount_amount.label }}</span>
+          {{ form.discount_amount }}
+          {% if form.discount_amount.errors %}
+            <span class="doc_error">{{ form.discount_amount.errors }}</span>
+          {% endif %}
+        </label>
+
+        <label class="doc_field doc_field_full">
+          <span class="doc_label">{{ form.notes.label }}</span>
+          {{ form.notes }}
+          {% if form.notes.errors %}
+            <span class="doc_error">{{ form.notes.errors }}</span>
+          {% endif %}
+        </label>
+
+        <label class="doc_field doc_field_full">
+          <span class="doc_label">{{ form.terms.label }}</span>
+          {{ form.terms }}
+          {% if form.terms.errors %}
+            <span class="doc_error">{{ form.terms.errors }}</span>
+          {% endif %}
+        </label>
+
+        <label class="doc_field doc_field_full">
+          <span class="doc_label">{{ form.footer.label }}</span>
+          {{ form.footer }}
+          {% if form.footer.errors %}
+            <span class="doc_error">{{ form.footer.errors }}</span>
+          {% endif %}
+        </label>
+      </div>
+    </div>
+
+    <div class="crm_actions">
+      <button class="crm_button" type="submit">
+        {% if form.instance.pk %}Update Document{% else %}Create Document{% endif %}
+      </button>
+
+      <a class="crm_button crm_button_secondary" href="{% url 'platform_documents:list' %}">
+        Cancel
+      </a>
+    </div>
+  </form>
+
+  <aside class="doc_side">
+    <div class="doc_side_card">
+      <h2>SaaS Document Rules</h2>
+      <p>
+        Use this module only for documents that CEO MARKETING sends to companies that purchase the CRM.
+      </p>
+
+      <ul class="doc_rule_list">
+        <li class="doc_rule_item">Only subscriptions from the selected company are shown.</li>
+        <li class="doc_rule_item">The first line item can be filled from the subscription plan price.</li>
+        <li class="doc_rule_item">Operational company invoices must stay in the company CRM billing module.</li>
+        <li class="doc_rule_item">Payments connect to these SaaS documents after being recorded.</li>
+      </ul>
+    </div>
+  </aside>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  (function () {
+    const companySelect = document.getElementById("id_id_company");
+    const subscriptionSelect = document.getElementById("id_id_subscription");
+    const subscriptionInfo = document.getElementById("documentSubscriptionInfo");
+
+    const addButton = document.getElementById("addDocumentItem");
+    const itemsList = document.getElementById("documentItemsList");
+    const emptyTemplate = document.getElementById("documentItemEmptyTemplate");
+    const totalFormsInput = document.querySelector('input[name$="-TOTAL_FORMS"]');
+
+    const originalSubscriptionValue = subscriptionSelect ? String(subscriptionSelect.value || "") : "";
+    const isExistingDocument = "{% if form.instance.pk %}true{% else %}false{% endif %}" === "true";
+
+    const subscriptions = [
+      {% for subscription in form.fields.id_subscription.queryset %}
+        {
+          id: "{{ subscription.id_subscription }}",
+          companyId: "{{ subscription.id_company_id }}",
+          label: "{{ subscription.id_company.name|escapejs }} - {{ subscription.id_plan.name|escapejs }}",
+          company: "{{ subscription.id_company.name|escapejs }}",
+          plan: "{{ subscription.id_plan.name|escapejs }}",
+          status: "{{ subscription.get_status_display|escapejs }}",
+          renewal: "{{ subscription.renewal_date|default:'No date'|escapejs }}",
+          startDate: "{{ subscription.start_date|default:'No date'|escapejs }}",
+          price: "{{ subscription.id_plan.price|default:'0.00' }}",
+          cycle: "{% if subscription.id_plan.billing_cycle_display_label %}{{ subscription.id_plan.billing_cycle_display_label|escapejs }}{% else %}{{ subscription.id_plan.get_billing_cycle_display|escapejs }}{% endif %}"
+        }{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    ];
+
+    function createOption(value, label) {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = label;
+      return option;
+    }
+
+    function getSelectedCompanyId() {
+      return companySelect ? String(companySelect.value || "") : "";
+    }
+
+    function getSelectedSubscription() {
+      if (!subscriptionSelect || !subscriptionSelect.value) {
+        return null;
+      }
+
+      return subscriptions.find(function (subscription) {
+        return String(subscription.id) === String(subscriptionSelect.value);
+      }) || null;
+    }
+
+    function renderEmptySubscriptionInfo(message) {
+      if (!subscriptionInfo) {
+        return;
+      }
+
+      subscriptionInfo.className = "doc_subscription_empty";
+      subscriptionInfo.textContent = message || "No subscription information available.";
+    }
+
+    function renderSubscriptionInfo(subscription) {
+      if (!subscriptionInfo) {
+        return;
+      }
+
+      if (!subscription) {
+        renderEmptySubscriptionInfo("Select a company to load subscription information.");
+        return;
+      }
+
+      subscriptionInfo.className = "doc_subscription_box";
+      subscriptionInfo.innerHTML = `
+        <div class="doc_subscription_stat">
+          <span>Company</span>
+          <strong>${subscription.company}</strong>
+        </div>
+
+        <div class="doc_subscription_stat">
+          <span>Plan</span>
+          <strong>${subscription.plan}</strong>
+        </div>
+
+        <div class="doc_subscription_stat">
+          <span>Renewal Date</span>
+          <strong>${subscription.renewal}</strong>
+        </div>
+
+        <div class="doc_subscription_stat">
+          <span>Plan Price</span>
+          <strong>$${subscription.price} · ${subscription.cycle}</strong>
+        </div>
+      `;
+    }
+
+    function getCurrentIndex() {
+      return parseInt(totalFormsInput.value || "0", 10);
+    }
+
+    function updateTotalForms(nextValue) {
+      totalFormsInput.value = String(nextValue);
+    }
+
+    function clearVisibleValues(row) {
+      const inputs = row.querySelectorAll("input, textarea, select");
+
+      inputs.forEach(function (input) {
+        if (input.type === "hidden") {
+          return;
+        }
+
+        if (input.type === "checkbox") {
+          return;
+        }
+
+        input.value = "";
+      });
+    }
+
+    function markRowDeleted(row) {
+      const deleteInput = row.querySelector('input[type="checkbox"][name$="-DELETE"]');
+
+      if (deleteInput) {
+        deleteInput.checked = true;
+      }
+
+      clearVisibleValues(row);
+      row.classList.add("is_hidden");
+    }
+
+    function initializeDeletedRows() {
+      const rows = itemsList.querySelectorAll("[data-item-row]");
+
+      rows.forEach(function (row) {
+        const deleteInput = row.querySelector('input[type="checkbox"][name$="-DELETE"]');
+
+        if (deleteInput && deleteInput.checked) {
+          row.classList.add("is_hidden");
+        }
+      });
+    }
+
+    function getVisibleRows() {
+      return Array.from(itemsList.querySelectorAll("[data-item-row]")).filter(function (row) {
+        return !row.classList.contains("is_hidden");
+      });
+    }
+
+    function getFirstEditableRow() {
+      const rows = getVisibleRows();
+
+      if (rows.length) {
+        return rows[0];
+      }
+
+      return null;
+    }
+
+    function getRowInput(row, suffix) {
+      if (!row) {
+        return null;
+      }
+
+      return row.querySelector('input[name$="' + suffix + '"]');
+    }
+
+    function fillFirstItemFromSubscription(subscription, forceUpdate) {
+      if (!subscription || !itemsList) {
+        return;
+      }
+
+      const row = getFirstEditableRow();
+
+      if (!row) {
+        return;
+      }
+
+      const descriptionInput = getRowInput(row, "-description");
+      const quantityInput = getRowInput(row, "-quantity");
+      const unitPriceInput = getRowInput(row, "-unit_price");
+
+      if (!descriptionInput || !quantityInput || !unitPriceInput) {
+        return;
+      }
+
+      const currentDescription = String(descriptionInput.value || "").trim();
+      const isAutoDescription = currentDescription.indexOf("CRM SaaS Subscription") === 0;
+
+      if (isExistingDocument && !forceUpdate && currentDescription) {
+        return;
+      }
+
+      if (!currentDescription || isAutoDescription || forceUpdate) {
+        descriptionInput.value = "CRM SaaS Subscription - " + subscription.plan;
+      }
+
+      if (!String(quantityInput.value || "").trim() || forceUpdate) {
+        quantityInput.value = "1.00";
+      }
+
+      if (!String(unitPriceInput.value || "").trim() || unitPriceInput.value === "0" || unitPriceInput.value === "0.00" || forceUpdate) {
+        unitPriceInput.value = subscription.price || "0.00";
+      }
+    }
+
+    function filterSubscriptionsByCompany(forceItemUpdate) {
+      if (!companySelect || !subscriptionSelect) {
+        return;
+      }
+
+      const selectedCompanyId = getSelectedCompanyId();
+
+      subscriptionSelect.innerHTML = "";
+
+      if (!selectedCompanyId) {
+        subscriptionSelect.appendChild(
+          createOption("", "Select a company first")
+        );
+        renderEmptySubscriptionInfo("Select a company to load subscription information.");
+        return;
+      }
+
+      const companySubscriptions = subscriptions.filter(function (subscription) {
+        return String(subscription.companyId) === String(selectedCompanyId);
+      });
+
+      if (!companySubscriptions.length) {
+        subscriptionSelect.appendChild(
+          createOption("", "This company has no subscription")
+        );
+        renderEmptySubscriptionInfo("This company does not have a subscription. Create or edit the company subscription first.");
+        return;
+      }
+
+      companySubscriptions.forEach(function (subscription, index) {
+        const option = createOption(subscription.id, subscription.label + " · " + subscription.status);
+        subscriptionSelect.appendChild(option);
+
+        if (
+          String(subscription.id) === originalSubscriptionValue ||
+          index === 0
+        ) {
+          option.selected = true;
+        }
+      });
+
+      const selectedSubscription = getSelectedSubscription();
+      renderSubscriptionInfo(selectedSubscription);
+      fillFirstItemFromSubscription(selectedSubscription, forceItemUpdate);
+    }
+
+    if (addButton && itemsList && emptyTemplate && totalFormsInput) {
+      addButton.addEventListener("click", function () {
+        const index = getCurrentIndex();
+        const html = emptyTemplate.innerHTML.replace(/__prefix__/g, index);
+        const wrapper = document.createElement("div");
+
+        wrapper.innerHTML = html.trim();
+
+        if (wrapper.firstElementChild) {
+          itemsList.appendChild(wrapper.firstElementChild);
+          updateTotalForms(index + 1);
+        }
+      });
+
+      itemsList.addEventListener("click", function (event) {
+        const button = event.target.closest("[data-remove-item]");
+
+        if (!button) {
+          return;
+        }
+
+        const row = button.closest("[data-item-row]");
+
+        if (!row) {
+          return;
+        }
+
+        markRowDeleted(row);
+      });
+
+      initializeDeletedRows();
+    }
+
+    if (companySelect) {
+      companySelect.addEventListener("change", function () {
+        filterSubscriptionsByCompany(true);
+      });
+    }
+
+    if (subscriptionSelect) {
+      subscriptionSelect.addEventListener("change", function () {
+        const selectedSubscription = getSelectedSubscription();
+        renderSubscriptionInfo(selectedSubscription);
+        fillFirstItemFromSubscription(selectedSubscription, true);
+      });
+    }
+
+    filterSubscriptionsByCompany(false);
+  })();
+</script>
+{% endblock %}

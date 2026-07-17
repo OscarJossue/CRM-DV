@@ -1,0 +1,35 @@
+EVENT_TYPE_MANUAL = "manual"
+EVENT_TYPE_RENEWAL = "renewal"
+EVENT_TYPE_PAYMENT_FOLLOW_UP = "payment_follow_up"
+EVENT_TYPE_COMPANY_REVIEW = "company_review"
+EVENT_TYPE_SUSPENSION = "suspension"
+EVENT_TYPE_OTHER = "other"
+
+EVENT_TYPE_CHOICES = [
+    (EVENT_TYPE_MANUAL, "Manual Event"),
+    (EVENT_TYPE_RENEWAL, "Renewal Reminder"),
+    (EVENT_TYPE_PAYMENT_FOLLOW_UP, "Payment Follow Up"),
+    (EVENT_TYPE_COMPANY_REVIEW, "Company Review"),
+    (EVENT_TYPE_SUSPENSION, "Suspension Review"),
+    (EVENT_TYPE_OTHER, "Other"),
+]
+
+EVENT_STATUS_SCHEDULED = "scheduled"
+EVENT_STATUS_DONE = "done"
+EVENT_STATUS_CANCELLED = "cancelled"
+
+EVENT_STATUS_CHOICES = [
+    (EVENT_STATUS_SCHEDULED, "Scheduled"),
+    (EVENT_STATUS_DONE, "Done"),
+    (EVENT_STATUS_CANCELLED, "Cancelled"),
+]
+
+EVENT_PRIORITY_LOW = "low"
+EVENT_PRIORITY_NORMAL = "normal"
+EVENT_PRIORITY_HIGH = "high"
+
+EVENT_PRIORITY_CHOICES = [
+    (EVENT_PRIORITY_LOW, "Low"),
+    (EVENT_PRIORITY_NORMAL, "Normal"),
+    (EVENT_PRIORITY_HIGH, "High"),
+]

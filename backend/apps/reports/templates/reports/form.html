@@ -1,0 +1,20 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Report Filters{% endblock %}
+
+{% block page_subtitle %}
+Report filters will be expanded when date range reporting is enabled.
+{% endblock %}
+
+{% block content %}
+  <section class="crm_card">
+    <h2 class="crm_section_title">Report Filters</h2>
+    <p class="crm_page_text">
+      This module currently generates company summaries and exports. Date filters can be added later without changing the main database structure.
+    </p>
+
+    <div class="crm_actions" style="margin-top:18px;">
+      <a class="crm_button" href="{% url 'reports:reports_home' %}">Back To Reports</a>
+    </div>
+  </section>
+{% endblock %}

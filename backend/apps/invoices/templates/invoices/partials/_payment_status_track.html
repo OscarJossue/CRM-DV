@@ -1,0 +1,15 @@
+<div class="nj-workflow finance-locked-workflow{% if detail %} is-detail{% endif %}{% if compact %} is-compact{% endif %}" aria-label="Payment status: {{ invoice.get_payment_status_display }}">
+  <span class="finance-workflow-lock"><i class="bi bi-lock-fill" aria-hidden="true"></i> Accounting controlled</span>
+  <div class="nj-status-track finance-status-track nj-status-track-payment">
+    <span class="nj-status-node is-danger{% if invoice.payment_status == 'unpaid' %} is-current{% endif %}" style="--stage-color:#ef3340" title="Unpaid" aria-label="Unpaid"><i class="bi bi-wallet2" aria-hidden="true"></i></span>
+    <span class="nj-status-line" aria-hidden="true"></span>
+    <span class="nj-status-node is-warning{% if invoice.payment_status == 'partial' %} is-current{% endif %}" style="--stage-color:#f59e0b" title="Partial" aria-label="Partial"><i class="bi bi-circle-half" aria-hidden="true"></i></span>
+    <span class="nj-status-line" aria-hidden="true"></span>
+    <span class="nj-status-node is-success{% if invoice.payment_status == 'paid' %} is-current{% endif %}" style="--stage-color:#0e9f6e" title="Paid" aria-label="Paid"><i class="bi bi-check-lg" aria-hidden="true"></i></span>
+    <span class="nj-status-line" aria-hidden="true"></span>
+    <span class="nj-status-node is-violet{% if invoice.payment_status == 'overpaid' %} is-current{% endif %}" style="--stage-color:#7c3aed" title="Overpaid" aria-label="Overpaid"><i class="bi bi-plus-lg" aria-hidden="true"></i></span>
+    <span class="nj-status-line" aria-hidden="true"></span>
+    <span class="nj-status-node is-void{% if invoice.payment_status == 'void' %} is-current{% endif %}" style="--stage-color:#6b7280" title="Void" aria-label="Void"><i class="bi bi-x-lg" aria-hidden="true"></i></span>
+  </div>
+  <span class="nj-status-caption {% if invoice.payment_status == 'unpaid' %}is-danger{% elif invoice.payment_status == 'partial' %}is-warning{% elif invoice.payment_status == 'paid' %}is-success{% elif invoice.payment_status == 'overpaid' %}is-violet{% else %}is-void{% endif %}">{{ invoice.get_payment_status_display }}</span>
+</div>

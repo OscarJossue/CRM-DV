@@ -1,0 +1,74 @@
+{% extends "layouts/base.html" %}
+{% block page_title %}Google Lead Detail{% endblock %}
+{% block page_subtitle %}Review, qualify and follow up with the Google lead inside the CRM.{% endblock %}
+{% block extra_head %}{% include "integrations/partials/_design_system.html" %}{% endblock %}
+{% block content %}
+<div class="account_theme integration_theme account_page">
+  <div class="account_toolbar">
+    <div class="account_toolbar_title">
+      <h2>{{ ads_lead.display_contact }}</h2>
+      <p>{{ ads_lead.get_source_display }} · {{ ads_lead.received_at|date:"Y-m-d H:i"|default:"Received date pending" }}</p>
+    </div>
+    <div class="integration_inline">
+      <a class="account_button account_button_secondary" href="../"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg> Back</a>
+      {% if ads_lead.phone %}<a class="account_button account_button_secondary" href="tel:{{ ads_lead.phone }}"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.32 1.78.59 2.63a2 2 0 0 1-.45 2.11L8 9.7a16 16 0 0 0 6.3 6.3l1.24-1.24a2 2 0 0 1 2.11-.45c.85.27 1.73.47 2.63.59A2 2 0 0 1 22 16.92z"/></svg> Call</a>{% endif %}
+      {% if ads_lead.email %}<a class="account_button account_button_secondary" href="mailto:{{ ads_lead.email }}"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg> Email</a>{% endif %}
+      {% if ads_lead.whatsapp_url %}<a class="account_button account_button_secondary" href="{{ ads_lead.whatsapp_url }}" target="_blank"><svg viewBox="0 0 24 24"><path d="M20.5 11.5a8.5 8.5 0 0 1-12.8 7.4L3 20l1.2-4.5A8.5 8.5 0 1 1 20.5 11.5Z"/><path d="M9 8.5c.3 3 2.5 5.2 5.5 5.5"/></svg> WhatsApp</a>{% endif %}
+    </div>
+  </div>
+
+  <section class="account_stats">
+    <article class="account_stat"><span class="account_stat_icon"><svg viewBox="0 0 24 24"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg></span><span><span class="account_stat_label">Customer</span><span class="account_stat_value">{{ ads_lead.customer_name|default:"—" }}</span></span></article>
+    <article class="account_stat"><span class="account_stat_icon"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2"/><path d="M6 2h3l2 5-2 1a14 14 0 0 0 7 7l1-2 5 2v3"/></svg></span><span><span class="account_stat_label">Phone</span><span class="account_stat_value">{{ ads_lead.phone|default:"—" }}</span></span></article>
+    <article class="account_stat"><span class="account_stat_icon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span><span><span class="account_stat_label">Email</span><span class="account_stat_value">{{ ads_lead.email|default:"—" }}</span></span></article>
+    <article class="account_stat"><span class="account_stat_icon"><svg viewBox="0 0 24 24"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16v-5M13 16V8M18 16v-9"/></svg></span><span><span class="account_stat_label">CRM Status</span><span class="account_stat_value">{{ ads_lead.get_crm_status_display }}</span></span></article>
+  </section>
+
+  <section class="crm_card">
+    <div class="account_info_grid">
+      <div class="account_info_item"><span class="account_detail_label">Source</span><span class="account_detail_value">{{ ads_lead.get_source_display }}</span></div>
+      <div class="account_info_item"><span class="account_detail_label">External Lead ID</span><span class="account_detail_value">{{ ads_lead.external_lead_id|default:"—" }}</span></div>
+      <div class="account_info_item"><span class="account_detail_label">Google Status</span><span class="account_detail_value">{{ ads_lead.lead_status|default:"—" }}</span></div>
+      <div class="account_info_item"><span class="account_detail_label">Lead Type</span><span class="account_detail_value">{{ ads_lead.lead_type|default:"—" }}</span></div>
+      <div class="account_info_item"><span class="account_detail_label">Service / Category</span><span class="account_detail_value">{{ ads_lead.service_interest|default:ads_lead.category_id|default:"—" }}</span></div>
+      <div class="account_info_item"><span class="account_detail_label">CRM Lead</span><span class="account_detail_value">{% if ads_lead.crm_lead %}{{ ads_lead.crm_lead.name }}{% else %}Not linked{% endif %}</span></div>
+    </div>
+    {% if can_manage_integrations and not ads_lead.crm_lead %}
+    <form method="post" action="create-crm-lead/" style="margin-top:14px">{% csrf_token %}<button class="account_button" type="submit"><svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg> Create / Link CRM Lead</button></form>
+    {% endif %}
+  </section>
+
+  <section class="crm_card">
+    <div class="account_toolbar" style="margin-bottom:10px"><div class="account_toolbar_title"><h2 style="font-size:24px">Message / Conversation</h2><p>Lead form answers, Google Guaranteed message history or phone-call summary.</p></div></div>
+    {% if ads_lead.message %}<pre class="integration_code" style="white-space:pre-wrap">{{ ads_lead.message }}</pre>{% endif %}
+    {% if ads_lead.conversation_text %}<pre class="integration_code" style="white-space:pre-wrap; margin-top:10px">{{ ads_lead.conversation_text }}</pre>{% endif %}
+    {% if not ads_lead.message and not ads_lead.conversation_text %}<p class="account_empty">No message or conversation text available yet.</p>{% endif %}
+  </section>
+
+  <section class="crm_card">
+    <div class="account_toolbar" style="margin-bottom:10px"><div class="account_toolbar_title"><h2 style="font-size:24px">Update CRM Status</h2><p>Keep your follow-up workflow organized.</p></div></div>
+    <form method="post" action="status/" class="integration_inline">{% csrf_token %}{{ status_form.crm_status }}<button class="account_button account_button_secondary" type="submit"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> Save Status</button></form>
+  </section>
+
+  <section class="crm_card">
+    <div class="account_toolbar" style="margin-bottom:10px"><div class="account_toolbar_title"><h2 style="font-size:24px">Response / Follow-up Log</h2><p>This saves the response inside the CRM. Use Call, Email or WhatsApp buttons to contact the customer directly.</p></div></div>
+    {% if can_manage_integrations %}
+    <form method="post" action="reply/" class="integration_form_grid">
+      {% csrf_token %}
+      {% for field in reply_form %}
+        <div class="integration_form_field {% if field.name == 'message' %}integration_form_field_full{% endif %}">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% for error in field.errors %}<span class="integration_error">{{ error }}</span>{% endfor %}
+        </div>
+      {% endfor %}
+      <div class="integration_form_field integration_form_field_full"><button class="account_button" type="submit"><svg viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg> Save Response</button></div>
+    </form>
+    {% endif %}
+
+    <div class="account_table_wrap" style="margin-top:16px">
+      <table class="account_table"><thead><tr><th>Channel</th><th>Message</th><th>Status</th><th>Date</th></tr></thead><tbody>{% for reply in ads_lead.replies.all %}<tr><td>{{ reply.get_channel_display }}</td><td><span class="account_muted">{{ reply.message|truncatechars:160 }}</span></td><td><span class="account_pill success">{{ reply.get_status_display }}</span></td><td>{{ reply.created_at|date:"Y-m-d H:i" }}</td></tr>{% empty %}<tr><td colspan="4" class="account_empty">No responses logged yet.</td></tr>{% endfor %}</tbody></table>
+    </div>
+  </section>
+</div>
+{% endblock %}

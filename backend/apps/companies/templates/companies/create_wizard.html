@@ -1,0 +1,151 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Create Company{% endblock %}
+{% block page_subtitle %}Create the company and its administrator in one secure, atomic process.{% endblock %}
+
+{% block extra_head %}
+<style>
+  .provision_shell{display:grid;gap:18px;max-width:1180px;margin:0 auto}.provision_steps{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:8px;border:1px solid var(--crm_border);border-radius:18px;background:#fff;box-shadow:var(--crm_shadow)}.provision_step_tab{display:flex;align-items:center;gap:12px;min-width:0;padding:14px 16px;border:0;border-radius:13px;background:transparent;color:var(--crm_muted);font:inherit;text-align:left;cursor:pointer}.provision_step_tab[aria-current="step"]{background:linear-gradient(135deg,rgba(37,99,235,.14),rgba(124,58,237,.09));color:var(--crm_text)}.provision_step_number{display:grid;place-items:center;flex:0 0 34px;height:34px;border-radius:50%;background:#e8eefb;color:#35538a;font-weight:900}.provision_step_tab[aria-current="step"] .provision_step_number{background:#2563eb;color:#fff}.provision_step_copy{display:grid;gap:2px}.provision_step_copy strong{font-size:14px}.provision_step_copy span{font-size:12px;color:var(--crm_muted)}
+  .provision_card{padding:0;overflow:hidden}.provision_window{display:none}.provision_window.is_active{display:block}.provision_head{display:flex;align-items:flex-start;gap:14px;padding:22px 24px;border-bottom:1px solid var(--crm_border);background:linear-gradient(135deg,rgba(37,99,235,.08),rgba(255,255,255,.92))}.provision_icon{display:grid;place-items:center;flex:0 0 44px;height:44px;border-radius:14px;background:#eef4ff;color:#2563eb;font-size:20px}.provision_head h2{margin:0;color:var(--crm_text);font-size:21px;font-weight:900}.provision_head p{margin:5px 0 0;color:var(--crm_muted);font-size:13px;line-height:1.55}.provision_body{display:grid;gap:22px;padding:24px}.provision_group{display:grid;gap:14px}.provision_group_title{margin:0;color:var(--crm_text);font-size:14px;font-weight:900;text-transform:uppercase;letter-spacing:.04em}.provision_grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.provision_field{display:grid;gap:7px;min-width:0}.provision_field_full{grid-column:1/-1}.provision_label{color:var(--crm_text);font-size:13px;font-weight:900}.crm_input{width:100%;min-height:46px;border:1px solid var(--crm_border);border-radius:12px;padding:10px 12px;background:#fff;color:var(--crm_text);font:inherit}.crm_input:focus{outline:3px solid rgba(37,99,235,.13);border-color:#2563eb}textarea.crm_input{min-height:104px;resize:vertical}.provision_error{color:#c62828;font-size:12px;font-weight:800;line-height:1.45}.provision_help{color:var(--crm_muted);font-size:12px;line-height:1.5}.provision_logo{width:170px;max-width:100%;aspect-ratio:16/9;object-fit:contain;border:1px solid var(--crm_border);border-radius:12px;background:#fff;padding:10px}.provision_notice{padding:12px 14px;border:1px solid rgba(37,99,235,.22);border-radius:12px;background:rgba(37,99,235,.06);color:#244b8f;font-size:13px;font-weight:800}.provision_security{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.provision_security article{display:flex;align-items:center;gap:9px;padding:12px;border:1px solid var(--crm_border);border-radius:12px;background:#fafcff;color:var(--crm_text);font-size:12px;font-weight:800}.provision_security i{color:#2563eb;font-size:17px}.provision_actions{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:18px 24px;border-top:1px solid var(--crm_border);background:#fbfcff}.provision_action_group{display:flex;gap:10px;flex-wrap:wrap}.provision_summary{display:grid;gap:10px;padding:16px;border:1px solid var(--crm_border);border-radius:14px;background:#f8faff}.provision_summary h3{margin:0;font-size:14px;font-weight:900}.provision_summary_grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.provision_summary_item{display:grid;gap:3px;min-width:0}.provision_summary_item span{font-size:11px;color:var(--crm_muted);text-transform:uppercase;font-weight:800}.provision_summary_item strong{font-size:13px;color:var(--crm_text);overflow-wrap:anywhere}.provision_global_error{margin:0 24px 0;padding:14px;border:1px solid rgba(198,40,40,.24);border-radius:12px;background:rgba(198,40,40,.06);color:#b42318;font-weight:800}.provision_required{color:#d92d20}.provision_hidden{display:none!important}
+  @media(max-width:760px){.provision_steps,.provision_grid,.provision_security,.provision_summary_grid{grid-template-columns:1fr}.provision_step_copy span{display:none}.provision_body,.provision_head,.provision_actions{padding-left:16px;padding-right:16px}.provision_field_full{grid-column:auto}.provision_global_error{margin-left:16px;margin-right:16px}}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="provision_shell" data-provision-wizard data-initial-step="{{ initial_step|default:1 }}">
+  <nav class="provision_steps" aria-label="Company creation steps">
+    <button class="provision_step_tab" type="button" data-step-tab="1" aria-current="step">
+      <span class="provision_step_number">1</span><span class="provision_step_copy"><strong>Company</strong><span>Profile, plan and activation</span></span>
+    </button>
+    <button class="provision_step_tab" type="button" data-step-tab="2">
+      <span class="provision_step_number">2</span><span class="provision_step_copy"><strong>Administrator</strong><span>Login and full company permissions</span></span>
+    </button>
+  </nav>
+
+  <form class="crm_card provision_card" method="post" enctype="multipart/form-data" novalidate data-provision-form>
+    {% csrf_token %}
+    <input type="hidden" name="logo_temp_token" value="{{ logo_temp_token|default:'' }}">
+
+    {% if form.non_field_errors %}<div class="provision_global_error">{{ form.non_field_errors }}</div>{% endif %}
+
+    <div class="provision_window is_active" data-step-window="1">
+      <header class="provision_head"><span class="provision_icon"><i class="bi bi-buildings"></i></span><div><h2>Company information</h2><p>This record controls the company workspace. The administrator is created only after both steps validate correctly.</p></div></header>
+      <div class="provision_body">
+        <section class="provision_group">
+          <h3 class="provision_group_title">Identity</h3>
+          <div class="provision_grid">
+            {% for field in form.visible_fields %}
+              {% if field.name == 'name' or field.name == 'legal_name' or field.name == 'email' or field.name == 'phone' or field.name == 'address' or field.name == 'city' or field.name == 'state' or field.name == 'country' or field.name == 'logo' or field.name == 'description' %}
+              <label class="provision_field {% if field.name == 'address' or field.name == 'description' %}provision_field_full{% endif %}">
+                <span class="provision_label">{{ field.label }}{% if field.field.required %} <span class="provision_required">*</span>{% endif %}</span>
+                {% if field.name == 'logo' and temp_logo_url %}<img class="provision_logo" src="{{ temp_logo_url }}" alt="Temporary company logo"><span class="provision_notice">Logo saved temporarily and ready to attach.</span>{% endif %}
+                {{ field }}
+                {% if field.name == 'logo' %}<span class="provision_help">PNG, JPEG or WebP. Maximum 3MB.</span>{% endif %}
+                {% for error in field.errors %}<span class="provision_error">{{ error }}</span>{% endfor %}
+              </label>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </section>
+
+        <section class="provision_group">
+          <h3 class="provision_group_title">Plan and access</h3>
+          <div class="provision_grid">
+            {% for field in form.visible_fields %}
+              {% if field.name == 'id_plan' or field.name == 'start_date' or field.name == 'renewal_date' %}
+              <label class="provision_field">
+                <span class="provision_label">{{ field.label }}{% if field.field.required %} <span class="provision_required">*</span>{% endif %}</span>{{ field }}
+                {% if field.name == 'renewal_date' %}<span class="provision_help">Leave empty to calculate it from the selected plan.</span>{% endif %}
+                {% for error in field.errors %}<span class="provision_error">{{ error }}</span>{% endfor %}
+              </label>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </section>
+      </div>
+      <footer class="provision_actions"><a class="crm_button crm_button_secondary" href="{% url 'companies:company_list' %}">Cancel</a><button class="crm_button" type="button" data-next-step>Continue to administrator <i class="bi bi-arrow-right"></i></button></footer>
+    </div>
+
+    <div class="provision_window" data-step-window="2">
+      <header class="provision_head"><span class="provision_icon"><i class="bi bi-person-lock"></i></span><div><h2>Company administrator</h2><p>This user belongs only to the new company. It is not a platform user and receives full permissions only inside its own workspace.</p></div></header>
+      <div class="provision_body">
+        <section class="provision_group">
+          <h3 class="provision_group_title">Login information</h3>
+          <div class="provision_grid">
+            {% for field in form.visible_fields %}
+              {% if field.name == 'admin_first_name' or field.name == 'admin_last_name' or field.name == 'admin_email' or field.name == 'admin_phone' or field.name == 'password1' or field.name == 'password2' %}
+              <label class="provision_field">
+                <span class="provision_label">{{ field.label }}{% if field.field.required %} <span class="provision_required">*</span>{% endif %}</span>{{ field }}
+                {% if field.name == 'password1' %}<span class="provision_help">The password is hashed by Django and is never stored as readable text.</span>{% endif %}
+                {% for error in field.errors %}<span class="provision_error">{{ error }}</span>{% endfor %}
+              </label>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </section>
+
+        <div class="provision_security">
+          <article><i class="bi bi-shield-lock"></i><span>Tenant-only administrator</span></article>
+          <article><i class="bi bi-key"></i><span>Secure password hash</span></article>
+          <article><i class="bi bi-check2-circle"></i><span>All company permissions</span></article>
+        </div>
+
+        <section class="provision_summary" aria-live="polite">
+          <h3>Creation summary</h3>
+          <div class="provision_summary_grid">
+            <div class="provision_summary_item"><span>Company</span><strong data-summary-company>—</strong></div>
+            <div class="provision_summary_item"><span>Plan</span><strong data-summary-plan>—</strong></div>
+            <div class="provision_summary_item"><span>Administrator</span><strong data-summary-admin>—</strong></div>
+          </div>
+        </section>
+      </div>
+      <footer class="provision_actions"><button class="crm_button crm_button_secondary" type="button" data-prev-step><i class="bi bi-arrow-left"></i> Back</button><div class="provision_action_group"><a class="crm_button crm_button_secondary" href="{% url 'companies:company_list' %}">Cancel</a><button class="crm_button" type="submit"><i class="bi bi-building-check"></i> {{ submit_label }}</button></div></footer>
+    </div>
+  </form>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(() => {
+  const root = document.querySelector('[data-provision-wizard]');
+  if (!root) return;
+  const form = root.querySelector('[data-provision-form]');
+  const tabs = [...root.querySelectorAll('[data-step-tab]')];
+  const windows = [...root.querySelectorAll('[data-step-window]')];
+  let step = Number(root.dataset.initialStep || 1) === 2 ? 2 : 1;
+  const companyField = form.querySelector('[name="name"]');
+  const planField = form.querySelector('[name="id_plan"]');
+  const adminField = form.querySelector('[name="admin_email"]');
+
+  const updateSummary = () => {
+    root.querySelector('[data-summary-company]').textContent = companyField?.value.trim() || '—';
+    root.querySelector('[data-summary-plan]').textContent = planField?.selectedOptions?.[0]?.textContent.trim() || '—';
+    root.querySelector('[data-summary-admin]').textContent = adminField?.value.trim() || '—';
+  };
+  const show = (next) => {
+    step = next === 2 ? 2 : 1;
+    tabs.forEach(tab => tab.setAttribute('aria-current', Number(tab.dataset.stepTab) === step ? 'step' : 'false'));
+    windows.forEach(panel => panel.classList.toggle('is_active', Number(panel.dataset.stepWindow) === step));
+    updateSummary();
+    root.scrollIntoView({behavior:'smooth', block:'start'});
+  };
+  const validateCompanyStep = () => {
+    const required = [...windows[0].querySelectorAll('input[required],select[required],textarea[required]')];
+    for (const field of required) {
+      if (!field.checkValidity()) { field.reportValidity(); field.focus(); return false; }
+    }
+    return true;
+  };
+
+  root.querySelector('[data-next-step]')?.addEventListener('click', () => { if (validateCompanyStep()) show(2); });
+  root.querySelector('[data-prev-step]')?.addEventListener('click', () => show(1));
+  tabs.forEach(tab => tab.addEventListener('click', () => {
+    const target = Number(tab.dataset.stepTab);
+    if (target === 1 || validateCompanyStep()) show(target);
+  }));
+  [companyField, planField, adminField].forEach(field => field?.addEventListener('input', updateSummary));
+  show(step);
+})();
+</script>
+{% endblock %}

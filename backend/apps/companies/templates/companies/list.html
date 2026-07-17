@@ -1,0 +1,396 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Companies{% endblock %}
+
+{% block page_subtitle %}
+Manage companies, their administrators, subscriptions and workspace access.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .company_page {
+    display: grid;
+    gap: 20px;
+  }
+
+  .company_top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 18px;
+    align-items: center;
+    padding: 22px;
+    border: 1px solid var(--crm_border);
+    border-radius: 22px;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(31, 58, 138, 0.12), transparent 32%),
+      #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .company_top h2 {
+    margin: 0;
+    color: var(--crm_text);
+    font-size: 24px;
+    font-weight: 900;
+  }
+
+  .company_top p {
+    margin: 6px 0 0;
+    color: var(--crm_muted);
+    font-size: 14px;
+    line-height: 1.65;
+  }
+
+  .company_stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .company_stat {
+    display: grid;
+    gap: 6px;
+    padding: 16px;
+    border: 1px solid var(--crm_border);
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .company_stat span {
+    color: var(--crm_muted);
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  .company_stat strong {
+    color: var(--crm_primary);
+    font-size: 28px;
+    font-weight: 900;
+  }
+
+  .company_filters {
+    display: grid;
+    grid-template-columns: minmax(240px, 1fr) minmax(160px, .35fr) auto;
+    gap: 12px;
+    align-items: end;
+    padding: 18px;
+    border: 1px solid var(--crm_border);
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .company_field {
+    display: grid;
+    gap: 6px;
+  }
+
+  .company_label {
+    color: var(--crm_text);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  .company_table_wrap {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .company_table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 1180px;
+  }
+
+  .company_table th,
+  .company_table td {
+    padding: 14px 12px;
+    border-bottom: 1px solid var(--crm_border);
+    text-align: left;
+    vertical-align: top;
+    font-size: 14px;
+  }
+
+  .company_table th {
+    color: var(--crm_muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  .company_identity {
+    display: grid;
+    grid-template-columns: 58px minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+  }
+
+  .company_logo_thumb,
+  .company_logo_placeholder {
+    width: 58px;
+    height: 42px;
+    border: 1px solid var(--crm_border);
+    border-radius: 10px;
+    background: #ffffff;
+    padding: 6px;
+    object-fit: contain;
+  }
+
+  .company_logo_placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--crm_muted);
+    font-size: 11px;
+    font-weight: 900;
+  }
+
+  .company_name {
+    font-weight: 900;
+    color: var(--crm_text);
+    overflow-wrap: anywhere;
+  }
+
+  .company_muted {
+    color: var(--crm_muted);
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  .company_status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 30px;
+    padding: 6px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    border: 1px solid var(--crm_border);
+  }
+
+  .company_status_active {
+    color: var(--crm_success);
+    background: rgba(15, 118, 110, .08);
+  }
+
+  .company_status_inactive {
+    color: var(--crm_danger);
+    background: rgba(185, 28, 28, .08);
+  }
+
+  .company_row_actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .company_link {
+    font-weight: 900;
+    color: var(--crm_primary);
+  }
+
+  .company_empty {
+    padding: 28px;
+    text-align: center;
+    color: var(--crm_muted);
+  }
+
+  .company_link_btn {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+    font: inherit;
+  }
+
+  .company_row_actions form {
+    margin: 0;
+  }
+
+  @media (max-width: 980px) {
+    .company_top,
+    .company_filters,
+    .company_stats {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="company_page">
+  <div class="company_top">
+    <div>
+      <h2>Company Management</h2>
+      <p>
+        Create companies with their administrator, review SaaS subscriptions and control CRM workspace access.
+      </p>
+    </div>
+
+    {% if can_create_companies %}
+    <div class="crm_actions">
+      <a class="crm_button" href="{% url 'companies:company_create' %}">
+        <i class="bi bi-building-add"></i>&nbsp; Create Company
+      </a>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="company_stats">
+    <article class="company_stat">
+      <span>Total Companies</span>
+      <strong>{{ total_companies }}</strong>
+    </article>
+
+    <article class="company_stat">
+      <span>Active Companies</span>
+      <strong>{{ active_companies }}</strong>
+    </article>
+
+    <article class="company_stat">
+      <span>Inactive Companies</span>
+      <strong>{{ inactive_companies }}</strong>
+    </article>
+  </div>
+
+  <form class="company_filters" method="get">
+    <label class="company_field">
+      <span class="company_label">Search</span>
+      <input class="crm_input" type="search" name="q" value="{{ q }}" placeholder="Search company by name">
+    </label>
+
+    <label class="company_field">
+      <span class="company_label">Status</span>
+      <select class="crm_input" name="status">
+        <option value="">All Statuses</option>
+        <option value="active" {% if status_filter == "active" %}selected{% endif %}>
+          Active
+        </option>
+        <option value="inactive" {% if status_filter == "inactive" %}selected{% endif %}>
+          Inactive
+        </option>
+      </select>
+    </label>
+
+    <button class="crm_button" type="submit"><i class="bi bi-funnel"></i>&nbsp; Apply Filters</button>
+  </form>
+
+  <div class="crm_card">
+    <div class="company_table_wrap">
+      <table class="company_table">
+        <thead>
+          <tr>
+            <th>Company</th>
+            <th>Administrator Login</th>
+            <th>Workspace URL</th>
+            <th>Subscription</th>
+            <th>Renewal Date</th>
+            <th>Status</th>
+            <th>User Limit</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for row in company_rows %}
+          {% with company=row.company owner=row.owner subscription=row.subscription %}
+          <tr>
+            <td>
+              <div class="company_identity">
+                {% if company.logo %}
+                <img class="company_logo_thumb" src="{{ company.logo.url }}" alt="{{ company.name }} logo">
+                {% else %}
+                <span class="company_logo_placeholder">Logo</span>
+                {% endif %}
+
+                <div>
+                  <div class="company_name">{{ company.name }}</div>
+                  <div class="company_muted">{% if company.email %}{{ company.email }}{% else %}No company email{% endif %}</div>
+                </div>
+              </div>
+            </td>
+
+            <td>
+              {% if owner %}
+              <div class="company_name">{{ owner.email }}</div>
+              <div class="company_muted">{{ owner.first_name }} {{ owner.last_name|default:"" }}</div>
+              {% else %}
+              <div class="company_muted">No administrator assigned</div>
+              {% endif %}
+            </td>
+
+            <td>
+              <div class="company_name">/{{ company.slug }}/dashboard/</div>
+              <div class="company_muted">Future company workspace route</div>
+            </td>
+
+            <td>
+              {% if subscription %}
+              <div class="company_name">{{ subscription.id_plan.name }}</div>
+              <div class="company_muted">{{ subscription.get_status_display }}</div>
+              {% else %}
+              <div class="company_muted">No subscription</div>
+              {% endif %}
+            </td>
+
+            <td>
+              {% if subscription and subscription.renewal_date %}
+              {{ subscription.renewal_date }}
+              {% else %}
+              <span class="company_muted">No renewal date</span>
+              {% endif %}
+            </td>
+
+            <td>
+              <span class="company_status company_status_{{ company.status }}">
+                {{ company.get_status_display }}
+              </span>
+            </td>
+
+            <td>{{ company.user_limit }}</td>
+
+            <td>
+              <div class="company_row_actions">
+                <a class="company_link" title="View" href="{% url 'companies:company_detail' company.id_company %}"><i class="bi bi-eye"></i> View</a>
+
+                {% if can_edit_companies %}
+                <a class="company_link" title="Edit" href="{% url 'companies:company_update' company.id_company %}"><i class="bi bi-pencil" aria-hidden="true"></i> Edit</a>
+                {% endif %}
+
+                {% if can_approve_companies %}
+                  {% if company.status == 'active' %}
+                  <form method="post" action="{% url 'companies:company_deactivate' company.id_company %}" data-platform-confirm data-platform-confirm-title="Deactivate company" data-platform-confirm-text="This will suspend the current subscription and block company workspace access." data-platform-confirm-button="Deactivate">
+                    {% csrf_token %}
+                    <button class="company_link company_link_btn" type="submit"><i class="bi bi-slash-circle"></i> Deactivate</button>
+                  </form>
+                  {% else %}
+                  <form method="post" action="{% url 'companies:company_activate' company.id_company %}" data-platform-confirm data-platform-confirm-title="Reactivate company" data-platform-confirm-text="This will reactivate the company subscription with a new renewal date and restore workspace access." data-platform-confirm-button="Reactivate">
+                    {% csrf_token %}
+                    <button class="company_link company_link_btn" type="submit"><i class="bi bi-arrow-clockwise"></i> Reactivate</button>
+                  </form>
+                  {% endif %}
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endwith %}
+          {% empty %}
+          <tr>
+            <td class="company_empty" colspan="8">No companies found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% include "platform_core/partials/_action_confirm.html" %}
+{% endblock %}

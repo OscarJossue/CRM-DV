@@ -1,0 +1,742 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}NexxtJob CRM{% endblock %}
+
+{% block page_subtitle %}
+SaaS business dashboard for companies, subscriptions, renewals, billing, documents and platform activity.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .ceo_saas_dash,
+  .ceo_saas_dash * {
+    box-sizing: border-box;
+    min-width: 0;
+  }
+
+  .ceo_saas_dash {
+    --gold-1: #d0ad6a;
+    --gold-2: #a67d40;
+    --gold-3: #703f0a;
+    --gold-4: #a67c52;
+    --gold-5: #c69c6d;
+    --ink: #20150c;
+    --muted: #6f6252;
+    --soft: #f8f3ea;
+    --line: rgba(112, 63, 10, .16);
+    --panel: #ffffff;
+    --blue: #0b6db7;
+    --sky: #36aeea;
+    --purple: #5b2bb3;
+    --red: #ff7178;
+    --green: #1fc788;
+    display: grid;
+    gap: 14px;
+  }
+
+  .ceo_saas_data {
+    display: none;
+  }
+
+  .ceo_saas_top {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(330px, .78fr);
+    gap: 14px;
+    align-items: stretch;
+  }
+
+  .ceo_metric_grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .ceo_metric_card {
+    position: relative;
+    overflow: hidden;
+    min-height: 112px;
+    display: grid;
+    align-content: center;
+    gap: 7px;
+    padding: 18px;
+    border-radius: 20px;
+    color: #ffffff;
+    box-shadow: 0 18px 42px rgba(32, 21, 12, .12);
+  }
+
+  .ceo_metric_card:nth-child(1) {
+    background: linear-gradient(135deg, #703f0a 0%, #a67d40 56%, #d0ad6a 100%);
+  }
+
+  .ceo_metric_card:nth-child(2) {
+    background: linear-gradient(135deg, #24170d 0%, #703f0a 56%, #a67d40 100%);
+  }
+
+  .ceo_metric_card:nth-child(3) {
+    background: linear-gradient(135deg, #a67c52 0%, #c69c6d 58%, #d0ad6a 100%);
+  }
+
+  .ceo_metric_card:nth-child(4) {
+    background: linear-gradient(135deg, #0b6db7 0%, #36aeea 100%);
+  }
+
+  .ceo_metric_card:nth-child(5) {
+    background: linear-gradient(135deg, #5b2bb3 0%, #7c4dff 100%);
+  }
+
+  .ceo_metric_card:nth-child(6) {
+    background: linear-gradient(135deg, #0b6db7 0%, #083e76 100%);
+  }
+
+  .ceo_metric_card:nth-child(7) {
+    background: linear-gradient(135deg, #009bb7 0%, #1fc788 100%);
+  }
+
+  .ceo_metric_card:nth-child(8) {
+    background: linear-gradient(135deg, #a67d40 0%, #703f0a 100%);
+  }
+
+  .ceo_metric_card::after {
+    content: "";
+    position: absolute;
+    right: -42px;
+    bottom: -52px;
+    width: 132px;
+    height: 132px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.16);
+  }
+
+  .ceo_metric_label {
+    position: relative;
+    z-index: 1;
+    color: rgba(255,255,255,.86);
+    font-size: 13px;
+    line-height: 1.35;
+    font-weight: 800;
+  }
+
+  .ceo_metric_value {
+    position: relative;
+    z-index: 1;
+    color: #ffffff;
+    font-size: clamp(28px, 3vw, 38px);
+    line-height: 1;
+    letter-spacing: -.04em;
+    font-weight: 950;
+    overflow-wrap: anywhere;
+  }
+
+  .ceo_panel {
+    overflow: hidden;
+    padding: 20px;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: 0 16px 42px rgba(32, 21, 12, .08);
+  }
+
+  .ceo_panel_head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 12px;
+  }
+
+  .ceo_panel_title {
+    margin: 0;
+    color: var(--ink);
+    font-size: 22px;
+    line-height: 1.2;
+    font-weight: 950;
+    letter-spacing: -.035em;
+  }
+
+  .ceo_panel_text {
+    margin: 5px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  .ceo_chart {
+    position: relative;
+    min-height: 250px;
+  }
+
+  .ceo_chart canvas {
+    width: 100% !important;
+    height: 250px !important;
+  }
+
+  .ceo_middle {
+    display: grid;
+    grid-template-columns: minmax(0, .96fr) minmax(0, .96fr) minmax(320px, .72fr);
+    gap: 14px;
+    align-items: stretch;
+  }
+
+  .ceo_bottom {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 14px;
+    align-items: start;
+  }
+
+  .ceo_table_wrap {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .ceo_table {
+    width: 100%;
+    min-width: 660px;
+    border-collapse: collapse;
+  }
+
+  .ceo_table th,
+  .ceo_table td {
+    padding: 12px 10px;
+    border-bottom: 1px solid rgba(112, 63, 10, .12);
+    text-align: left;
+    vertical-align: top;
+    font-size: 14px;
+  }
+
+  .ceo_table th {
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 950;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+  }
+
+  .ceo_table td {
+    color: var(--ink);
+  }
+
+  .ceo_badge {
+    display: inline-flex;
+    width: fit-content;
+    min-height: 28px;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 10px;
+    border: 1px solid rgba(166, 125, 64, .24);
+    border-radius: 999px;
+    background: rgba(208, 173, 106, .14);
+    color: var(--gold-3);
+    font-size: 12px;
+    font-weight: 900;
+    white-space: nowrap;
+  }
+
+  .ceo_link {
+    color: var(--gold-3);
+    font-weight: 950;
+    text-decoration: none;
+  }
+
+  .ceo_link:hover {
+    text-decoration: underline;
+  }
+
+  .ceo_empty {
+    padding: 16px;
+    border: 1px dashed rgba(166, 125, 64, .32);
+    border-radius: 16px;
+    background: var(--soft);
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .ceo_actions {
+    display: grid;
+    gap: 10px;
+  }
+
+  .ceo_action {
+    display: grid;
+    gap: 5px;
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: linear-gradient(135deg, #ffffff 0%, #fbf8f2 100%);
+    text-decoration: none;
+    transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+  }
+
+  .ceo_action:hover {
+    transform: translateY(-2px);
+    border-color: rgba(112, 63, 10, .34);
+    box-shadow: 0 12px 28px rgba(32, 21, 12, .08);
+  }
+
+  .ceo_action strong {
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 950;
+  }
+
+  .ceo_action span {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  @media (max-width: 1250px) {
+    .ceo_saas_top,
+    .ceo_middle,
+    .ceo_bottom {
+      grid-template-columns: 1fr;
+    }
+
+    .ceo_metric_grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 640px) {
+    .ceo_metric_grid {
+      grid-template-columns: 1fr;
+    }
+
+    .ceo_panel {
+      padding: 16px;
+      border-radius: 18px;
+    }
+
+    .ceo_panel_head {
+      flex-direction: column;
+    }
+
+    .ceo_chart,
+    .ceo_chart canvas {
+      min-height: 230px;
+      height: 230px !important;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="ceo_saas_dash">
+  <div class="ceo_saas_data" id="CeoSaasData">
+    {% for card in dashboard_cards %}
+      <span data-card-row data-label="{{ card.label }}" data-value="{{ card.value }}"></span>
+    {% endfor %}
+  </div>
+
+  <section class="ceo_saas_top">
+    <div class="ceo_metric_grid">
+      {% for card in dashboard_cards %}
+        {% if card.label == "Monthly Revenue" or card.label == "Yearly Revenue" or card.label == "Total Paid Revenue" or card.label == "Companies" or card.label == "Active Companies" or card.label == "Active Subscriptions" or card.label == "Pending Payments" or card.label == "Invoices" %}
+          <article class="ceo_metric_card">
+            <span class="ceo_metric_label">{{ card.label }}</span>
+            <strong class="ceo_metric_value">{{ card.value }}</strong>
+          </article>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    <section class="ceo_panel">
+      <div class="ceo_panel_head">
+        <div>
+          <h2 class="ceo_panel_title">SaaS Revenue Focus</h2>
+          <p class="ceo_panel_text">Paid revenue, pending payments and billing volume.</p>
+        </div>
+      </div>
+
+      <div class="ceo_chart">
+        <canvas id="SaasRevenueFocusChart"></canvas>
+      </div>
+    </section>
+  </section>
+
+  <section class="ceo_middle">
+    <section class="ceo_panel">
+      <div class="ceo_panel_head">
+        <div>
+          <h2 class="ceo_panel_title">Subscription Pipeline</h2>
+          <p class="ceo_panel_text">Active, trial, expired, suspended and canceled subscriptions.</p>
+        </div>
+      </div>
+
+      <div class="ceo_chart">
+        <canvas id="SaasSubscriptionChart"></canvas>
+      </div>
+    </section>
+
+    <section class="ceo_panel">
+      <div class="ceo_panel_head">
+        <div>
+          <h2 class="ceo_panel_title">Billing Flow</h2>
+          <p class="ceo_panel_text">Documents issued and payments registered by the SaaS team.</p>
+        </div>
+      </div>
+
+      <div class="ceo_chart">
+        <canvas id="SaasBillingFlowChart"></canvas>
+      </div>
+    </section>
+
+    <section class="ceo_panel">
+      <div class="ceo_panel_head">
+        <div>
+          <h2 class="ceo_panel_title">Quick Actions</h2>
+          <p class="ceo_panel_text">Actions a SaaS owner needs daily.</p>
+        </div>
+      </div>
+
+      <div class="ceo_actions">
+        <a class="ceo_action" href="{% url 'companies:company_create' %}">
+          <strong>Create Company</strong>
+          <span>Create company, owner user and subscription.</span>
+        </a>
+
+        <a class="ceo_action" href="{% url 'platform_documents:create' %}">
+          <strong>Create SaaS Document</strong>
+          <span>Generate a proforma or invoice for a company.</span>
+        </a>
+
+        <a class="ceo_action" href="{% url 'platform_payments:create' %}">
+          <strong>Record Payment</strong>
+          <span>Register a SaaS payment and update billing status.</span>
+        </a>
+
+        <a class="ceo_action" href="{% url 'platform_subscriptions:list' %}">
+          <strong>Review Subscriptions</strong>
+          <span>Control active, expired, suspended and canceled plans.</span>
+        </a>
+      </div>
+    </section>
+  </section>
+
+  <section class="ceo_bottom">
+    <section class="ceo_panel">
+      <div class="ceo_panel_head">
+        <div>
+          <h2 class="ceo_panel_title">Upcoming Renewals</h2>
+          <p class="ceo_panel_text">Companies that need renewal follow-up soon.</p>
+        </div>
+
+        <a class="crm_button crm_button_secondary" href="{% url 'platform_subscriptions:list' %}">Open</a>
+      </div>
+
+      {% if upcoming_renewals %}
+        <div class="ceo_table_wrap">
+          <table class="ceo_table">
+            <thead>
+              <tr>
+                <th>Company</th>
+                <th>Plan</th>
+                <th>Status</th>
+                <th>Renewal</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for subscription in upcoming_renewals %}
+                <tr>
+                  <td>{{ subscription.id_company.name }}</td>
+                  <td>{{ subscription.id_plan.name }}</td>
+                  <td><span class="ceo_badge">{{ subscription.get_status_display }}</span></td>
+                  <td>{{ subscription.renewal_date }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="ceo_empty">No upcoming renewals found.</div>
+      {% endif %}
+    </section>
+
+    <section class="ceo_panel">
+      <div class="ceo_panel_head">
+        <div>
+          <h2 class="ceo_panel_title">Recent SaaS Payments</h2>
+          <p class="ceo_panel_text">Latest money movement registered in the platform.</p>
+        </div>
+
+        <a class="crm_button crm_button_secondary" href="{% url 'platform_payments:list' %}">Open</a>
+      </div>
+
+      {% if recent_payments %}
+        <div class="ceo_table_wrap">
+          <table class="ceo_table">
+            <thead>
+              <tr>
+                <th>Payment</th>
+                <th>Company</th>
+                <th>Status</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for payment in recent_payments %}
+                <tr>
+                  <td>
+                    <a class="ceo_link" href="{% url 'platform_payments:detail' payment.id_payment %}">
+                      {{ payment.payment_number }}
+                    </a>
+                  </td>
+                  <td>{{ payment.id_company.name }}</td>
+                  <td><span class="ceo_badge">{{ payment.get_status_display }}</span></td>
+                  <td>${{ payment.amount }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="ceo_empty">No recent platform payments found.</div>
+      {% endif %}
+    </section>
+
+    <section class="ceo_panel">
+      <div class="ceo_panel_head">
+        <div>
+          <h2 class="ceo_panel_title">Recent SaaS Documents</h2>
+          <p class="ceo_panel_text">Latest proformas and invoices issued to companies.</p>
+        </div>
+
+        <a class="crm_button crm_button_secondary" href="{% url 'platform_documents:list' %}">Open</a>
+      </div>
+
+      {% if recent_documents %}
+        <div class="ceo_table_wrap">
+          <table class="ceo_table">
+            <thead>
+              <tr>
+                <th>Document</th>
+                <th>Company</th>
+                <th>Type</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for document in recent_documents %}
+                <tr>
+                  <td>
+                    <a class="ceo_link" href="{% url 'platform_documents:detail' document.id_document %}">
+                      {{ document.document_number }}
+                    </a>
+                  </td>
+                  <td>{{ document.id_company.name }}</td>
+                  <td><span class="ceo_badge">{{ document.get_document_type_display }}</span></td>
+                  <td>${{ document.total }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="ceo_empty">No recent platform documents found.</div>
+      {% endif %}
+    </section>
+
+    <section class="ceo_panel">
+      <div class="ceo_panel_head">
+        <div>
+          <h2 class="ceo_panel_title">Recent Platform Activity</h2>
+          <p class="ceo_panel_text">Important admin actions from the SaaS team.</p>
+        </div>
+
+        <a class="crm_button crm_button_secondary" href="{% url 'platform_audit:list' %}">Open</a>
+      </div>
+
+      {% if recent_audit_logs %}
+        <div class="ceo_actions">
+          {% for log in recent_audit_logs %}
+            <div class="ceo_action">
+              <strong>{{ log.action|default:"Activity" }}</strong>
+              <span>{{ log.description|default:"No description available." }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="ceo_empty">No recent platform activity found.</div>
+      {% endif %}
+    </section>
+  </section>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  (function () {
+    if (!window.Chart) {
+      return;
+    }
+
+    const root = document.getElementById("CeoSaasData");
+    const rows = Array.from(root.querySelectorAll("[data-card-row]"));
+
+    const palette = {
+      blue: "#0b6db7",
+      sky: "#36aeea",
+      purple: "#5b2bb3",
+      red: "#ff7178",
+      green: "#1fc788",
+      teal: "#009bb7",
+      gold: "#d0ad6a",
+      brown: "#703f0a",
+      sand: "#c69c6d"
+    };
+
+    function cleanNumber(value) {
+      return Number(String(value || "0").replace(/[^0-9.-]+/g, "")) || 0;
+    }
+
+    function cardValue(label) {
+      const row = rows.find(function (item) {
+        return item.getAttribute("data-label") === label;
+      });
+
+      return row ? cleanNumber(row.getAttribute("data-value")) : 0;
+    }
+
+    function valuesHaveData(values) {
+      return values.some(function (value) {
+        return Number(value) > 0;
+      });
+    }
+
+    function makeDoughnut(id, labels, values, colors) {
+      const canvas = document.getElementById(id);
+
+      if (!canvas) {
+        return;
+      }
+
+      if (!valuesHaveData(values)) {
+        values = labels.map(function () { return 1; });
+      }
+
+      new Chart(canvas, {
+        type: "doughnut",
+        data: {
+          labels: labels,
+          datasets: [{
+            data: values,
+            backgroundColor: colors,
+            borderWidth: 0,
+            hoverOffset: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: "62%",
+          plugins: {
+            legend: {
+              position: "bottom",
+              labels: {
+                usePointStyle: true,
+                boxWidth: 8,
+                color: "#4a3a2c",
+                font: {
+                  weight: "700"
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function makeBar(id, labels, values, colors) {
+      const canvas = document.getElementById(id);
+
+      if (!canvas) {
+        return;
+      }
+
+      new Chart(canvas, {
+        type: "bar",
+        data: {
+          labels: labels,
+          datasets: [{
+            data: values,
+            backgroundColor: colors,
+            borderRadius: 13,
+            borderSkipped: false
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                display: false
+              },
+              ticks: {
+                color: "#6f6252",
+                font: {
+                  weight: "700"
+                }
+              }
+            },
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: "rgba(112,63,10,.10)"
+              },
+              ticks: {
+                color: "#6f6252"
+              }
+            }
+          }
+        }
+      });
+    }
+
+    makeBar(
+      "SaasRevenueFocusChart",
+      ["Monthly", "Yearly", "Total Paid", "Pending"],
+      [
+        cardValue("Monthly Revenue"),
+        cardValue("Yearly Revenue"),
+        cardValue("Total Paid Revenue"),
+        cardValue("Pending Payments")
+      ],
+      [palette.blue, palette.sky, palette.green, palette.red]
+    );
+
+    makeDoughnut(
+      "SaasSubscriptionChart",
+      ["Active", "Trial", "Expired", "Suspended", "Canceled"],
+      [
+        cardValue("Active Subscriptions"),
+        cardValue("Trial Subscriptions"),
+        cardValue("Expired Subscriptions"),
+        cardValue("Suspended"),
+        cardValue("Canceled")
+      ],
+      [palette.blue, palette.sky, palette.red, palette.purple, palette.gold]
+    );
+
+    makeDoughnut(
+      "SaasBillingFlowChart",
+      ["Proformas", "Invoices", "Paid Payments", "Pending Payments"],
+      [
+        cardValue("Proformas"),
+        cardValue("Invoices"),
+        cardValue("Paid Payments"),
+        cardValue("Pending Payments")
+      ],
+      [palette.gold, palette.blue, palette.green, palette.red]
+    );
+  })();
+</script>
+{% endblock %}

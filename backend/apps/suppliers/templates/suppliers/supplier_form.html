@@ -1,0 +1,86 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}{{ form_title }}{% endblock %}
+{% block page_subtitle %}Register or update the supplier using the same unified internal standard as invoices.{% endblock %}
+{% block extra_head %}{% include "suppliers/partials/_design_system.html" %}{% endblock %}
+
+{% block content %}
+<div class="nj-invoice nj-page supplier_theme">
+  <header class="nj-page-head">
+    <div>
+      <span class="nj-page-kicker"><i class="bi bi-truck" aria-hidden="true"></i> Supplier workflow</span>
+      <h1 class="nj-page-title">{{ form_title }}</h1>
+      <p class="nj-page-subtitle">Complete the supplier identity, contact and location data. Only the supplier name is mandatory.</p>
+    </div>
+    <div class="nj-head-actions">
+      <a class="nj-btn nj-btn-secondary" href="{{ cancel_url }}"><i class="bi bi-x-lg" aria-hidden="true"></i> Cancel</a>
+      <button class="nj-btn" type="submit" form="SupplierInternalForm"><i class="bi bi-check2-square" aria-hidden="true"></i> {{ submit_label }}</button>
+    </div>
+  </header>
+
+  {% if form.non_field_errors %}
+    <div class="nj-alert" role="alert"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i><div>{{ form.non_field_errors }}</div></div>
+  {% endif %}
+
+  <form id="SupplierInternalForm" method="post" novalidate>
+    {% csrf_token %}
+    <div class="supplier-internal-layout">
+      <main class="supplier-internal-main">
+        <section class="nj-card">
+          <div class="supplier-section-head">
+            <div class="supplier-section-title"><span class="nj-icon-box"><i class="bi bi-building" aria-hidden="true"></i></span><div><h2>Supplier identity</h2><p>Main company information used throughout products and purchases.</p></div></div>
+          </div>
+          <div class="supplier-section-body">
+            <div class="supplier_form_grid">
+              <div class="supplier_form_field span_2"><label class="nj-required" for="{{ form.company_name.id_for_label }}">Supplier Name</label>{{ form.company_name }}{% for error in form.company_name.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</div>
+              <div class="supplier_form_field"><label for="{{ form.tax_id.id_for_label }}">DNI / Tax ID</label>{{ form.tax_id }}{% for error in form.tax_id.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</div>
+              <div class="supplier_form_field"><label for="{{ form.contact_name.id_for_label }}">Contact Name</label>{{ form.contact_name }}{% for error in form.contact_name.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</div>
+              <div class="supplier_form_field"><label for="{{ form.phone.id_for_label }}">Phone</label>{{ form.phone }}{% for error in form.phone.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</div>
+              <div class="supplier_form_field"><label for="{{ form.email.id_for_label }}">Email</label>{{ form.email }}{% for error in form.email.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="nj-card">
+          <div class="supplier-section-head">
+            <div class="supplier-section-title"><span class="nj-icon-box is-violet"><i class="bi bi-geo-alt" aria-hidden="true"></i></span><div><h2>Address and location</h2><p>Optional location information for purchasing and document control.</p></div></div>
+          </div>
+          <div class="supplier-section-body">
+            <div class="supplier_form_grid">
+              <div class="supplier_form_field span_3"><label for="{{ form.address.id_for_label }}">Address</label>{{ form.address }}{% for error in form.address.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</div>
+              <div class="supplier_form_field"><label for="{{ form.city.id_for_label }}">Locality / City</label>{{ form.city }}{% for error in form.city.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</div>
+              <div class="supplier_form_field"><label for="{{ form.state.id_for_label }}">State</label>{{ form.state }}{% for error in form.state.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</div>
+              <div class="supplier_form_field"><label for="{{ form.zip_code.id_for_label }}">Zip Code</label>{{ form.zip_code }}{% for error in form.zip_code.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</div>
+              <div class="supplier_form_field"><label for="{{ form.country.id_for_label }}">Country</label>{{ form.country }}{% for error in form.country.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="nj-card">
+          <div class="supplier-section-head">
+            <div class="supplier-section-title"><span class="nj-icon-box is-warning"><i class="bi bi-sliders" aria-hidden="true"></i></span><div><h2>Internal control</h2><p>Status and notes are visible only inside the CRM.</p></div></div>
+          </div>
+          <div class="supplier-section-body">
+            <div class="supplier_form_grid">
+              <div class="supplier_form_field"><label for="{{ form.status.id_for_label }}">Status</label>{{ form.status }}{% for error in form.status.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</div>
+              <div class="supplier_form_field span_3"><label for="{{ form.notes.id_for_label }}">Notes</label>{{ form.notes }}{% for error in form.notes.errors %}<span class="supplier_error">{{ error }}</span>{% endfor %}</div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <aside class="supplier-internal-side">
+        <section class="nj-card">
+          <div class="nj-card-head"><h2 class="nj-card-title"><i class="bi bi-shield-check" aria-hidden="true"></i> Supplier summary</h2></div>
+          <div class="nj-card-body supplier-side-list">
+            <div class="supplier-side-row"><i class="bi bi-building"></i><div><span>Company</span><strong>Assigned automatically from your session</strong></div></div>
+            <div class="supplier-side-row"><i class="bi bi-person"></i><div><span>Required field</span><strong>Supplier name</strong></div></div>
+            <div class="supplier-side-row"><i class="bi bi-link-45deg"></i><div><span>Connected modules</span><strong>Products, purchases and documents</strong></div></div>
+          </div>
+        </section>
+        <button class="nj-btn" type="submit"><i class="bi bi-check2-square" aria-hidden="true"></i> {{ submit_label }}</button>
+      </aside>
+    </div>
+  </form>
+</div>
+{% endblock %}

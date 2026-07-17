@@ -1,0 +1,1247 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Company Dashboard{% endblock %}
+
+{% block page_subtitle %}
+{{ dashboard_scope_label }} business overview.
+{% endblock %}
+
+{% block extra_head %}
+{% include "partials/_crm_design_system.html" %}
+<style>
+  .companydash_root,
+  .companydash_root * {
+    box-sizing: border-box;
+    min-width: 0;
+  }
+
+  .companydash_root {
+    --dash-ink: #20150c;
+    --dash-muted: #6f6252;
+    --dash-line: rgba(112, 63, 10, .15);
+    --dash-soft: #faf7f1;
+    --dash-white: #ffffff;
+    --dash-gold: #a67d40;
+    --dash-brown: #703f0a;
+    --dash-blue: #0b6db7;
+    --dash-sky: #36aeea;
+    --dash-teal: #009bb7;
+    --dash-green: #1fc788;
+    --dash-purple: #5b2bb3;
+    --dash-violet: #7c4dff;
+    --dash-red: #f05a67;
+    display: grid;
+    gap: 14px;
+    overflow: hidden;
+  }
+
+  .companydash_root a {
+    text-decoration: none;
+  }
+
+  .companydash_top {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(340px, .72fr);
+    gap: 14px;
+    align-items: stretch;
+  }
+
+  .companydash_metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .companydash_metric {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    min-height: 112px;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: 17px;
+    border: 0;
+    border-radius: 20px;
+    color: #ffffff !important;
+    box-shadow: 0 16px 36px rgba(32, 21, 12, .12);
+    transition: transform .16s ease, box-shadow .16s ease;
+  }
+
+  .companydash_metric:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 21px 44px rgba(32, 21, 12, .17);
+  }
+
+  .companydash_metric::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    right: -44px;
+    bottom: -55px;
+    width: 132px;
+    height: 132px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .18);
+  }
+
+  .companydash_metric.is-gold {
+    background: linear-gradient(135deg, #703f0a 0%, #a67d40 56%, #d0ad6a 100%) !important;
+  }
+
+  .companydash_metric.is-blue {
+    background: linear-gradient(135deg, #0b6db7 0%, #36aeea 100%) !important;
+  }
+
+  .companydash_metric.is-green {
+    background: linear-gradient(135deg, #009bb7 0%, #1fc788 100%) !important;
+  }
+
+  .companydash_metric.is-purple {
+    background: linear-gradient(135deg, #5b2bb3 0%, #7c4dff 100%) !important;
+  }
+
+  .companydash_metric.is-sand {
+    background: linear-gradient(135deg, #a67c52 0%, #c69c6d 58%, #d0ad6a 100%) !important;
+  }
+
+  .companydash_metric.is-brown {
+    background: linear-gradient(135deg, #2b2117 0%, #703f0a 55%, #a67d40 100%) !important;
+  }
+
+  .companydash_metric.is-navy {
+    background: linear-gradient(135deg, #0b6db7 0%, #083e76 100%) !important;
+  }
+
+  .companydash_metric.is-copper {
+    background: linear-gradient(135deg, #a67d40 0%, #703f0a 100%) !important;
+  }
+
+  .companydash_metric_icon {
+    width: 43px;
+    height: 43px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 43px;
+    border: 1px solid rgba(255, 255, 255, .28);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, .18);
+    color: #ffffff !important;
+    font-size: 19px;
+    backdrop-filter: blur(6px);
+  }
+
+  .companydash_metric_copy {
+    display: grid;
+    gap: 5px;
+  }
+
+  .companydash_metric_label {
+    color: rgba(255, 255, 255, .88) !important;
+    font-size: 11px;
+    font-weight: 850;
+    line-height: 1.25;
+  }
+
+  .companydash_metric_value {
+    color: #ffffff !important;
+    font-size: clamp(25px, 2.45vw, 34px);
+    font-weight: 950;
+    line-height: 1;
+    letter-spacing: -.04em;
+    overflow-wrap: anywhere;
+  }
+
+  .companydash_metric_hint {
+    color: rgba(255, 255, 255, .78) !important;
+    font-size: 9.5px;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+
+  .companydash_panel {
+    overflow: hidden;
+    border: 1px solid var(--dash-line);
+    border-radius: 20px;
+    background: var(--dash-white);
+    box-shadow: 0 15px 38px rgba(32, 21, 12, .075);
+  }
+
+  .companydash_panel_head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--dash-line);
+  }
+
+  .companydash_panel_heading {
+    display: grid;
+    gap: 4px;
+  }
+
+  .companydash_panel_title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    color: var(--dash-ink);
+    font-size: 16px;
+    font-weight: 950;
+    line-height: 1.25;
+    letter-spacing: -.025em;
+  }
+
+  .companydash_panel_title i {
+    color: var(--dash-blue);
+  }
+
+  .companydash_panel_text {
+    margin: 0;
+    color: var(--dash-muted);
+    font-size: 11px;
+    font-weight: 620;
+    line-height: 1.48;
+  }
+
+  .companydash_live_badge,
+  .companydash_status_badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    max-width: 100%;
+    min-height: 27px;
+    padding: 5px 9px;
+    border: 1px solid rgba(11, 109, 183, .17);
+    border-radius: 999px;
+    background: rgba(54, 174, 234, .10);
+    color: #0b6db7 !important;
+    font-size: 9.5px;
+    font-weight: 900;
+    line-height: 1.15;
+    text-align: center;
+  }
+
+  .companydash_status_badge.is-success {
+    border-color: rgba(31, 199, 136, .22);
+    background: rgba(31, 199, 136, .11);
+    color: #087a51 !important;
+  }
+
+  .companydash_status_badge.is-warning {
+    border-color: rgba(166, 125, 64, .25);
+    background: rgba(208, 173, 106, .16);
+    color: #703f0a !important;
+  }
+
+  .companydash_status_badge.is-danger {
+    border-color: rgba(240, 90, 103, .22);
+    background: rgba(240, 90, 103, .10);
+    color: #c72c3c !important;
+  }
+
+  .companydash_status_badge.is-purple {
+    border-color: rgba(91, 43, 179, .18);
+    background: rgba(124, 77, 255, .10);
+    color: #5b2bb3 !important;
+  }
+
+  .companydash_chart {
+    position: relative;
+    height: 250px;
+    padding: 12px 16px 16px;
+  }
+
+  .companydash_chart canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .companydash_middle {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    align-items: stretch;
+  }
+
+  .companydash_compact_chart {
+    position: relative;
+    height: 210px;
+    padding: 12px 16px 10px;
+  }
+
+  .companydash_compact_chart canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .companydash_finance_summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+    padding: 0 15px 15px;
+  }
+
+  .companydash_finance_stat {
+    display: grid;
+    gap: 3px;
+    padding: 9px;
+    border: 1px solid var(--dash-line);
+    border-radius: 12px;
+    background: var(--dash-soft);
+    text-align: center;
+  }
+
+  .companydash_finance_stat span {
+    color: var(--dash-muted);
+    font-size: 8.5px;
+    font-weight: 850;
+    line-height: 1.25;
+    text-transform: uppercase;
+  }
+
+  .companydash_finance_stat strong {
+    color: var(--dash-ink);
+    font-size: 13px;
+    font-weight: 950;
+    overflow-wrap: anywhere;
+  }
+
+  .companydash_attention_list {
+    display: grid;
+    gap: 8px;
+    padding: 14px;
+  }
+
+  .companydash_attention_item {
+    --attention-color: var(--dash-blue);
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border: 1px solid var(--dash-line);
+    border-radius: 14px;
+    background: linear-gradient(145deg, #ffffff, #fcfaf6);
+    transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+  }
+
+  .companydash_attention_item:hover {
+    transform: translateY(-1px);
+    border-color: color-mix(in srgb, var(--attention-color) 35%, var(--dash-line));
+    box-shadow: 0 10px 24px rgba(32, 21, 12, .07);
+  }
+
+  .companydash_attention_item.is-danger { --attention-color: var(--dash-red); }
+  .companydash_attention_item.is-warning { --attention-color: var(--dash-gold); }
+  .companydash_attention_item.is-success { --attention-color: var(--dash-green); }
+  .companydash_attention_item.is-purple { --attention-color: var(--dash-purple); }
+
+  .companydash_attention_icon {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--attention-color) 12%, #ffffff);
+    color: var(--attention-color) !important;
+    font-size: 16px;
+  }
+
+  .companydash_attention_copy {
+    display: grid;
+    gap: 3px;
+  }
+
+  .companydash_attention_copy strong {
+    color: var(--dash-ink);
+    font-size: 11px;
+    font-weight: 920;
+    line-height: 1.25;
+  }
+
+  .companydash_attention_copy span {
+    display: -webkit-box;
+    overflow: hidden;
+    color: var(--dash-muted);
+    font-size: 9.5px;
+    font-weight: 650;
+    line-height: 1.4;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .companydash_attention_count {
+    min-width: 31px;
+    height: 31px;
+    display: grid;
+    place-items: center;
+    padding: 0 7px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--attention-color) 12%, #ffffff);
+    color: var(--attention-color) !important;
+    font-size: 11px;
+    font-weight: 950;
+  }
+
+  .companydash_quick_grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .companydash_quick_card {
+    --quick-color: var(--dash-blue);
+    min-height: 130px;
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    grid-template-rows: auto 1fr auto;
+    column-gap: 11px;
+    row-gap: 5px;
+    padding: 14px;
+    border: 1px solid var(--dash-line) !important;
+    border-radius: 15px;
+    background: linear-gradient(145deg, #ffffff 0%, #fbf9f5 100%) !important;
+    color: var(--dash-ink) !important;
+    box-shadow: none !important;
+    transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+  }
+
+  .companydash_quick_card:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--quick-color) 32%, var(--dash-line)) !important;
+    box-shadow: 0 12px 27px rgba(32, 21, 12, .08) !important;
+  }
+
+  .companydash_quick_card.is-purple { --quick-color: var(--dash-purple); }
+  .companydash_quick_card.is-green { --quick-color: var(--dash-green); }
+  .companydash_quick_card.is-gold { --quick-color: var(--dash-gold); }
+  .companydash_quick_card.is-red { --quick-color: var(--dash-red); }
+  .companydash_quick_card.is-navy { --quick-color: var(--dash-blue); }
+
+  .companydash_quick_icon {
+    grid-row: 1 / span 2;
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--quick-color) 18%, transparent);
+    border-radius: 13px;
+    background: color-mix(in srgb, var(--quick-color) 10%, #ffffff) !important;
+    color: var(--quick-color) !important;
+    font-size: 18px;
+  }
+
+  .companydash_quick_title {
+    align-self: end;
+    color: var(--dash-ink) !important;
+    font-size: 12px;
+    font-weight: 930;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+  }
+
+  .companydash_quick_text {
+    margin: 0;
+    color: var(--dash-muted) !important;
+    font-size: 10px;
+    font-weight: 650;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+
+  .companydash_quick_link {
+    grid-column: 1 / -1;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: fit-content;
+    margin-top: 3px;
+    color: var(--quick-color) !important;
+    font-size: 10px;
+    font-weight: 920;
+  }
+
+  .companydash_bottom {
+    display: grid;
+    grid-template-columns: minmax(330px, .82fr) minmax(0, 1.18fr);
+    gap: 14px;
+    align-items: start;
+  }
+
+  .companydash_upcoming {
+    display: grid;
+    gap: 8px;
+    max-height: 500px;
+    padding: 14px;
+    overflow-y: auto;
+  }
+
+  .companydash_upcoming_item {
+    display: grid;
+    grid-template-columns: 46px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border: 1px solid var(--dash-line);
+    border-radius: 14px;
+    background: #ffffff;
+    transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+  }
+
+  .companydash_upcoming_item:hover {
+    transform: translateY(-1px);
+    border-color: rgba(11, 109, 183, .30);
+    box-shadow: 0 10px 24px rgba(32, 21, 12, .07);
+  }
+
+  .companydash_date_box {
+    width: 46px;
+    height: 46px;
+    display: grid;
+    place-content: center;
+    border-radius: 13px;
+    background: linear-gradient(145deg, #edf7ff, #ffffff);
+    color: var(--dash-blue) !important;
+    text-align: center;
+    box-shadow: inset 0 0 0 1px rgba(11, 109, 183, .13);
+  }
+
+  .companydash_date_box strong {
+    font-size: 15px;
+    font-weight: 950;
+    line-height: 1;
+  }
+
+  .companydash_date_box span {
+    margin-top: 3px;
+    font-size: 8px;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .companydash_upcoming_copy {
+    display: grid;
+    gap: 3px;
+  }
+
+  .companydash_upcoming_copy strong {
+    display: -webkit-box;
+    overflow: hidden;
+    color: var(--dash-ink);
+    font-size: 11px;
+    font-weight: 920;
+    line-height: 1.35;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .companydash_upcoming_copy span {
+    display: block;
+    overflow: hidden;
+    color: var(--dash-muted);
+    font-size: 9.5px;
+    font-weight: 650;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .companydash_recent_grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .companydash_recent_group {
+    overflow: hidden;
+    border: 1px solid var(--dash-line);
+    border-radius: 14px;
+    background: #ffffff;
+  }
+
+  .companydash_recent_head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 9px;
+    padding: 10px 11px;
+    border-bottom: 1px solid var(--dash-line);
+    background: var(--dash-soft);
+  }
+
+  .companydash_recent_head strong {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--dash-ink);
+    font-size: 10.5px;
+    font-weight: 930;
+  }
+
+  .companydash_recent_head a {
+    color: var(--dash-blue) !important;
+    font-size: 9px;
+    font-weight: 900;
+  }
+
+  .companydash_recent_list {
+    display: grid;
+  }
+
+  .companydash_recent_row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 11px;
+    border-bottom: 1px solid rgba(112, 63, 10, .09);
+  }
+
+  .companydash_recent_row:last-child {
+    border-bottom: 0;
+  }
+
+  .companydash_recent_row:hover {
+    background: #fcfaf6;
+  }
+
+  .companydash_recent_copy {
+    display: grid;
+    gap: 2px;
+  }
+
+  .companydash_recent_copy strong,
+  .companydash_recent_copy span {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .companydash_recent_copy strong {
+    color: var(--dash-ink);
+    font-size: 10px;
+    font-weight: 900;
+  }
+
+  .companydash_recent_copy span {
+    color: var(--dash-muted);
+    font-size: 8.8px;
+    font-weight: 650;
+  }
+
+  .companydash_empty {
+    display: grid;
+    place-items: center;
+    gap: 7px;
+    min-height: 122px;
+    padding: 18px;
+    color: var(--dash-muted);
+    font-size: 11px;
+    font-weight: 650;
+    line-height: 1.5;
+    text-align: center;
+  }
+
+  .companydash_empty i {
+    color: var(--dash-gold);
+    font-size: 24px;
+  }
+
+  .companydash_empty strong {
+    color: var(--dash-ink);
+    font-size: 12px;
+    font-weight: 920;
+  }
+
+  .companydash_empty.compact {
+    min-height: 90px;
+    padding: 14px;
+  }
+
+  @media (max-width: 1320px) {
+    .companydash_top {
+      grid-template-columns: 1fr;
+    }
+
+    .companydash_middle {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .companydash_middle > .companydash_panel:last-child {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 980px) {
+    .companydash_metrics,
+    .companydash_quick_grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .companydash_middle,
+    .companydash_bottom {
+      grid-template-columns: 1fr;
+    }
+
+    .companydash_middle > .companydash_panel:last-child {
+      grid-column: auto;
+    }
+  }
+
+  @media (max-width: 660px) {
+    .companydash_metrics,
+    .companydash_quick_grid,
+    .companydash_recent_grid,
+    .companydash_finance_summary {
+      grid-template-columns: 1fr;
+    }
+
+    .companydash_metric {
+      min-height: 102px;
+    }
+
+    .companydash_panel_head {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .companydash_panel_head .nj-btn,
+    .companydash_panel_head .companydash_live_badge {
+      width: 100%;
+    }
+
+    .companydash_chart {
+      height: 230px;
+    }
+
+    .companydash_upcoming_item {
+      grid-template-columns: 46px minmax(0, 1fr);
+    }
+
+    .companydash_upcoming_item > .companydash_status_badge {
+      grid-column: 1 / -1;
+      margin-left: 56px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section
+  class="nj-invoice companydash_root"
+  id="CompanyDashboardData"
+  data-clients="{{ total_clients|default:0 }}"
+  data-opportunities="{{ total_opportunities|default:0 }}"
+  data-projects="{{ total_projects|default:0 }}"
+  data-active-projects="{{ active_projects|default:0 }}"
+  data-inspections="{{ total_inspections|default:0 }}"
+  data-estimates="{{ total_estimates|default:0 }}"
+  data-invoices="{{ total_invoices|default:0 }}"
+  data-payments="{{ total_payments|default:0 }}"
+  data-calendar="{{ total_calendar_events|default:0 }}"
+>
+  <section class="companydash_top">
+    <div class="companydash_metrics" aria-label="Company summary">
+      {% if can_view_clients %}
+        <a class="companydash_metric is-gold" href="/{{ company.slug }}/clients/">
+          <span class="companydash_metric_icon"><i class="bi bi-people"></i></span>
+          <span class="companydash_metric_copy">
+            <span class="companydash_metric_label">Clients</span>
+            <strong class="companydash_metric_value">{{ total_clients }}</strong>
+            <span class="companydash_metric_hint">Customer records</span>
+          </span>
+        </a>
+      {% endif %}
+
+      {% if can_view_opportunities %}
+        <a class="companydash_metric is-blue" href="/{{ company.slug }}/opportunities/">
+          <span class="companydash_metric_icon"><i class="bi bi-bullseye"></i></span>
+          <span class="companydash_metric_copy">
+            <span class="companydash_metric_label">Opportunities</span>
+            <strong class="companydash_metric_value">{{ total_opportunities }}</strong>
+            <span class="companydash_metric_hint">Commercial pipeline</span>
+          </span>
+        </a>
+      {% endif %}
+
+      {% if can_view_projects %}
+        <a class="companydash_metric is-green" href="/{{ company.slug }}/projects/">
+          <span class="companydash_metric_icon"><i class="bi bi-kanban"></i></span>
+          <span class="companydash_metric_copy">
+            <span class="companydash_metric_label">Active Projects</span>
+            <strong class="companydash_metric_value">{{ active_projects }}</strong>
+            <span class="companydash_metric_hint">Work currently in progress</span>
+          </span>
+        </a>
+
+        <a class="companydash_metric is-purple" href="/{{ company.slug }}/projects/">
+          <span class="companydash_metric_icon"><i class="bi bi-buildings"></i></span>
+          <span class="companydash_metric_copy">
+            <span class="companydash_metric_label">Projects</span>
+            <strong class="companydash_metric_value">{{ total_projects }}</strong>
+            <span class="companydash_metric_hint">All project records</span>
+          </span>
+        </a>
+      {% endif %}
+
+      {% if can_view_payments %}
+        <a class="companydash_metric is-sand" href="/{{ company.slug }}/payments/">
+          <span class="companydash_metric_icon"><i class="bi bi-cash-stack"></i></span>
+          <span class="companydash_metric_copy">
+            <span class="companydash_metric_label">Completed Payments</span>
+            <strong class="companydash_metric_value">${{ total_payments|floatformat:2 }}</strong>
+            <span class="companydash_metric_hint">Confirmed company income</span>
+          </span>
+        </a>
+      {% endif %}
+
+      {% if can_view_estimates %}
+        <a class="companydash_metric is-brown" href="/{{ company.slug }}/estimates/">
+          <span class="companydash_metric_icon"><i class="bi bi-file-earmark-text"></i></span>
+          <span class="companydash_metric_copy">
+            <span class="companydash_metric_label">Estimates</span>
+            <strong class="companydash_metric_value">{{ total_estimates }}</strong>
+            <span class="companydash_metric_hint">{{ expiring_estimates }} expiring soon</span>
+          </span>
+        </a>
+      {% endif %}
+
+      {% if can_view_invoices %}
+        <a class="companydash_metric is-navy" href="/{{ company.slug }}/invoices/">
+          <span class="companydash_metric_icon"><i class="bi bi-receipt"></i></span>
+          <span class="companydash_metric_copy">
+            <span class="companydash_metric_label">Invoices</span>
+            <strong class="companydash_metric_value">{{ total_invoices }}</strong>
+            <span class="companydash_metric_hint">{{ open_invoices }} open · {{ overdue_invoices }} overdue</span>
+          </span>
+        </a>
+      {% endif %}
+
+      {% if can_view_calendar_events %}
+        <a class="companydash_metric is-copper" href="/{{ company.slug }}/calendar/">
+          <span class="companydash_metric_icon"><i class="bi bi-calendar3"></i></span>
+          <span class="companydash_metric_copy">
+            <span class="companydash_metric_label">Calendar Events</span>
+            <strong class="companydash_metric_value">{{ total_calendar_events }}</strong>
+            <span class="companydash_metric_hint">{{ upcoming_calendar_count }} upcoming activities</span>
+          </span>
+        </a>
+      {% endif %}
+
+      {% if not can_view_clients and not can_view_opportunities and not can_view_projects and not can_view_payments and not can_view_estimates and not can_view_invoices and not can_view_calendar_events %}
+        <div class="companydash_panel companydash_empty">
+          <i class="bi bi-shield-lock"></i>
+          <strong>No metrics available</strong>
+          <span>Enable module view permissions from Roles to display the company summary.</span>
+        </div>
+      {% endif %}
+    </div>
+
+    {% if can_view_clients or can_view_opportunities or can_view_estimates or can_view_invoices %}
+      <section class="companydash_panel">
+        <div class="companydash_panel_head">
+          <div class="companydash_panel_heading">
+            <h2 class="companydash_panel_title"><i class="bi bi-bar-chart-line"></i> Sales Flow</h2>
+            <p class="companydash_panel_text">Live totals synchronized with the summary cards.</p>
+          </div>
+          <span class="companydash_live_badge"><i class="bi bi-broadcast-pin"></i>&nbsp; Live data</span>
+        </div>
+        <div class="companydash_chart">
+          <canvas id="CompanySalesFlowChart"></canvas>
+        </div>
+      </section>
+    {% endif %}
+  </section>
+
+  <section class="companydash_middle">
+    {% if can_view_clients or can_view_opportunities or can_view_projects or can_view_calendar_events %}
+      <section class="companydash_panel">
+        <div class="companydash_panel_head">
+          <div class="companydash_panel_heading">
+            <h2 class="companydash_panel_title"><i class="bi bi-pie-chart"></i> Business Distribution</h2>
+            <p class="companydash_panel_text">Clients, opportunities, projects and scheduled events.</p>
+          </div>
+        </div>
+        <div class="companydash_compact_chart">
+          <canvas id="CompanyDistributionChart"></canvas>
+        </div>
+      </section>
+    {% endif %}
+
+    {% if can_view_estimates or can_view_invoices or can_view_payments %}
+      <section class="companydash_panel">
+        <div class="companydash_panel_head">
+          <div class="companydash_panel_heading">
+            <h2 class="companydash_panel_title"><i class="bi bi-cash-coin"></i> Finance Pipeline</h2>
+            <p class="companydash_panel_text">Documents, collections and financial follow-up.</p>
+          </div>
+        </div>
+        <div class="companydash_compact_chart">
+          <canvas id="CompanyFinanceChart"></canvas>
+        </div>
+        <div class="companydash_finance_summary">
+          <div class="companydash_finance_stat"><span>Confirmed income</span><strong>${{ total_payments|floatformat:2 }}</strong></div>
+          <div class="companydash_finance_stat"><span>Open invoices</span><strong>{{ open_invoices }}</strong></div>
+          <div class="companydash_finance_stat"><span>Overdue</span><strong>{{ overdue_invoices }}</strong></div>
+        </div>
+      </section>
+    {% endif %}
+
+    <section class="companydash_panel">
+      <div class="companydash_panel_head">
+        <div class="companydash_panel_heading">
+          <h2 class="companydash_panel_title"><i class="bi bi-exclamation-diamond"></i> Attention Required</h2>
+          <p class="companydash_panel_text">Open the exact module where the next action is required.</p>
+        </div>
+        <span class="companydash_status_badge {% if attention_total %}is-warning{% else %}is-success{% endif %}">{{ attention_total }} pending</span>
+      </div>
+      <div class="companydash_attention_list">
+        {% if can_view_invoices %}
+          <a class="companydash_attention_item {% if overdue_invoices %}is-danger{% else %}is-success{% endif %}" href="/{{ company.slug }}/invoices/">
+            <span class="companydash_attention_icon"><i class="bi bi-receipt-cutoff"></i></span>
+            <span class="companydash_attention_copy"><strong>Overdue invoices</strong><span>Review balances and continue collection follow-up.</span></span>
+            <span class="companydash_attention_count">{{ overdue_invoices }}</span>
+          </a>
+        {% endif %}
+
+        {% if can_view_estimates %}
+          <a class="companydash_attention_item {% if expiring_estimates %}is-warning{% else %}is-success{% endif %}" href="/{{ company.slug }}/estimates/">
+            <span class="companydash_attention_icon"><i class="bi bi-hourglass-split"></i></span>
+            <span class="companydash_attention_copy"><strong>Estimates expiring in 7 days</strong><span>Contact the customer before the proposal expires.</span></span>
+            <span class="companydash_attention_count">{{ expiring_estimates }}</span>
+          </a>
+        {% endif %}
+
+        {% if can_view_inspections %}
+          <a class="companydash_attention_item {% if pending_inspections %}is-warning{% else %}is-success{% endif %}" href="/{{ company.slug }}/inspections/">
+            <span class="companydash_attention_icon"><i class="bi bi-clipboard2-check"></i></span>
+            <span class="companydash_attention_copy"><strong>Pending inspections</strong><span>Confirm visits, assignments, notes and required evidence.</span></span>
+            <span class="companydash_attention_count">{{ pending_inspections }}</span>
+          </a>
+        {% endif %}
+
+        {% if can_view_calendar_events %}
+          <a class="companydash_attention_item is-purple" href="/{{ company.slug }}/calendar/">
+            <span class="companydash_attention_icon"><i class="bi bi-calendar2-week"></i></span>
+            <span class="companydash_attention_copy"><strong>Upcoming connected activity</strong><span>Review projects, deadlines, inspections and manual events.</span></span>
+            <span class="companydash_attention_count">{{ upcoming_calendar_count }}</span>
+          </a>
+        {% endif %}
+      </div>
+    </section>
+  </section>
+
+  <section class="companydash_panel">
+    <div class="companydash_panel_head">
+      <div class="companydash_panel_heading">
+        <h2 class="companydash_panel_title"><i class="bi bi-cursor"></i> Quick Actions</h2>
+        <p class="companydash_panel_text">Use these shortcuts to continue the correct workflow without losing time.</p>
+      </div>
+      {% if can_view_calendar_events %}
+        <a class="nj-btn nj-btn-secondary" href="/{{ company.slug }}/calendar/"><i class="bi bi-calendar3"></i> Open calendar</a>
+      {% endif %}
+    </div>
+
+    <div class="companydash_quick_grid">
+      {% if can_view_clients %}
+        <a class="companydash_quick_card" href="/{{ company.slug }}/clients/">
+          <span class="companydash_quick_icon"><i class="bi bi-people"></i></span>
+          <strong class="companydash_quick_title">Manage Clients</strong>
+          <p class="companydash_quick_text">Review contact information, addresses and records connected to each customer.</p>
+          <span class="companydash_quick_link">Open clients <i class="bi bi-arrow-right"></i></span>
+        </a>
+      {% endif %}
+
+      {% if can_view_opportunities %}
+        <a class="companydash_quick_card is-purple" href="/{{ company.slug }}/opportunities/">
+          <span class="companydash_quick_icon"><i class="bi bi-bullseye"></i></span>
+          <strong class="companydash_quick_title">Review Opportunities</strong>
+          <p class="companydash_quick_text">Continue follow-ups and move each commercial opportunity to the next stage.</p>
+          <span class="companydash_quick_link">Open opportunities <i class="bi bi-arrow-right"></i></span>
+        </a>
+      {% endif %}
+
+      {% if can_view_projects %}
+        <a class="companydash_quick_card is-green" href="/{{ company.slug }}/projects/">
+          <span class="companydash_quick_icon"><i class="bi bi-kanban"></i></span>
+          <strong class="companydash_quick_title">Control Projects</strong>
+          <p class="companydash_quick_text">Review progress, assignments, evidence, documents and project status.</p>
+          <span class="companydash_quick_link">Open projects <i class="bi bi-arrow-right"></i></span>
+        </a>
+      {% endif %}
+
+      {% if can_view_calendar_events %}
+        <a class="companydash_quick_card is-gold" href="/{{ company.slug }}/calendar/">
+          <span class="companydash_quick_icon"><i class="bi bi-calendar3"></i></span>
+          <strong class="companydash_quick_title">Plan Activities</strong>
+          <p class="companydash_quick_text">See deadlines and create events linked to operational and financial records.</p>
+          <span class="companydash_quick_link">Open calendar <i class="bi bi-arrow-right"></i></span>
+        </a>
+      {% endif %}
+
+      {% if can_view_estimates %}
+        <a class="companydash_quick_card is-navy" href="/{{ company.slug }}/estimates/">
+          <span class="companydash_quick_icon"><i class="bi bi-file-earmark-text"></i></span>
+          <strong class="companydash_quick_title">Manage Estimates</strong>
+          <p class="companydash_quick_text">Create, send, review and convert approved customer proposals.</p>
+          <span class="companydash_quick_link">Open estimates <i class="bi bi-arrow-right"></i></span>
+        </a>
+      {% endif %}
+
+      {% if can_view_invoices %}
+        <a class="companydash_quick_card is-red" href="/{{ company.slug }}/invoices/">
+          <span class="companydash_quick_icon"><i class="bi bi-receipt"></i></span>
+          <strong class="companydash_quick_title">Manage Invoices</strong>
+          <p class="companydash_quick_text">Review document status, balances, payments and due dates.</p>
+          <span class="companydash_quick_link">Open invoices <i class="bi bi-arrow-right"></i></span>
+        </a>
+      {% endif %}
+
+      {% if can_view_payments %}
+        <a class="companydash_quick_card is-green" href="/{{ company.slug }}/payments/">
+          <span class="companydash_quick_icon"><i class="bi bi-cash-stack"></i></span>
+          <strong class="companydash_quick_title">Record Payments</strong>
+          <p class="companydash_quick_text">Apply payments to invoices and control available customer credit.</p>
+          <span class="companydash_quick_link">Open payments <i class="bi bi-arrow-right"></i></span>
+        </a>
+      {% endif %}
+
+      {% if can_view_inspections %}
+        <a class="companydash_quick_card is-gold" href="/{{ company.slug }}/inspections/">
+          <span class="companydash_quick_icon"><i class="bi bi-clipboard2-check"></i></span>
+          <strong class="companydash_quick_title">Coordinate Inspections</strong>
+          <p class="companydash_quick_text">Assign visits and review inspection notes, photos and evidence.</p>
+          <span class="companydash_quick_link">Open inspections <i class="bi bi-arrow-right"></i></span>
+        </a>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="companydash_bottom">
+    {% if can_view_calendar_events %}
+      <section class="companydash_panel">
+        <div class="companydash_panel_head">
+          <div class="companydash_panel_heading">
+            <h2 class="companydash_panel_title"><i class="bi bi-calendar2-event"></i> Next Activities</h2>
+            <p class="companydash_panel_text">The next connected items scheduled within 30 days.</p>
+          </div>
+          <a class="nj-btn nj-btn-secondary" href="/{{ company.slug }}/calendar/">View all</a>
+        </div>
+
+        {% if upcoming_calendar_items %}
+          <div class="companydash_upcoming">
+            {% for item in upcoming_calendar_items %}
+              <a class="companydash_upcoming_item" href="{{ item.url }}">
+                <span class="companydash_date_box"><strong>{{ item.date|date:"d" }}</strong><span>{{ item.date|date:"M" }}</span></span>
+                <span class="companydash_upcoming_copy">
+                  <strong>{% if item.time %}{{ item.time|time:"H:i" }} · {% endif %}{{ item.title }}</strong>
+                  <span>{{ item.event_type_label }}{% if item.meta %} · {{ item.meta }}{% endif %}</span>
+                </span>
+                <span class="companydash_status_badge {% if item.priority == 'high' or item.priority == 'urgent' %}is-danger{% else %}is-purple{% endif %}">{{ item.status_label|default:item.priority }}</span>
+              </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="companydash_empty">
+            <i class="bi bi-calendar-plus"></i>
+            <strong>No upcoming activity</strong>
+            <span>Create a calendar event or schedule work from a connected module.</span>
+            {% if can_create_calendar_events %}<a class="nj-btn" href="/{{ company.slug }}/calendar/create/">Create event</a>{% endif %}
+          </div>
+        {% endif %}
+      </section>
+    {% endif %}
+
+    <section class="companydash_panel">
+      <div class="companydash_panel_head">
+        <div class="companydash_panel_heading">
+          <h2 class="companydash_panel_title"><i class="bi bi-clock-history"></i> Recent Records</h2>
+          <p class="companydash_panel_text">Latest records from the enabled operational and commercial modules.</p>
+        </div>
+      </div>
+
+      <div class="companydash_recent_grid">
+        {% if can_view_projects %}
+          <section class="companydash_recent_group">
+            <div class="companydash_recent_head"><strong><i class="bi bi-kanban"></i> Projects</strong><a href="/{{ company.slug }}/projects/">View all</a></div>
+            <div class="companydash_recent_list">
+              {% for project in recent_projects %}
+                <a class="companydash_recent_row" href="/{{ company.slug }}/projects/{{ project.id_project }}/">
+                  <span class="companydash_recent_copy"><strong>{{ project.name }}</strong><span>{{ project.project_code|default:"Project" }} · {{ project.created_at|date:"M d Y" }}</span></span>
+                  <span class="companydash_status_badge">{{ project.status|default:"No status" }}</span>
+                </a>
+              {% empty %}
+                <div class="companydash_empty compact"><span>No projects have been created.</span></div>
+              {% endfor %}
+            </div>
+          </section>
+        {% endif %}
+
+        {% if can_view_opportunities %}
+          <section class="companydash_recent_group">
+            <div class="companydash_recent_head"><strong><i class="bi bi-bullseye"></i> Opportunities</strong><a href="/{{ company.slug }}/opportunities/">View all</a></div>
+            <div class="companydash_recent_list">
+              {% for opportunity in recent_opportunities %}
+                <a class="companydash_recent_row" href="/{{ company.slug }}/opportunities/{{ opportunity.id_lead }}/">
+                  <span class="companydash_recent_copy"><strong>{{ opportunity.name|default:"Opportunity" }}</strong><span>{{ opportunity.opportunity_code|default:"Opportunity" }} · {{ opportunity.created_at|date:"M d Y" }}</span></span>
+                  <span class="companydash_status_badge is-purple">{{ opportunity.get_status_display|default:opportunity.status }}</span>
+                </a>
+              {% empty %}
+                <div class="companydash_empty compact"><span>No opportunities have been created.</span></div>
+              {% endfor %}
+            </div>
+          </section>
+        {% endif %}
+
+        {% if can_view_estimates %}
+          <section class="companydash_recent_group">
+            <div class="companydash_recent_head"><strong><i class="bi bi-file-earmark-text"></i> Estimates</strong><a href="/{{ company.slug }}/estimates/">View all</a></div>
+            <div class="companydash_recent_list">
+              {% for estimate in recent_estimates %}
+                <a class="companydash_recent_row" href="/{{ company.slug }}/estimates/{{ estimate.id_estimate }}/">
+                  <span class="companydash_recent_copy"><strong>{{ estimate.estimate_number|default:"Estimate" }}</strong><span>${{ estimate.total|floatformat:2 }} · {{ estimate.issue_date|date:"M d Y" }}</span></span>
+                  <span class="companydash_status_badge is-warning">{{ estimate.get_status_display|default:estimate.status }}</span>
+                </a>
+              {% empty %}
+                <div class="companydash_empty compact"><span>No estimates have been created.</span></div>
+              {% endfor %}
+            </div>
+          </section>
+        {% endif %}
+
+        {% if can_view_invoices %}
+          <section class="companydash_recent_group">
+            <div class="companydash_recent_head"><strong><i class="bi bi-receipt"></i> Invoices</strong><a href="/{{ company.slug }}/invoices/">View all</a></div>
+            <div class="companydash_recent_list">
+              {% for invoice in recent_invoices %}
+                <a class="companydash_recent_row" href="/{{ company.slug }}/invoices/{{ invoice.id_invoice }}/">
+                  <span class="companydash_recent_copy"><strong>{{ invoice.invoice_number|default:"Invoice" }}</strong><span>${{ invoice.total|floatformat:2 }} · {{ invoice.issue_date|date:"M d Y" }}</span></span>
+                  <span class="companydash_status_badge {% if invoice.payment_status == 'paid' %}is-success{% else %}is-danger{% endif %}">{{ invoice.get_payment_status_display|default:invoice.payment_status }}</span>
+                </a>
+              {% empty %}
+                <div class="companydash_empty compact"><span>No invoices have been created.</span></div>
+              {% endfor %}
+            </div>
+          </section>
+        {% endif %}
+      </div>
+    </section>
+  </section>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  (function () {
+    var root = document.getElementById("CompanyDashboardData");
+    if (!root || !window.Chart) return;
+
+    function numberValue(name) {
+      return Number(String(root.getAttribute("data-" + name) || "0").replace(/[^0-9.-]+/g, "")) || 0;
+    }
+
+    function hasData(values) {
+      return values.some(function (value) { return Number(value) > 0; });
+    }
+
+    function safeValues(values) {
+      return hasData(values) ? values : values.map(function () { return 1; });
+    }
+
+    var commonLegend = {
+      position: "bottom",
+      labels: {
+        boxWidth: 10,
+        boxHeight: 10,
+        usePointStyle: true,
+        padding: 13,
+        color: "#6f6252",
+        font: { size: 10, weight: "700" }
+      }
+    };
+
+    var salesCanvas = document.getElementById("CompanySalesFlowChart");
+    if (salesCanvas) {
+      new Chart(salesCanvas, {
+        type: "bar",
+        data: {
+          labels: ["Clients", "Opportunities", "Active Projects", "Estimates", "Invoices"],
+          datasets: [{
+            data: [numberValue("clients"), numberValue("opportunities"), numberValue("active-projects"), numberValue("estimates"), numberValue("invoices")],
+            backgroundColor: ["#a67d40", "#36aeea", "#1fc788", "#5b2bb3", "#0b6db7"],
+            borderRadius: 10,
+            borderSkipped: false,
+            maxBarThickness: 48
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false }, tooltip: { displayColors: false } },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: "#6f6252", font: { size: 9, weight: "700" } } },
+            y: { beginAtZero: true, grid: { color: "rgba(112,63,10,.08)" }, ticks: { precision: 0, color: "#6f6252", font: { size: 9 } } }
+          }
+        }
+      });
+    }
+
+    var distributionCanvas = document.getElementById("CompanyDistributionChart");
+    if (distributionCanvas) {
+      var distributionValues = [numberValue("clients"), numberValue("opportunities"), numberValue("projects"), numberValue("calendar")];
+      new Chart(distributionCanvas, {
+        type: "doughnut",
+        data: {
+          labels: ["Clients", "Opportunities", "Projects", "Calendar"],
+          datasets: [{
+            data: safeValues(distributionValues),
+            backgroundColor: ["#0b6db7", "#36aeea", "#5b2bb3", "#d0ad6a"],
+            borderWidth: 0,
+            hoverOffset: 7
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: "66%",
+          plugins: {
+            legend: commonLegend,
+            tooltip: { enabled: hasData(distributionValues), displayColors: true }
+          }
+        }
+      });
+    }
+
+    var financeCanvas = document.getElementById("CompanyFinanceChart");
+    if (financeCanvas) {
+      var financeValues = [numberValue("estimates"), numberValue("invoices")];
+      new Chart(financeCanvas, {
+        type: "doughnut",
+        data: {
+          labels: ["Estimates", "Invoices"],
+          datasets: [{
+            data: safeValues(financeValues),
+            backgroundColor: ["#a67d40", "#1fc788"],
+            borderWidth: 0,
+            hoverOffset: 7
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: "66%",
+          plugins: {
+            legend: commonLegend,
+            tooltip: { enabled: hasData(financeValues), displayColors: true }
+          }
+        }
+      });
+    }
+  })();
+</script>
+{% endblock %}

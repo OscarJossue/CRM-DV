@@ -1,0 +1,274 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block page_title %}{{ form_title }}{% endblock %}
+
+{% block page_subtitle %}
+Create a project using the approved estimate information. One estimate can only create one project.
+{% endblock %}
+
+{% block extra_head %}
+{% include "estimates/partials/_design_system.html" %}
+<link rel="stylesheet" href="{% static 'vendor/tom-select/2.4.3/tom-select.css' %}">
+<script src="{% static 'vendor/tom-select/2.4.3/tom-select.complete.min.js' %}"></script>
+<style>
+  .project_form {
+    display: grid;
+    gap: 18px;
+  }
+
+  .project_form_grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .project_form_field {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .project_form_field_full {
+    grid-column: 1 / -1;
+  }
+
+  .project_form_field label {
+    color: var(--estimate-ink);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    overflow-wrap: anywhere;
+  }
+
+  .crm_input {
+    width: 100%;
+    min-height: 46px;
+    padding: 11px 14px;
+    color: var(--estimate-ink);
+    background: #ffffff;
+    font: inherit;
+  }
+
+  textarea.crm_input {
+    min-height: 130px;
+    resize: vertical;
+  }
+
+  .project_error {
+    color: var(--estimate-danger);
+    font-size: 13px;
+    line-height: 1.45;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+
+  .project_form_actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .estimate_source_box {
+    display: grid;
+    gap: 10px;
+    padding: 18px;
+    border: 1px solid rgba(72, 101, 143, 0.14);
+    border-radius: 22px;
+    background: linear-gradient(135deg, rgba(189,212,231,0.30) 0%, #ffffff 70%);
+    box-shadow: 0 12px 22px rgba(33, 34, 39, 0.05);
+  }
+
+  .estimate_source_box strong {
+    color: var(--estimate-ink);
+    font-size: 16px;
+    font-weight: 800;
+  }
+
+  .estimate_source_box span {
+    color: var(--estimate-muted);
+    font-size: 13px;
+    line-height: 1.55;
+    font-weight: 700;
+  }
+
+  .ts-wrapper .ts-control {
+    min-height: 46px;
+    padding: 8px 12px;
+    color: var(--estimate-ink);
+    background: #ffffff;
+    font: inherit;
+  }
+
+  .ts-wrapper.multi .ts-control > div {
+    border-radius: 999px;
+    padding: 5px 10px;
+    background: rgba(189, 212, 231, 0.48);
+    color: var(--estimate-blue);
+    font-weight: 800;
+  }
+
+  .ts-dropdown {
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  @media (max-width: 760px) {
+    .project_form_grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% include "estimates/partials/_finance_standard.html" %}
+{% endblock %}
+
+{% block content %}
+  <section class="estimate_theme crm_card nj-invoice nj-page finance-standard">
+    <h2 class="crm_section_title">{{ form_title }}</h2>
+
+    <div class="estimate_source_box" style="margin-bottom:18px;">
+      <strong>Source Estimate: {{ estimate.estimate_number|default:estimate.id_estimate }}</strong>
+      <span>Client: {{ estimate.id_client.name }}</span>
+      <span>Contract Amount: ${{ estimate.total }}</span>
+      <span>Status: {{ estimate.get_status_display }}</span>
+    </div>
+
+    <form class="project_form" method="post" action="{{ form_action_url }}">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="project_error">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="project_form_grid">
+        <div class="project_form_field">
+          <label for="{{ form.id_client.id_for_label }}">Client</label>
+          {{ form.id_client }}
+          {% if form.id_client.errors %}
+            <div class="project_error">{{ form.id_client.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="project_form_field">
+          <label for="{{ form.id_inspector.id_for_label }}">Supervisor</label>
+          {{ form.id_inspector }}
+          {% if form.id_inspector.errors %}
+            <div class="project_error">{{ form.id_inspector.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="project_form_field project_form_field_full">
+          <label for="{{ form.assigned_users.id_for_label }}">Assigned Users</label>
+          {{ form.assigned_users }}
+          {% if form.assigned_users.errors %}
+            <div class="project_error">{{ form.assigned_users.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="project_form_field">
+          <label for="{{ form.name.id_for_label }}">Project Name</label>
+          {{ form.name }}
+          {% if form.name.errors %}
+            <div class="project_error">{{ form.name.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="project_form_field">
+          <label for="{{ form.project_address.id_for_label }}">Project Address</label>
+          {{ form.project_address }}
+          {% if form.project_address.errors %}
+            <div class="project_error">{{ form.project_address.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="project_form_field">
+          <label for="{{ form.status.id_for_label }}">Status</label>
+          {{ form.status }}
+          {% if form.status.errors %}
+            <div class="project_error">{{ form.status.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="project_form_field">
+          <label for="{{ form.contract_amount.id_for_label }}">Contract Amount</label>
+          {{ form.contract_amount }}
+          {% if form.contract_amount.errors %}
+            <div class="project_error">{{ form.contract_amount.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="project_form_field">
+          <label for="{{ form.start_date.id_for_label }}">Start Date</label>
+          {{ form.start_date }}
+          {% if form.start_date.errors %}
+            <div class="project_error">{{ form.start_date.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="project_form_field">
+          <label for="{{ form.end_date.id_for_label }}">End Date</label>
+          {{ form.end_date }}
+          {% if form.end_date.errors %}
+            <div class="project_error">{{ form.end_date.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="project_form_field project_form_field_full">
+          <label for="{{ form.description.id_for_label }}">Description</label>
+          {{ form.description }}
+          {% if form.description.errors %}
+            <div class="project_error">{{ form.description.errors }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if form.errors %}
+        <div class="project_error">
+          {{ form.errors }}
+        </div>
+      {% endif %}
+
+      <div class="project_form_actions">
+        <button class="crm_button" type="submit">{{ submit_label }}</button>
+        <a class="crm_button crm_button_secondary" href="{{ cancel_url }}">Cancel</a>
+      </div>
+    </form>
+  </section>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const searchableSingleFields = [
+        "#id_id_client",
+        "#id_id_inspector"
+      ];
+
+      searchableSingleFields.forEach(function (selector) {
+        const field = document.querySelector(selector);
+
+        if (field && window.TomSelect && !field.tomselect) {
+          new TomSelect(field, {
+            create: false,
+            maxOptions: 500,
+            searchField: ["text"],
+            allowEmptyOption: true,
+            plugins: ["clear_button"],
+            placeholder: "Search..."
+          });
+        }
+      });
+
+      const assignedUsersField = document.querySelector("#id_assigned_users");
+
+      if (assignedUsersField && window.TomSelect && !assignedUsersField.tomselect) {
+        new TomSelect(assignedUsersField, {
+          create: false,
+          maxOptions: 500,
+          searchField: ["text"],
+          plugins: ["remove_button"],
+          placeholder: "Search and assign users..."
+        });
+      }
+    });
+  </script>
+{% endblock %}

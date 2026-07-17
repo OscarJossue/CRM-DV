@@ -1,0 +1,10 @@
+{% extends "layouts/base.html" %}
+{% block page_title %}Google Sheets{% endblock %}
+{% block page_subtitle %}Export CRM information into Google Sheets.{% endblock %}
+{% block extra_head %}{% include "integrations/partials/_design_system.html" %}{% endblock %}
+{% block content %}
+<div class="account_theme integration_theme account_page">
+  <div class="account_toolbar"><div class="account_toolbar_title"><h2>Google Sheets</h2><p>Send CRM rows into a selected spreadsheet and tab. Useful for operations and reporting.</p></div>{% if can_create_integrations %}<a class="account_button" href="export/"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M4 10h16M10 4v16"/></svg> New Export</a>{% endif %}</div>
+  <section class="crm_card"><div class="account_table_wrap"><table class="account_table"><thead><tr><th>Source</th><th>Sheet</th><th>Rows</th><th>Status</th><th>Date</th></tr></thead><tbody>{% for export in exports %}<tr><td><span class="account_strong">{{ export.get_export_source_display }}</span></td><td><div class="account_main"><span class="account_strong">{{ export.sheet_name }}</span><span class="account_muted">{{ export.spreadsheet_id|truncatechars:28 }}</span></div></td><td>{{ export.rows_exported }}</td><td><span class="account_pill {% if export.status == 'completed' %}success{% elif export.status == 'error' %}danger{% else %}warning{% endif %}">{{ export.get_status_display }}</span></td><td>{{ export.created_at|date:"Y-m-d H:i" }}</td></tr>{% empty %}<tr><td colspan="5" class="account_empty">No Sheet exports yet.</td></tr>{% endfor %}</tbody></table></div></section>
+</div>
+{% endblock %}

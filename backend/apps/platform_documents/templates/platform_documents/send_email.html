@@ -1,0 +1,166 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Send Document by Email{% endblock %}
+
+{% block page_subtitle %}
+Send {{ document.get_document_type_display }} {{ document.document_number }} to the company owner.
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .send_doc_layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(310px, .68fr);
+    gap: 18px;
+    align-items: start;
+  }
+
+  .send_doc_form {
+    display: grid;
+    gap: 18px;
+  }
+
+  .send_doc_field {
+    display: grid;
+    gap: 7px;
+    min-width: 0;
+  }
+
+  .send_doc_label {
+    color: var(--crm_text);
+    font-size: 13px;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+  }
+
+  .send_doc_error {
+    color: var(--crm_danger);
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+
+  .send_doc_notice {
+    padding: 14px;
+    border: 1px solid rgba(31, 58, 138, 0.18);
+    border-radius: 14px;
+    background: rgba(31, 58, 138, 0.06);
+    color: var(--crm_primary);
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+  }
+
+  .send_doc_side {
+    display: grid;
+    gap: 14px;
+  }
+
+  .send_doc_panel {
+    display: grid;
+    gap: 8px;
+    padding: 18px;
+    border: 1px solid var(--crm_border);
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: var(--crm_shadow);
+  }
+
+  .send_doc_panel span {
+    color: var(--crm_muted);
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  .send_doc_panel strong,
+  .send_doc_panel p {
+    margin: 0;
+    color: var(--crm_text);
+    font-size: 14px;
+    line-height: 1.6;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+  }
+
+  .send_doc_total {
+    color: var(--crm_primary);
+    font-size: 30px;
+    font-weight: 900;
+  }
+
+  @media (max-width: 920px) {
+    .send_doc_layout {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="send_doc_layout">
+  <form class="crm_card send_doc_form" method="post">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="crm_message">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div class="send_doc_notice">
+      Recipient email is loaded from the company owner user. If it is empty, create or activate an Owner user for this company.
+    </div>
+
+    {% for field in form %}
+      <label class="send_doc_field">
+        <span class="send_doc_label">{{ field.label }}</span>
+        {{ field }}
+
+        {% if field.errors %}
+          <span class="send_doc_error">{{ field.errors }}</span>
+        {% endif %}
+      </label>
+    {% endfor %}
+
+    <div class="crm_actions">
+      <button class="crm_button" type="submit">Send Document Email</button>
+
+      <a class="crm_button crm_button_secondary" href="{% url 'platform_documents:detail' document.id_document %}">
+        Cancel
+      </a>
+    </div>
+  </form>
+
+  <aside class="send_doc_side">
+    <div class="send_doc_panel">
+      <span>Document</span>
+      <strong>{{ document.document_number }}</strong>
+      <p>{{ document.get_document_type_display }} · {{ document.get_status_display }}</p>
+    </div>
+
+    <div class="send_doc_panel">
+      <span>Company</span>
+      <strong>{{ document.id_company.name }}</strong>
+      <p>/{{ document.id_company.slug }}/</p>
+    </div>
+
+    <div class="send_doc_panel">
+      <span>Recipient Source</span>
+      <strong>Company Owner User</strong>
+      <p>The email field should match the owner account, not the company profile email.</p>
+    </div>
+
+    <div class="send_doc_panel">
+      <span>Total</span>
+      <strong class="send_doc_total">${{ document.total }}</strong>
+    </div>
+
+    <div class="send_doc_panel">
+      <span>Print Link</span>
+      <p>{{ print_url }}</p>
+    </div>
+  </aside>
+</section>
+{% endblock %}
