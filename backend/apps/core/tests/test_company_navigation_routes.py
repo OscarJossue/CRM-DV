@@ -7,16 +7,15 @@ from apps.core.context_processors import company_scoped_url
 
 
 class CompanyNavigationRouteTests(SimpleTestCase):
+    # Keep this list aligned with the routes that are actually rendered by
+    # apps.core.context_processors.crm_context for a company workspace.
     ROUTES = (
         "dashboard:dashboard_home",
         "clients:client_list",
-        "leads:lead_list",
         "opportunities:opportunity_list",
         "calendar_events:calendar_event_list",
         "projects:project_list",
         "inspections:inspection_list",
-        "evidence:evidence_file_list",
-        "supervision:supervision_list",
         "estimates:estimate_list",
         "contracts:contract_list",
         "invoices:invoice_list",
@@ -27,10 +26,8 @@ class CompanyNavigationRouteTests(SimpleTestCase):
         "suppliers:offer_list",
         "suppliers:purchase_list",
         "suppliers:reports",
-        "employees:employee_list",
         "accounts:user_account_list",
         "accounts:role_list",
-        "user_activities:dashboard",
         "smtp_settings:form",
         "languages:settings",
         "notifications:notification_list",

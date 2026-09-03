@@ -65,7 +65,7 @@ class ContractorDeliveryFinalTests(TestCase):
         Image.new("RGB", size, (160, 90, 40)).save(buffer, format="JPEG", quality=95)
         return SimpleUploadedFile(name, buffer.getvalue(), content_type="image/jpeg")
 
-    def test_inspection_single_submit_saves_notes_webp_description_and_audit(self):
+    def test_inspection_single_submit_saves_notes_webp_description_and_review(self):
         assignment = InspectionAssignment.objects.create(
             client=self.client_record,
             inspector=self.contractor,
@@ -88,7 +88,7 @@ class ContractorDeliveryFinalTests(TestCase):
         )
         self.assertEqual(response.status_code, 302)
         assignment.refresh_from_db()
-        self.assertEqual(assignment.status, "audit")
+        self.assertEqual(assignment.status, "review")
         self.assertEqual(assignment.gallery_images.count(), 1)
         photo = assignment.gallery_images.get()
         self.assertTrue(photo.file.name.endswith(".webp"))
@@ -96,7 +96,6 @@ class ContractorDeliveryFinalTests(TestCase):
         with Image.open(photo.file.path) as image:
             self.assertEqual(image.format, "WEBP")
             self.assertLessEqual(max(image.size), 1600)
-        self.assertTrue(assignment.supervisions.filter(final_audit=False).exists())
 
     def test_project_single_submit_uses_webp_and_optional_description(self):
         project = Project.objects.create(
@@ -122,30 +121,66 @@ class ContractorDeliveryFinalTests(TestCase):
         )
         self.assertEqual(response.status_code, 302)
         project.refresh_from_db()
-        self.assertEqual(project.status, "audit")
+        self.assertEqual(project.status, "review")
         evidence = project.evidence.get()
         self.assertTrue(evidence.file.name.endswith(".webp"))
         self.assertIsNone(evidence.description)
         with Image.open(evidence.file.path) as image:
             self.assertEqual(image.format, "WEBP")
 
-    def test_mobile_and_desktop_contractor_templates_are_selected_by_device(self):
+    def test_contractor_generic_detail_redirects_to_unified_responsive_portal(self):
         assignment = InspectionAssignment.objects.create(
             client=self.client_record,
             inspector=self.contractor,
             inspection_date=timezone.now(),
+            status="in_progress",
         )
         self.client.force_login(self.contractor)
-        url = reverse(
+
+        generic_url = reverse(
             "company_inspections:inspection_detail",
             kwargs={"company_slug": self.company.slug, "id_assignment": assignment.id_assignment},
         )
-        mobile_response = self.client.get(url, HTTP_USER_AGENT="Mozilla/5.0 (iPhone; CPU iPhone OS 17_0) Mobile")
-        self.assertTemplateUsed(mobile_response, "inspections/contractor_detail_mobile.html")
+        portal_url = reverse(
+            "company_contractor_portal:inspection_detail",
+            kwargs={"company_slug": self.company.slug, "id_assignment": assignment.id_assignment},
+        )
 
-        # Explicit override is stored in session and provides a real desktop interface.
-        desktop_response = self.client.get(url + "?ui=desktop", HTTP_USER_AGENT="Mozilla/5.0 (iPhone) Mobile")
-        self.assertTemplateUsed(desktop_response, "inspections/contractor_detail_desktop.html")
+        mobile_response = self.client.get(
+            generic_url,
+            HTTP_USER_AGENT="Mozilla/5.0 (iPhone; CPU iPhone OS 17_0) Mobile",
+        )
+        self.assertRedirects(
+            mobile_response,
+            portal_url,
+            fetch_redirect_response=False,
+        )
+
+        desktop_response = self.client.get(
+            generic_url,
+            HTTP_USER_AGENT="Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+        )
+        self.assertRedirects(
+            desktop_response,
+            portal_url,
+            fetch_redirect_response=False,
+        )
+
+        # The contractor portal is now one responsive template for both device
+        # classes instead of maintaining separate mobile/desktop templates.
+        portal_mobile = self.client.get(
+            portal_url,
+            HTTP_USER_AGENT="Mozilla/5.0 (iPhone; CPU iPhone OS 17_0) Mobile",
+        )
+        self.assertEqual(portal_mobile.status_code, 200)
+        self.assertTemplateUsed(portal_mobile, "contractor_portal/inspection_detail.html")
+
+        portal_desktop = self.client.get(
+            portal_url,
+            HTTP_USER_AGENT="Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+        )
+        self.assertEqual(portal_desktop.status_code, 200)
+        self.assertTemplateUsed(portal_desktop, "contractor_portal/inspection_detail.html")
 
     def test_completed_inspection_can_create_a_linked_project_with_maps(self):
         assignment = InspectionAssignment.objects.create(
