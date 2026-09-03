@@ -12,17 +12,24 @@ from apps.estimates.forms import EstimateForm
 from apps.estimates.models import Estimate
 from apps.inspections.forms import InspectionAssignmentForm
 from apps.inspections.models import InspectionAssignment, InspectionAssignmentGalleryImage
-from apps.inspections.views import InspectionAssignmentUpdateView
-from apps.inspections.services import submit_inspection_assignment_for_audit
-from apps.inspections.views import inspection_assignment_queryset_for_user
+from apps.inspections.services import (
+    approve_inspection_assignment,
+    submit_inspection_assignment_for_review,
+)
+from apps.inspections.views import (
+    InspectionAssignmentUpdateView,
+    inspection_assignment_queryset_for_user,
+)
 from apps.projects.forms import ProjectForm
 from apps.projects.models import Project, ProjectAssignment, ProjectEvidence, ProjectNote
 from apps.projects.serializers import ProjectSerializer
 from apps.projects.selectors import project_list_for_user
-from apps.projects.services import submit_project_for_audit
+from apps.projects.services import (
+    request_project_corrections,
+    submit_project_for_review,
+)
 from apps.supervision.models import Supervision
 from apps.supervision.serializers import SupervisionSerializer
-from apps.supervision.services import supervision_mark_final_audit, supervision_reject
 
 
 class ContractorAuditWorkflowTests(TestCase):
@@ -122,7 +129,7 @@ class ContractorAuditWorkflowTests(TestCase):
             [assigned_inspection.id_assignment],
         )
 
-    def test_inspection_submission_requires_evidence_and_final_audit_completes_it(self):
+    def test_inspection_submission_requires_evidence_and_review_approval_completes_it(self):
         assignment = InspectionAssignment.objects.create(
             client=self.client_record,
             inspector=self.contractor,
@@ -137,22 +144,19 @@ class ContractorAuditWorkflowTests(TestCase):
             uploaded_by=self.contractor,
         )
 
-        audit = submit_inspection_assignment_for_audit(assignment, self.contractor)
+        submitted = submit_inspection_assignment_for_review(assignment, self.contractor)
         assignment.refresh_from_db()
-        self.assertEqual(assignment.status, "audit")
+        self.assertEqual(assignment.status, "review")
         self.assertIsNotNone(assignment.submitted_for_audit_at)
-        self.assertEqual(audit.id_inspection_assignment_id, assignment.id_assignment)
-        self.assertFalse(audit.final_audit)
+        self.assertEqual(submitted.pk, assignment.pk)
 
-        supervision_mark_final_audit(audit)
+        approve_inspection_assignment(assignment, self.owner)
         assignment.refresh_from_db()
-        audit.refresh_from_db()
         self.assertEqual(assignment.status, "completed")
         self.assertIsNotNone(assignment.audit_completed_at)
-        self.assertTrue(audit.approved)
-        self.assertTrue(audit.final_audit)
+        self.assertEqual(assignment.reviewed_by_id, self.owner.pk)
 
-    def test_rejected_project_audit_returns_work_for_corrections(self):
+    def test_rejected_project_review_returns_work_for_corrections(self):
         project = Project.objects.create(
             id_company=self.company,
             id_client=self.client_record,
@@ -172,17 +176,28 @@ class ContractorAuditWorkflowTests(TestCase):
             created_by=self.contractor,
         )
 
-        audit = submit_project_for_audit(project, self.contractor)
+        submitted = submit_project_for_review(project, self.contractor)
         project.refresh_from_db()
-        self.assertEqual(project.status, "audit")
+        self.assertEqual(project.status, "review")
+        self.assertEqual(submitted.pk, project.pk)
+        last_submission = project.submitted_for_audit_at
+        self.assertIsNotNone(last_submission)
 
-        supervision_reject(audit, "Add a clear photo of the final flashing.")
+        request_project_corrections(
+            project,
+            self.owner,
+            "Add a clear photo of the final flashing.",
+        )
         project.refresh_from_db()
-        audit.refresh_from_db()
         self.assertEqual(project.status, "in_progress")
-        self.assertIsNone(project.submitted_for_audit_at)
-        self.assertTrue(audit.rejected)
-        self.assertEqual(audit.rejection_reason, "Add a clear photo of the final flashing.")
+        # The current review workflow intentionally preserves the last-submitted
+        # timestamp as part of the audit trail when corrections are requested.
+        self.assertEqual(project.submitted_for_audit_at, last_submission)
+        self.assertEqual(
+            project.review_notes,
+            "Add a clear photo of the final flashing.",
+        )
+        self.assertEqual(project.reviewed_by_id, self.owner.pk)
 
     def test_completed_inspection_can_be_the_source_of_an_estimate(self):
         assignment = InspectionAssignment.objects.create(
@@ -215,7 +230,6 @@ class ContractorAuditWorkflowTests(TestCase):
         self.assertEqual(estimate.id_company_id, self.company.id_company)
         self.assertIsNone(estimate.id_project_id)
 
-
     def test_company_owner_sees_all_company_projects_without_role_name_hacks(self):
         first = Project.objects.create(
             id_company=self.company, id_client=self.client_record, name="Owner Project One"
@@ -228,30 +242,36 @@ class ContractorAuditWorkflowTests(TestCase):
             {first.id_project, second.id_project},
         )
 
-    def test_manual_forms_and_api_cannot_skip_directly_to_audit_or_completed(self):
+    def test_manual_forms_and_api_cannot_skip_directly_to_review_or_completed(self):
+        # Status is intentionally absent from the administrative forms. A forged
+        # POST value is ignored and the model keeps its safe default status.
         project_form = ProjectForm(
             data={
                 "id_client": self.client_record.id_client,
-                "name": "Invalid Direct Completion",
+                "name": "Forged Direct Completion",
                 "status": "completed",
                 "contract_amount": "0.00",
             },
             user=self.owner,
         )
-        self.assertFalse(project_form.is_valid())
-        self.assertIn("status", project_form.errors)
+        self.assertTrue(project_form.is_valid(), project_form.errors.as_json())
+        project = project_form.save()
+        self.assertEqual(project.status, "draft")
 
         inspection_form = InspectionAssignmentForm(
             data={
                 "client": self.client_record.id_client,
                 "inspection_date": timezone.now().strftime("%Y-%m-%dT%H:%M"),
-                "status": "audit",
+                "status": "review",
             },
             user=self.owner,
         )
-        self.assertFalse(inspection_form.is_valid())
-        self.assertIn("status", inspection_form.errors)
+        self.assertTrue(inspection_form.is_valid(), inspection_form.errors.as_json())
+        assignment = inspection_form.save()
+        self.assertEqual(assignment.status, "draft")
 
+        # API serializers expose status, so protected workflow states are
+        # rejected explicitly there.
         serializer = ProjectSerializer(
             data={
                 "id_company": self.company.id_company,
@@ -263,7 +283,7 @@ class ContractorAuditWorkflowTests(TestCase):
         self.assertFalse(serializer.is_valid())
         self.assertIn("status", serializer.errors)
 
-    def test_audit_api_rejects_targets_not_waiting_for_audit(self):
+    def test_audit_api_rejects_targets_not_waiting_for_review(self):
         project = Project.objects.create(
             id_company=self.company,
             id_client=self.client_record,

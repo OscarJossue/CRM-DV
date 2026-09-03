@@ -49,6 +49,7 @@ class AutomaticHistorySignalTest(TestCase):
         self.assertIn("phone", client_logs[1].changes)
         self.assertEqual(client_logs[2].severity, "critical")
 
+
 class HistoryRoutingTest(TestCase):
     def setUp(self):
         self.company = Company.objects.create(name="Routing Company")
@@ -65,7 +66,10 @@ class HistoryRoutingTest(TestCase):
         response = self.client.get(f"/{self.company.slug}/system-logs/")
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "History")
-        self.assertContains(response, "Automatic retention enabled")
+        # Current UI exposes the actual retention windows instead of the old
+        # generic "Automatic retention enabled" sentence.
+        self.assertContains(response, "Normal: 3 days")
+        self.assertContains(response, "Critical: 7 days")
 
     def test_legacy_user_activity_route_redirects_to_history(self):
         response = self.client.get(f"/{self.company.slug}/user-activities/dashboard/")
