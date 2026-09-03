@@ -44,7 +44,7 @@ services:
   celery_beat:
     build: ./backend
     container_name: crm_v2_celery_beat
-    command: celery -A config beat -l info
+    command: celery -A config beat -l info --schedule=/tmp/celerybeat-schedule
     env_file:
       - ./.env.production
     volumes:
