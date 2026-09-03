@@ -1,0 +1,130 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  django:
+    name: Django checks, tests and Docker build
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: crm_ci
+          POSTGRES_USER: crm_ci
+          POSTGRES_PASSWORD: crm_ci_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U crm_ci -d crm_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONUNBUFFERED: "1"
+      DEBUG: "True"
+      SECRET_KEY: "c7d7f909d5de4498b73b34fef1ed2a75d86b8888d2ff8a3eec29fd21c1d77ed4"
+      INTEGRATION_ENCRYPTION_KEY: "NsNRZwHtwwsgUW_oNuTtiMg_1uT2KZQED-BJhCIVl1Y="
+      CREDENTIAL_ENCRYPTION_KEY: "S1vRIRBHK0Fs5iHElUU7SSt9XvfPxfPJiiK3y1bkizg="
+      JWT_SIGNING_KEY: "a4e1bd39a7708783256a1e05f671cb4c294e81e25bef43a79495f425cf94cd43"
+      ALLOWED_HOSTS: "localhost,127.0.0.1"
+      CSRF_TRUSTED_ORIGINS: "http://localhost:8000,http://127.0.0.1:8000"
+      CORS_ALLOWED_ORIGINS: "http://localhost:8000,http://127.0.0.1:8000"
+      POSTGRES_DB: crm_ci
+      POSTGRES_USER: crm_ci
+      POSTGRES_PASSWORD: crm_ci_password
+      POSTGRES_HOST: 127.0.0.1
+      POSTGRES_PORT: "5432"
+      POSTGRES_CONN_MAX_AGE: "0"
+      CACHE_URL: "redis://127.0.0.1:6379/2"
+      CELERY_BROKER_URL: "redis://127.0.0.1:6379/0"
+      CELERY_RESULT_BACKEND: "redis://127.0.0.1:6379/1"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Django system check
+        working-directory: backend
+        run: python manage.py check
+
+      - name: Check for missing migrations
+        working-directory: backend
+        run: python manage.py makemigrations --check --dry-run
+
+      - name: Apply migrations in CI database
+        working-directory: backend
+        run: python manage.py migrate --noinput
+
+      - name: Run Django tests
+        working-directory: backend
+        run: python manage.py test --noinput
+
+      - name: Validate production security configuration
+        working-directory: backend
+        env:
+          DEBUG: "False"
+          ALLOWED_HOSTS: "ci.example.invalid"
+          CSRF_TRUSTED_ORIGINS: "https://ci.example.invalid"
+          CORS_ALLOWED_ORIGINS: "https://ci.example.invalid"
+          CRM_PUBLIC_BASE_URL: "https://ci.example.invalid"
+          TRUST_PROXY_HEADERS: "True"
+          SECURE_SSL_REDIRECT: "True"
+          SESSION_COOKIE_SECURE: "True"
+          CSRF_COOKIE_SECURE: "True"
+          SECURE_HSTS_SECONDS: "31536000"
+          SECURE_HSTS_INCLUDE_SUBDOMAINS: "True"
+          SECURE_HSTS_PRELOAD: "False"
+        run: python manage.py check --deploy
+
+      - name: Validate production Compose file
+        run: |
+          cp .env.production.example .env.production
+          trap 'rm -f .env.production' EXIT
+          docker compose -f docker-compose.prod.yml config -q
+
+      - name: Build backend production image
+        run: docker build --pull -t crm-dv-ci:${{ github.sha }} ./backend
